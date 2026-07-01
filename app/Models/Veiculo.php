@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Veiculo extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'placa',
+        'modelo',
+        'marca',
+        'ano',
+        'tipo',
+        'renavam',
+        'capacidade_kg',
+        'status',
+    ];
+
+    // Um veículo tem muitas viagens
+    public function viagens()
+    {
+        return $this->hasMany(Viagem::class);
+    }
+}
