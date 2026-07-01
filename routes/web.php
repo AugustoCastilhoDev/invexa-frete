@@ -11,15 +11,21 @@ use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\AcertosController;
-
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->name('dashboard');
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
 Route::middleware(['auth'])->group(function () {
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+
+    // Perfil do usuário
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Motoristas
     Route::resource('motoristas', MotoristasController::class);
