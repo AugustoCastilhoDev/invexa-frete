@@ -50,6 +50,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()->status !== 'ativo') {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Este usuário está inativo. Contate um administrador.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

@@ -108,7 +108,11 @@ class ViagensController extends Controller
 
     public function show(Viagem $viagem)
     {
-        $viagem->load(['motorista', 'veiculo', 'cliente', 'lancamentos', 'descontos', 'documentos']);
+        $viagem->load([
+            'motorista', 'veiculo', 'cliente',
+            'criadoPor', 'atualizadoPor',
+            'lancamentos.criadoPor', 'descontos.criadoPor', 'documentos.criadoPor',
+        ]);
         return view('viagens.show', compact('viagem'));
     }
 

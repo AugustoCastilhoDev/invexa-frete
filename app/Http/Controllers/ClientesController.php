@@ -62,6 +62,8 @@ class ClientesController extends Controller
 
     public function show(Cliente $cliente)
     {
+        $cliente->load('criadoPor', 'atualizadoPor');
+
         $viagens = $cliente->viagens()
             ->with(['motorista', 'veiculo'])
             ->orderByDesc('data_saida')

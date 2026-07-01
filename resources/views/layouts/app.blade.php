@@ -146,8 +146,22 @@
         </a>
     </nav>
 
+    @if(auth()->user()?->isAdmin())
+    <div class="nav-section">Administração</div>
+    <nav class="nav flex-column">
+        <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
+           href="{{ route('users.index') }}">
+            <i class="bi bi-people"></i> Usuários
+        </a>
+    </nav>
+    @endif
+
     <div class="nav-section">Conta</div>
     <nav class="nav flex-column">
+        <a class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+           href="{{ route('profile.edit') }}">
+            <i class="bi bi-person-circle"></i> Meu Perfil
+        </a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">

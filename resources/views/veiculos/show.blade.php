@@ -48,6 +48,9 @@
                         </td>
                     </tr>
                 </table>
+                <div class="text-muted border-top pt-2 mt-2" style="font-size:.75rem">
+                    <i class="bi bi-person-plus me-1"></i>Cadastrado por {{ $veiculo->criadoPor?->name ?? 'desconhecido' }}
+                </div>
             </div>
         </div>
     </div>

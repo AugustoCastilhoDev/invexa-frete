@@ -16,6 +16,12 @@
             {{ $viagem->veiculo->placa }} —
             {{ $viagem->origem }} → {{ $viagem->destino }}
         </small>
+        <div class="text-muted mt-1" style="font-size:.75rem">
+            <i class="bi bi-person-plus me-1"></i>Aberta por {{ $viagem->criadoPor?->name ?? 'desconhecido' }}
+            @if($viagem->atualizadoPor && $viagem->atualizadoPor->isNot($viagem->criadoPor))
+                · <i class="bi bi-pencil-square me-1"></i>última atualização por {{ $viagem->atualizadoPor->name }}
+            @endif
+        </div>
     </div>
     <div class="d-flex gap-2 flex-wrap justify-content-end">
         @if($viagem->status !== 'encerrada')
@@ -169,7 +175,10 @@
                                     {{ ucfirst($desconto->tipo) }}
                                 </span>
                             </td>
-                            <td>{{ $desconto->descricao }}</td>
+                            <td>
+                                {{ $desconto->descricao }}
+                                <br><small class="text-muted">por {{ $desconto->criadoPor?->name ?? '—' }}</small>
+                            </td>
                             <td>{{ $desconto->data_desconto->format('d/m/Y') }}</td>
                             <td>R$ {{ number_format($desconto->valor, 2, ',', '.') }}</td>
                             <td>
@@ -254,7 +263,10 @@
                                     {{ $doc->tipo_formatado }}
                                 </span>
                             </td>
-                            <td class="fw-semibold">{{ $doc->numero }}</td>
+                            <td class="fw-semibold">
+                                {{ $doc->numero }}
+                                <br><small class="text-muted fw-normal">por {{ $doc->criadoPor?->name ?? '—' }}</small>
+                            </td>
                             <td>{{ $doc->serie ?? '-' }}</td>
                             <td>{{ $doc->data_emissao->format('d/m/Y') }}</td>
                             <td>R$ {{ number_format($doc->valor, 2, ',', '.') }}</td>
@@ -406,7 +418,10 @@
                                     {{ ucfirst($lancamento->tipo) }}
                                 </span>
                             </td>
-                            <td>{{ $lancamento->descricao }}</td>
+                            <td>
+                                {{ $lancamento->descricao }}
+                                <br><small class="text-muted">por {{ $lancamento->criadoPor?->name ?? '—' }}</small>
+                            </td>
                             <td>{{ $lancamento->data_lancamento->format('d/m/Y') }}</td>
                             <td>R$ {{ number_format($lancamento->valor, 2, ',', '.') }}</td>
                             <td>

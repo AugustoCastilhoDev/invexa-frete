@@ -50,6 +50,7 @@ class MotoristasController extends Controller
 
     public function show(Motorista $motorista)
     {
+        $motorista->load('criadoPor', 'atualizadoPor');
         $viagens = $motorista->viagens()->orderByDesc('data_saida')->paginate(10);
         return view('motoristas.show', compact('motorista', 'viagens'));
     }

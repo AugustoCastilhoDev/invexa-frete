@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TracksDeletingUser;
+use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Motorista extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $fillable = [
         'nome',
