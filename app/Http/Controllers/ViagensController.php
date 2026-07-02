@@ -77,30 +77,20 @@ class ViagensController extends Controller
             'observacoes'          => 'nullable|string',
         ]);
 
-        $data = $request->all();
+        $data = $request->only([
+            'motorista_id', 'veiculo_id', 'origem', 'destino', 'cliente_id',
+            'data_saida', 'km_inicial', 'valor_frete', 'percentual_motorista',
+            'observacoes',
+        ]);
 
         $data['valor_adiantamento'] = $request->input('valor_adiantamento', 0) ?? 0;
         $data['adiantamento_descontavel'] = $request->has('adiantamento_descontavel');
 
-        // Cálculo automático do valor do motorista
-        $data['valor_motorista'] = round(
-            ($data['valor_frete'] * $data['percentual_motorista']) / 100, 2
-        );
-
-        $data['saldo_motorista'] = round(
-            $data['valor_motorista'] - $data['valor_adiantamento'], 2
-        );
-
-        $data['lucro_transportadora'] = round(
-            $data['valor_frete'] - $data['valor_motorista'], 2
-        );
-
-        // Garante zeros nos totais iniciais
-        $data['total_combustivel'] = 0;
-        $data['total_manutencao']  = 0;
-        $data['total_descontos']   = 0;
-
         $viagem = Viagem::create($data);
+
+        // Recalcula com a mesma lógica usada em toda atualização, garantindo
+        // que o saldo já nasça respeitando adiantamento_descontavel.
+        $viagem->recalcularTotais();
 
         return redirect()->route('viagens.show', $viagem)
             ->with('success', 'Viagem aberta com sucesso!');

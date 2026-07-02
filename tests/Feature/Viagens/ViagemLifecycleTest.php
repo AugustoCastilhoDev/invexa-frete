@@ -50,6 +50,60 @@ class ViagemLifecycleTest extends TestCase
         $this->assertEquals(1800, $viagem->lucro_transportadora);
     }
 
+    public function test_abrir_viagem_com_adiantamento_nao_descontavel_nao_reduz_saldo_de_imediato(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $motorista = Motorista::factory()->create();
+        $veiculo   = Veiculo::factory()->create();
+
+        // "adiantamento_descontavel" não é enviado, simulando o checkbox desmarcado.
+        $response = $this->post(route('viagens.store'), [
+            'motorista_id'         => $motorista->id,
+            'veiculo_id'           => $veiculo->id,
+            'origem'               => 'Curitiba',
+            'destino'              => 'São Paulo',
+            'data_saida'           => now()->format('Y-m-d'),
+            'valor_frete'          => 1000,
+            'percentual_motorista' => 10,
+            'valor_adiantamento'   => 50,
+        ]);
+
+        $viagem = Viagem::firstOrFail();
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $this->assertFalse($viagem->adiantamento_descontavel);
+        // valor_motorista = 100; saldo não deve descontar o adiantamento de 50
+        $this->assertEquals(100, $viagem->saldo_motorista);
+    }
+
+    public function test_abrir_viagem_com_adiantamento_descontavel_reduz_saldo_de_imediato(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $motorista = Motorista::factory()->create();
+        $veiculo   = Veiculo::factory()->create();
+
+        $response = $this->post(route('viagens.store'), [
+            'motorista_id'              => $motorista->id,
+            'veiculo_id'                => $veiculo->id,
+            'origem'                    => 'Curitiba',
+            'destino'                   => 'São Paulo',
+            'data_saida'                => now()->format('Y-m-d'),
+            'valor_frete'               => 1000,
+            'percentual_motorista'      => 10,
+            'valor_adiantamento'        => 50,
+            'adiantamento_descontavel'  => '1',
+        ]);
+
+        $viagem = Viagem::firstOrFail();
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $this->assertTrue($viagem->adiantamento_descontavel);
+        // valor_motorista = 100; saldo = 100 - 50
+        $this->assertEquals(50, $viagem->saldo_motorista);
+    }
+
     public function test_store_exige_campos_obrigatorios(): void
     {
         $this->actingAs(User::factory()->create());
