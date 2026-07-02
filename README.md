@@ -9,6 +9,9 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/AugustoCastilhoDev/invexa-frete/actions/workflows/tests.yml">
+    <img src="https://github.com/AugustoCastilhoDev/invexa-frete/actions/workflows/tests.yml/badge.svg" alt="Tests">
+  </a>
   <img src="https://img.shields.io/badge/Laravel-13.x-FF2D20?style=flat-square&logo=laravel" alt="Laravel">
   <img src="https://img.shields.io/badge/PHP-8.3-777BB4?style=flat-square&logo=php" alt="PHP">
   <img src="https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=flat-square&logo=bootstrap" alt="Bootstrap">
