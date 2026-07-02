@@ -42,12 +42,14 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Descontos (vale, multa, outros)
 - Documentos fiscais (CT-e, MDF-e, NF-e)
 - Impressão de comprovante de acerto em PDF
+- Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 
 ### 👤 Motoristas
 - Cadastro completo (CPF, CNH, categoria, validade)
 - Percentual de comissão padrão por motorista
 - Histórico de viagens por motorista
 - Busca por nome, CPF ou telefone
+- CPF e CNH mascarados na tela (`123.***.***-01`), com opção de revelar o valor completo
 
 ### 🚛 Veículos
 - Cadastro completo da frota (placa, modelo, marca, RENAVAM)
@@ -55,12 +57,19 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Histórico de viagens por veículo
 - Busca por placa, modelo ou marca
 
+### 🔧 Manutenção de Veículos
+- Registro de manutenção preventiva/corretiva, independente de viagem
+- Data/KM da próxima manutenção prevista
+- Veículo entra em status "manutenção" automaticamente ao registrar uma manutenção em andamento, e volta para "ativo" ao concluir
+- Histórico e total gasto por veículo
+
 ### 🧑‍💼 Clientes
 - Cadastro de Pessoa Física e Jurídica
 - Busca automática de endereço por CEP (ViaCEP)
 - Tabela de frete padrão por cliente
 - Vinculação direta às viagens
 - Busca por nome, CNPJ/CPF, cidade ou telefone
+- CPF de cliente pessoa física mascarado (CNPJ não é dado pessoal, então fica visível)
 
 ### 📊 Dashboard
 - Cards de resumo: viagens abertas, faturamento, lucro, frota
@@ -68,14 +77,36 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Gráfico de Viagens por Status
 - Viagens em aberto
 - Top 5 motoristas do mês
+- Painel de **Pendências**: CNH de motorista vencida/vencendo, veículos em manutenção, documentos fiscais pendentes e manutenção preventiva vencendo
 
 ### 📈 Relatórios
 - Relatório Financeiro por período com filtros avançados
 - Resumo por motorista com paginação
 - Composição de despesas em gráfico
-- Exportação em PDF (landscape)
+- Exportação em PDF (landscape) e CSV
 - Acertos por Motorista com histórico individual
 - Separação de saldo a pagar vs total já pago
+
+### 👥 Usuários & Permissões
+- Papéis: **admin** (gerencia usuários e vê tudo) e **operador** (acesso operacional)
+- Tela de gestão de usuários restrita a admin — autocadastro público desativado
+- Login bloqueado para usuário inativo
+- Proteções contra autodesativação e remoção do último admin ativo
+
+### 🔔 Notificações
+- E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"
+- E-mail automático para o motorista quando a viagem é encerrada, com o resumo do acerto
+- Envio via [Resend](https://resend.com)
+
+### 🔒 Segurança & LGPD
+- Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, por serem documentos de identificação assinados)
+- Política de retenção de dados configurável (`config/lgpd.php`)
+- Comando `lgpd:anonimizar` que expurga dados pessoais de registros excluídos há mais tempo que o prazo configurado, preservando o histórico financeiro
+- Auditoria completa: todo registro sabe quem criou e quem alterou por último
+
+### ✅ Qualidade
+- 142+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, permissões, notificações e anonimização de dados
+- CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
 
@@ -87,11 +118,14 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Frontend | Blade + Bootstrap 5.3 + Bootstrap Icons |
 | Build | Vite 5.x |
 | Banco de dados | MySQL 8.0 |
-| Autenticação | Laravel Breeze |
+| Autenticação | Laravel Breeze (customizado, com papéis admin/operador) |
 | PDF | barryvdh/laravel-dompdf |
+| E-mail | Resend (resend/resend-php) |
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
+| Testes | PHPUnit (142+ testes) |
+| CI | GitHub Actions |
 
 ---
 
@@ -156,6 +190,8 @@ Acesse: **http://localhost:8000**
 
 ## 👤 Criando o primeiro usuário
 
+O autocadastro público está desativado — usuários só são criados por um admin, então o primeiro precisa ser criado direto no banco:
+
 ```bash
 php artisan tinker
 ```
@@ -165,12 +201,18 @@ App\Models\User::create([
     'name'     => 'Administrador',
     'email'    => 'admin@invexafrete.com',
     'password' => bcrypt('sua_senha'),
+    'role'     => 'admin',
+    'status'   => 'ativo',
 ]);
 ```
+
+A partir daí, novos usuários (admin ou operador) são criados pela tela **Usuários** dentro do sistema.
 
 ---
 
 ## 🚀 Deploy em Produção (VPS)
+
+> ⚠️ Deploy em produção está pausado por decisão do time no momento. Quando for retomado, veja o checklist completo em [ROADMAP.md](ROADMAP.md), seção "Em espera".
 
 ```bash
 # No servidor, dentro da pasta do projeto
@@ -184,6 +226,14 @@ php artisan storage:link
 # Permissões
 chmod -R 775 storage bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
+```
+
+### Cron do Laravel (obrigatório)
+
+A anonimização mensal de dados pessoais (LGPD) depende do agendador do Laravel. Adicione ao crontab do servidor:
+
+```
+* * * * * cd /caminho/do/projeto && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ### Variáveis de ambiente para produção
@@ -207,12 +257,20 @@ DB_PASSWORD=sua_senha_segura
 
 SESSION_DRIVER=file
 CACHE_STORE=file
+
+# E-mail (Resend) — necessário para as notificações funcionarem de verdade
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS="naoresponda@seudominio.com.br"
+MAIL_FROM_NAME="${APP_NAME}"
+RESEND_API_KEY=re_sua_chave_aqui
 ```
 
 ---
 
 ## 📁 Estrutura de Pastas
 app/
+├── Console/Commands/
+│   └── AnonimizarDadosExpirados.php   # comando lgpd:anonimizar
 ├── Http/Controllers/
 │   ├── AcertosController.php
 │   ├── ClientesController.php
@@ -220,18 +278,32 @@ app/
 │   ├── DescontosController.php
 │   ├── DocumentosController.php
 │   ├── LancamentosController.php
+│   ├── ManutencoesController.php
 │   ├── MotoristasController.php
 │   ├── RelatorioController.php
+│   ├── UsersController.php
 │   ├── VeiculosController.php
 │   └── ViagensController.php
+├── Http/Middleware/
+│   └── EnsureUserIsAdmin.php
 ├── Models/
+│   ├── Concerns/
+│   │   ├── TracksUser.php             # created_by / updated_by automáticos
+│   │   └── TracksDeletingUser.php     # deleted_by automático
 │   ├── Cliente.php
 │   ├── Desconto.php
 │   ├── Documento.php
 │   ├── Lancamento.php
+│   ├── Manutencao.php
 │   ├── Motorista.php
+│   ├── User.php
 │   ├── Veiculo.php
 │   └── Viagem.php
+└── Notifications/
+    ├── ViagemAguardandoAcertoNotification.php
+    └── ViagemEncerradaNotification.php
+config/
+└── lgpd.php                            # prazos de retenção de dados
 resources/
 └── views/
 ├── acertos/
@@ -239,10 +311,14 @@ resources/
 ├── layouts/
 ├── motoristas/
 ├── relatorios/
+├── users/
 ├── veiculos/
 └── viagens/
 database/
 └── migrations/
+tests/
+├── Unit/Models/
+└── Feature/
 routes/
 └── web.php
 
