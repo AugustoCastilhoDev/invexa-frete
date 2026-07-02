@@ -61,4 +61,23 @@ class RelatorioTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_csv_gera_arquivo_com_as_viagens_do_periodo(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->encerrada()->create([
+            'data_saida'  => Carbon::now()->format('Y-m-d'),
+            'valor_frete' => 1234.56,
+        ]);
+
+        $response = $this->get(route('relatorios.csv'));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+
+        $conteudo = $response->streamedContent();
+        $this->assertStringContainsString($viagem->motorista->nome, $conteudo);
+        $this->assertStringContainsString('1234,56', $conteudo);
+    }
 }

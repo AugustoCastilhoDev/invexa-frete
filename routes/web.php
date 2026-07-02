@@ -66,8 +66,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('relatorios.index');
 
     Route::get('/relatorios/pdf', [RelatorioController::class, 'pdf'])
-        ->name('relatorios.pdf');    
-    
+        ->name('relatorios.pdf');
+
+    Route::get('/relatorios/csv', [RelatorioController::class, 'csv'])
+        ->name('relatorios.csv');
+
+
     Route::post('viagens/{viagem}/documentos', [DocumentosController::class, 'store'])
         ->name('documentos.store');
     Route::patch('documentos/{documento}', [DocumentosController::class, 'update'])
@@ -86,6 +90,8 @@ Route::middleware(['auth'])->group(function () {
     ->name('acertos.index');
     Route::get('/acertos/pdf', [AcertosController::class, 'pdf'])
     ->name('acertos.pdf');
+    Route::get('/acertos/csv', [AcertosController::class, 'csv'])
+    ->name('acertos.csv');
 
 });
 

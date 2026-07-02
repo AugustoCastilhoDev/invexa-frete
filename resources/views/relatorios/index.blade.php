@@ -8,10 +8,15 @@
         <h4 class="mb-0">Relatório Financeiro</h4>
         <small class="text-muted">Análise por período</small>
     </div>
-    <a href="{{ route('relatorios.pdf', request()->query()) }}"
-       target="_blank" class="btn btn-outline-dark">
-        <i class="bi bi-printer me-1"></i> Exportar PDF
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('relatorios.csv', request()->query()) }}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar CSV
+        </a>
+        <a href="{{ route('relatorios.pdf', request()->query()) }}"
+           target="_blank" class="btn btn-outline-dark">
+            <i class="bi bi-printer me-1"></i> Exportar PDF
+        </a>
+    </div>
 </div>
 
 {{-- ── Filtros ── --}}

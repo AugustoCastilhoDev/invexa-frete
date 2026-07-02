@@ -9,10 +9,15 @@
         <small class="text-muted">Histórico financeiro individual</small>
     </div>
     @if($motoristaSel && $viagens->count() > 0)
-    <a href="{{ route('acertos.pdf', request()->query()) }}"
-       target="_blank" class="btn btn-outline-dark">
-        <i class="bi bi-printer me-1"></i> Exportar PDF
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('acertos.csv', request()->query()) }}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar CSV
+        </a>
+        <a href="{{ route('acertos.pdf', request()->query()) }}"
+           target="_blank" class="btn btn-outline-dark">
+            <i class="bi bi-printer me-1"></i> Exportar PDF
+        </a>
+    </div>
     @endif
 </div>
 

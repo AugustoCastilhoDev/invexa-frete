@@ -76,4 +76,22 @@ class AcertosTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_csv_gera_arquivo_com_as_viagens_do_motorista(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $motorista = Motorista::factory()->create();
+        $viagem = Viagem::factory()->create([
+            'motorista_id' => $motorista->id,
+            'data_saida'   => Carbon::now()->format('Y-m-d'),
+            'origem'       => 'Curitiba',
+        ]);
+
+        $response = $this->get(route('acertos.csv', ['motorista_id' => $motorista->id]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('Curitiba', $response->streamedContent());
+    }
 }
