@@ -34,6 +34,11 @@ class Documento extends Model
         return $this->belongsTo(Viagem::class);
     }
 
+    public function scopePendentes($query)
+    {
+        return $query->where('status', 'pendente');
+    }
+
     // Accessor: tipo formatado
     public function getTipoFormatadoAttribute(): string
     {

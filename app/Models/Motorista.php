@@ -34,4 +34,12 @@ class Motorista extends Model
     {
         return $this->hasMany(Viagem::class);
     }
+
+    // Motoristas ativos com CNH já vencida ou vencendo nos próximos $dias
+    public function scopeCnhVencendo($query, int $dias = 30)
+    {
+        return $query->where('status', 'ativo')
+            ->whereNotNull('validade_cnh')
+            ->where('validade_cnh', '<=', now()->addDays($dias));
+    }
 }

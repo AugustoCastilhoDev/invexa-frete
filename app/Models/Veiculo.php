@@ -28,4 +28,9 @@ class Veiculo extends Model
     {
         return $this->hasMany(Viagem::class);
     }
+
+    public function scopeEmManutencao($query)
+    {
+        return $query->where('status', 'manutencao');
+    }
 }

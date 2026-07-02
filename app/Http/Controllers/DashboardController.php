@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Viagem;
 use App\Models\Motorista;
 use App\Models\Veiculo;
+use App\Models\Documento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -57,6 +58,21 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
+        // ── Pendências operacionais ──
+        $cnhVencendo = Motorista::cnhVencendo()
+            ->orderBy('validade_cnh')
+            ->get();
+
+        $veiculosEmManutencao = Veiculo::emManutencao()
+            ->orderBy('placa')
+            ->get();
+
+        $documentosPendentes = Documento::pendentes()
+            ->with('viagem')
+            ->orderBy('data_emissao')
+            ->take(10)
+            ->get();
+
         return view('dashboard', compact(
             'totalViagensAbertas',
             'totalViagensEncerradasMes',
@@ -67,7 +83,10 @@ class DashboardController extends Controller
             'totalAguardandoAcerto',
             'ultimasViagens',
             'topMotoristas',
-            'viagensPorStatus'
+            'viagensPorStatus',
+            'cnhVencendo',
+            'veiculosEmManutencao',
+            'documentosPendentes'
         ));
     }
 

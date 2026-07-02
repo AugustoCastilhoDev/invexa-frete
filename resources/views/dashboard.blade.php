@@ -74,6 +74,92 @@
 
 </div>
 
+@php
+    $totalPendencias = $cnhVencendo->count() + $veiculosEmManutencao->count() + $documentosPendentes->count();
+@endphp
+@if($totalPendencias > 0)
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card border-start border-danger border-3">
+            <div class="card-header bg-white fw-semibold d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-exclamation-triangle me-2 text-danger"></i>Pendências</span>
+                <span class="badge bg-danger">{{ $totalPendencias }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+
+                    {{-- CNH vencendo/vencida --}}
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-semibold small text-uppercase text-muted">
+                                <i class="bi bi-person-badge me-1"></i>CNH a vencer
+                            </span>
+                            <span class="badge bg-secondary">{{ $cnhVencendo->count() }}</span>
+                        </div>
+                        @forelse($cnhVencendo as $motorista)
+                            @php $vencida = $motorista->validade_cnh->isPast(); @endphp
+                            <a href="{{ route('motoristas.show', $motorista) }}"
+                               class="d-flex justify-content-between text-decoration-none py-1 small"
+                               style="border-bottom:1px solid #f0f0f0">
+                                <span class="text-dark">{{ $motorista->nome }}</span>
+                                <span class="{{ $vencida ? 'text-danger fw-semibold' : 'text-warning' }}">
+                                    {{ $vencida
+                                        ? 'vencida há '.$motorista->validade_cnh->diffInDays(now()).'d'
+                                        : 'vence em '.now()->diffInDays($motorista->validade_cnh).'d' }}
+                                </span>
+                            </a>
+                        @empty
+                            <p class="text-muted small mb-0">Nenhuma CNH vencendo nos próximos 30 dias.</p>
+                        @endforelse
+                    </div>
+
+                    {{-- Veículos em manutenção --}}
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-semibold small text-uppercase text-muted">
+                                <i class="bi bi-car-front me-1"></i>Veículos em manutenção
+                            </span>
+                            <span class="badge bg-secondary">{{ $veiculosEmManutencao->count() }}</span>
+                        </div>
+                        @forelse($veiculosEmManutencao as $veiculo)
+                            <a href="{{ route('veiculos.show', $veiculo) }}"
+                               class="d-flex justify-content-between text-decoration-none py-1 small"
+                               style="border-bottom:1px solid #f0f0f0">
+                                <span class="text-dark">{{ $veiculo->placa }}</span>
+                                <span class="text-muted">{{ $veiculo->modelo }}</span>
+                            </a>
+                        @empty
+                            <p class="text-muted small mb-0">Nenhum veículo em manutenção.</p>
+                        @endforelse
+                    </div>
+
+                    {{-- Documentos fiscais pendentes --}}
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-semibold small text-uppercase text-muted">
+                                <i class="bi bi-file-earmark-text me-1"></i>Documentos pendentes
+                            </span>
+                            <span class="badge bg-secondary">{{ $documentosPendentes->count() }}</span>
+                        </div>
+                        @forelse($documentosPendentes as $documento)
+                            <a href="{{ route('viagens.show', $documento->viagem) }}"
+                               class="d-flex justify-content-between text-decoration-none py-1 small"
+                               style="border-bottom:1px solid #f0f0f0">
+                                <span class="text-dark">{{ $documento->tipo_formatado }} {{ $documento->numero }}</span>
+                                <span class="text-muted">{{ $documento->data_emissao->format('d/m/Y') }}</span>
+                            </a>
+                        @empty
+                            <p class="text-muted small mb-0">Nenhum documento pendente.</p>
+                        @endforelse
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="row g-4 mb-4">
 
     {{-- ── Gráfico de Faturamento ── --}}
