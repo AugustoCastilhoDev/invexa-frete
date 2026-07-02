@@ -49,7 +49,7 @@ class VeiculosController extends Controller
 
     public function show(Veiculo $veiculo)
     {
-        $veiculo->load('criadoPor', 'atualizadoPor');
+        $veiculo->load('criadoPor', 'atualizadoPor', 'manutencoes');
         $viagens = $veiculo->viagens()->orderByDesc('data_saida')->paginate(10);
         return view('veiculos.show', compact('veiculo', 'viagens'));
     }

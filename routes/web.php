@@ -13,6 +13,7 @@ use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\AcertosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\ManutencoesController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -38,6 +39,14 @@ Route::middleware(['auth'])->group(function () {
 
     // Veículos
     Route::resource('veiculos', VeiculosController::class);
+
+    // Manutenções (aninhadas no veículo)
+    Route::post('veiculos/{veiculo}/manutencoes', [ManutencoesController::class, 'store'])
+        ->name('manutencoes.store');
+    Route::patch('manutencoes/{manutencao}', [ManutencoesController::class, 'update'])
+        ->name('manutencoes.update');
+    Route::delete('manutencoes/{manutencao}', [ManutencoesController::class, 'destroy'])
+        ->name('manutencoes.destroy');
 
     // Viagens
     Route::resource('viagens', ViagensController::class)->parameters([

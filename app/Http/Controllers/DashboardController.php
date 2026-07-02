@@ -6,6 +6,7 @@ use App\Models\Viagem;
 use App\Models\Motorista;
 use App\Models\Veiculo;
 use App\Models\Documento;
+use App\Models\Manutencao;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -73,6 +74,11 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        $manutencoesVencendo = Manutencao::with('veiculo')
+            ->proximasVencendo()
+            ->orderBy('proxima_manutencao_data')
+            ->get();
+
         return view('dashboard', compact(
             'totalViagensAbertas',
             'totalViagensEncerradasMes',
@@ -86,7 +92,8 @@ class DashboardController extends Controller
             'viagensPorStatus',
             'cnhVencendo',
             'veiculosEmManutencao',
-            'documentosPendentes'
+            'documentosPendentes',
+            'manutencoesVencendo'
         ));
     }
 

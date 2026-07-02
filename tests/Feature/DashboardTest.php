@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Documento;
+use App\Models\Manutencao;
 use App\Models\Motorista;
 use App\Models\User;
 use App\Models\Veiculo;
@@ -109,5 +110,22 @@ class DashboardTest extends TestCase
         $response->assertOk();
         $response->assertViewHas('documentosPendentes', fn ($lista) => $lista->count() === 1);
         $response->assertSee('000123');
+    }
+
+    public function test_dashboard_lista_manutencao_preventiva_vencendo(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $veiculo = Veiculo::factory()->create(['placa' => 'PRV9Z99']);
+        Manutencao::factory()->create([
+            'veiculo_id' => $veiculo->id,
+            'proxima_manutencao_data' => now()->addDays(15),
+        ]);
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertViewHas('manutencoesVencendo', fn ($lista) => $lista->count() === 1);
+        $response->assertSee('PRV9Z99');
     }
 }

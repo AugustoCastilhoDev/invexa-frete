@@ -29,6 +29,12 @@ class Veiculo extends Model
         return $this->hasMany(Viagem::class);
     }
 
+    // Um veículo tem muitas manutenções
+    public function manutencoes()
+    {
+        return $this->hasMany(Manutencao::class)->orderByDesc('data_manutencao');
+    }
+
     public function scopeEmManutencao($query)
     {
         return $query->where('status', 'manutencao');

@@ -75,7 +75,7 @@
 </div>
 
 @php
-    $totalPendencias = $cnhVencendo->count() + $veiculosEmManutencao->count() + $documentosPendentes->count();
+    $totalPendencias = $cnhVencendo->count() + $veiculosEmManutencao->count() + $documentosPendentes->count() + $manutencoesVencendo->count();
 @endphp
 @if($totalPendencias > 0)
 <div class="row g-4 mb-4">
@@ -89,7 +89,7 @@
                 <div class="row g-4">
 
                     {{-- CNH vencendo/vencida --}}
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="fw-semibold small text-uppercase text-muted">
                                 <i class="bi bi-person-badge me-1"></i>CNH a vencer
@@ -114,7 +114,7 @@
                     </div>
 
                     {{-- Veículos em manutenção --}}
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="fw-semibold small text-uppercase text-muted">
                                 <i class="bi bi-car-front me-1"></i>Veículos em manutenção
@@ -134,7 +134,7 @@
                     </div>
 
                     {{-- Documentos fiscais pendentes --}}
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="fw-semibold small text-uppercase text-muted">
                                 <i class="bi bi-file-earmark-text me-1"></i>Documentos pendentes
@@ -150,6 +150,28 @@
                             </a>
                         @empty
                             <p class="text-muted small mb-0">Nenhum documento pendente.</p>
+                        @endforelse
+                    </div>
+
+                    {{-- Manutenção preventiva vencendo --}}
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-semibold small text-uppercase text-muted">
+                                <i class="bi bi-tools me-1"></i>Manutenção preventiva
+                            </span>
+                            <span class="badge bg-secondary">{{ $manutencoesVencendo->count() }}</span>
+                        </div>
+                        @forelse($manutencoesVencendo as $manutencao)
+                            <a href="{{ route('veiculos.show', $manutencao->veiculo) }}"
+                               class="d-flex justify-content-between text-decoration-none py-1 small"
+                               style="border-bottom:1px solid #f0f0f0">
+                                <span class="text-dark">{{ $manutencao->veiculo->placa }}</span>
+                                <span class="text-muted">
+                                    {{ $manutencao->proxima_manutencao_data->format('d/m/Y') }}
+                                </span>
+                            </a>
+                        @empty
+                            <p class="text-muted small mb-0">Nenhuma manutenção preventiva vencendo.</p>
                         @endforelse
                     </div>
 

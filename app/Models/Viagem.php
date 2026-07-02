@@ -4,15 +4,37 @@ namespace App\Models;
 
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
+use App\Notifications\ViagemAguardandoAcertoNotification;
+use App\Notifications\ViagemEncerradaNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Notification;
 
 class Viagem extends Model
 {
     use HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $table = 'viagens';
+
+    protected static function booted(): void
+    {
+        static::updated(function (Viagem $viagem) {
+            if (! $viagem->wasChanged('status')) {
+                return;
+            }
+
+            if ($viagem->status === 'aguardando_acerto') {
+                $admins = User::where('role', 'admin')->where('status', 'ativo')->get();
+                Notification::send($admins, new ViagemAguardandoAcertoNotification($viagem));
+            }
+
+            if ($viagem->status === 'encerrada' && $viagem->motorista->email) {
+                Notification::route('mail', $viagem->motorista->email)
+                    ->notify(new ViagemEncerradaNotification($viagem));
+            }
+        });
+    }
 
     // Força o Laravel a reconhecer o parâmetro correto na rota
     public function getRouteKeyName(): string
