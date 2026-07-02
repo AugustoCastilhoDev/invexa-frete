@@ -69,7 +69,7 @@
                 @forelse($motoristas as $motorista)
                 <tr>
                     <td class="ps-4 fw-semibold">{{ $motorista->nome }}</td>
-                    <td>{{ $motorista->cpf }}</td>
+                    <td><x-dado-sensivel :mascarado="$motorista->cpf_mascarado" :completo="$motorista->cpf" /></td>
                     <td>{{ $motorista->telefone ?? '-' }}</td>
                     <td>{{ number_format($motorista->percentual_comissao, 2, ',', '.') }}%</td>
                     <td>

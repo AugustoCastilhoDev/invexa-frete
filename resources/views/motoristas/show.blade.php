@@ -25,8 +25,10 @@
             </div>
             <div class="card-body">
                 <table class="table table-sm table-borderless">
-                    <tr><td class="text-muted">CPF</td><td>{{ $motorista->cpf }}</td></tr>
-                    <tr><td class="text-muted">CNH</td><td>{{ $motorista->cnh ?? '-' }}</td></tr>
+                    <tr><td class="text-muted">CPF</td>
+                        <td><x-dado-sensivel :mascarado="$motorista->cpf_mascarado" :completo="$motorista->cpf" /></td></tr>
+                    <tr><td class="text-muted">CNH</td>
+                        <td><x-dado-sensivel :mascarado="$motorista->cnh_mascarada" :completo="$motorista->cnh" /></td></tr>
                     <tr><td class="text-muted">Categoria</td><td>{{ $motorista->categoria_cnh ?? '-' }}</td></tr>
                     <tr><td class="text-muted">Validade CNH</td>
                         <td>{{ $motorista->validade_cnh?->format('d/m/Y') ?? '-' }}</td></tr>

@@ -73,8 +73,10 @@
                 <div class="col-md-5">
                     <h5 class="mb-0 fw-bold">{{ $motorista->nome }}</h5>
                     <small class="text-muted">
-                        CPF: {{ $motorista->cpf }}
-                        @if($motorista->cnh) | CNH: {{ $motorista->cnh }} ({{ $motorista->categoria_cnh }}) @endif
+                        CPF: <x-dado-sensivel :mascarado="$motorista->cpf_mascarado" :completo="$motorista->cpf" />
+                        @if($motorista->cnh)
+                            | CNH: <x-dado-sensivel :mascarado="$motorista->cnh_mascarada" :completo="$motorista->cnh" /> ({{ $motorista->categoria_cnh }})
+                        @endif
                     </small>
                 </div>
                 <div class="col-md-6">

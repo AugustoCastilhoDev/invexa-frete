@@ -205,6 +205,19 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Alterna entre valor mascarado e completo em dados sensíveis (CPF/CNH)
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.toggle-dado-sensivel');
+        if (!btn) return;
+
+        const span = btn.previousElementSibling;
+        const mostrando = span.textContent === span.dataset.completo;
+
+        span.textContent = mostrando ? span.dataset.mascarado : span.dataset.completo;
+        btn.querySelector('i').className = mostrando ? 'bi bi-eye' : 'bi bi-eye-slash';
+    });
+</script>
 @stack('scripts')
 
 {{-- ── Footer ── --}}

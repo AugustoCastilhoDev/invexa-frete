@@ -28,7 +28,13 @@
                     <tr><td class="text-muted">Tipo</td>
                         <td>{{ $cliente->tipo_pessoa === 'juridica' ? 'Pessoa Jurídica' : 'Pessoa Física' }}</td></tr>
                     <tr><td class="text-muted">{{ $cliente->tipo_pessoa === 'juridica' ? 'CNPJ' : 'CPF' }}</td>
-                        <td class="fw-semibold">{{ $cliente->documento_formatado }}</td></tr>
+                        <td class="fw-semibold">
+                            @if($cliente->tipo_pessoa === 'fisica')
+                                <x-dado-sensivel :mascarado="$cliente->documento_mascarado" :completo="$cliente->documento_formatado" />
+                            @else
+                                {{ $cliente->documento_formatado }}
+                            @endif
+                        </td></tr>
                     @if($cliente->razao_social)
                     <tr><td class="text-muted">Razão Social</td><td>{{ $cliente->razao_social }}</td></tr>
                     @endif

@@ -36,6 +36,7 @@ class Cliente extends Model
 
     protected $casts = [
         'tabela_frete' => 'decimal:2',
+        'anonymized_at' => 'datetime',
     ];
 
     // Cliente tem muitas viagens
@@ -52,6 +53,22 @@ class Cliente extends Model
             return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $doc);
         }
         return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $doc);
+    }
+
+    // Accessor: documento mascarado (CPF de pessoa física é dado pessoal; CNPJ não)
+    public function getDocumentoMascaradoAttribute(): string
+    {
+        if ($this->tipo_pessoa !== 'fisica') {
+            return $this->documento_formatado;
+        }
+
+        $doc = preg_replace('/\D/', '', $this->cpf_cnpj);
+
+        if (strlen($doc) !== 11) {
+            return $this->documento_formatado;
+        }
+
+        return substr($doc, 0, 3) . '.***.***-' . substr($doc, 9, 2);
     }
 
     // Accessor: endereço completo

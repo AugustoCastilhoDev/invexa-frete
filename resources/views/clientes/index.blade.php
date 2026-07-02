@@ -79,7 +79,11 @@
                         <span class="badge bg-light text-dark border">
                             {{ $cliente->tipo_pessoa === 'juridica' ? 'PJ' : 'PF' }}
                         </span>
-                        {{ $cliente->documento_formatado }}
+                        @if($cliente->tipo_pessoa === 'fisica')
+                            <x-dado-sensivel :mascarado="$cliente->documento_mascarado" :completo="$cliente->documento_formatado" />
+                        @else
+                            {{ $cliente->documento_formatado }}
+                        @endif
                     </td>
                     <td>{{ $cliente->cidade ?? '-' }}{{ $cliente->estado ? '/'.$cliente->estado : '' }}</td>
                     <td>{{ $cliente->telefone ?? $cliente->celular ?? '-' }}</td>
