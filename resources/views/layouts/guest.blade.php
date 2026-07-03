@@ -49,6 +49,13 @@
             </div>
 
             <p class="text-white/30 text-xs mt-6">&copy; {{ date('Y') }} Invexa Frete</p>
+            <p class="text-xs mt-1">
+                <span class="text-white/30">Desenvolvido por</span>
+                <a href="https://www.instagram.com/castilho_digital/" target="_blank" rel="noopener noreferrer"
+                   class="text-orange-500 font-semibold no-underline">
+                    <i class="bi bi-instagram me-1"></i>Castilho Soluções Digitais
+                </a>
+            </p>
         </div>
     </body>
 </html>
