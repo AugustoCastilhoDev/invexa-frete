@@ -75,6 +75,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"
 - E-mail automático para o motorista (se tiver e-mail cadastrado) quando a viagem é encerrada, com o resumo do acerto
 - Envio real via Resend configurado e testado
+- Sino de notificações no topbar para admins: mesma notificação de "aguardando acerto" também fica registrada por usuário (independente do e-mail), com contagem de não lidas e leitura individual — um admin marcar como lida não afeta os demais
 
 ### LGPD
 - Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, pois são documentos de identificação assinados)
@@ -88,7 +89,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Em dev continua no disco local (`public`) sem precisar de credenciais; troca de ambiente é só variável de ambiente, sem alteração de código
 
 ### Infraestrutura de qualidade
-- 159 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização e upload/armazenamento de arquivos
+- 164 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização e upload/armazenamento de arquivos
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---

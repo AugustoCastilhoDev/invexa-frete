@@ -98,6 +98,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"
 - E-mail automático para o motorista quando a viagem é encerrada, com o resumo do acerto
 - Envio via [Resend](https://resend.com)
+- Sino de notificações no topbar (para admins): contagem de não lidas e leitura por usuário — cada admin tem seu próprio estado de leitura
 
 ### ☁️ Armazenamento de arquivos
 - Comprovantes de lançamento e documentos fiscais em [Cloudflare R2](https://developers.cloudflare.com/r2/) (compatível com S3), bucket privado
@@ -132,7 +133,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (159+ testes) |
+| Testes | PHPUnit (164+ testes) |
 | CI | GitHub Actions |
 
 ---
