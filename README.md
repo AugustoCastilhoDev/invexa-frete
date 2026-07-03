@@ -99,6 +99,11 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - E-mail automático para o motorista quando a viagem é encerrada, com o resumo do acerto
 - Envio via [Resend](https://resend.com)
 
+### ☁️ Armazenamento de arquivos
+- Comprovantes de lançamento e documentos fiscais em [Cloudflare R2](https://developers.cloudflare.com/r2/) (compatível com S3), bucket privado
+- Acesso somente via URL assinada e temporária (10 min) — nada fica público por padrão
+- Disco configurável por variável de ambiente (`UPLOADS_DISK`): local em dev, R2 em produção, sem alteração de código
+
 ### 🔒 Segurança & LGPD
 - Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, por serem documentos de identificação assinados)
 - Política de retenção de dados configurável (`config/lgpd.php`)
@@ -123,10 +128,11 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | 2FA | pragmarx/google2fa-laravel + bacon/bacon-qr-code |
 | PDF | barryvdh/laravel-dompdf |
 | E-mail | Resend (resend/resend-php) |
+| Storage | Cloudflare R2 (league/flysystem-aws-s3-v3) |
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (155+ testes) |
+| Testes | PHPUnit (159+ testes) |
 | CI | GitHub Actions |
 
 ---
@@ -265,6 +271,13 @@ MAIL_MAILER=resend
 MAIL_FROM_ADDRESS="naoresponda@seudominio.com.br"
 MAIL_FROM_NAME="${APP_NAME}"
 RESEND_API_KEY=re_sua_chave_aqui
+
+# Storage (Cloudflare R2) — necessário para comprovantes/documentos irem para a nuvem
+UPLOADS_DISK=r2
+R2_ACCESS_KEY_ID=sua_access_key
+R2_SECRET_ACCESS_KEY=sua_secret_key
+R2_BUCKET=seu-bucket
+R2_ENDPOINT=https://SEU_ACCOUNT_ID.r2.cloudflarestorage.com
 ```
 
 ---

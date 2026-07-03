@@ -82,8 +82,13 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Comando `lgpd:anonimizar` (com `--dry-run`) que apaga dados pessoais de motoristas, clientes pessoa física e usuários excluídos há mais tempo que o prazo, preservando o registro para não quebrar o histórico financeiro
 - Agendado mensalmente (requer cron do Laravel ativo no servidor de produção)
 
+### Armazenamento
+- Comprovantes de lançamento e documentos fiscais anexados às viagens são enviados para **Cloudflare R2** (compatível com S3) em produção, via disco configurável (`UPLOADS_DISK`)
+- Bucket privado: acesso aos arquivos só por URL assinada e temporária (10 min), gerada sob demanda — nada fica público por padrão
+- Em dev continua no disco local (`public`) sem precisar de credenciais; troca de ambiente é só variável de ambiente, sem alteração de código
+
 ### Infraestrutura de qualidade
-- 155 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações e anonimização
+- 159 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização e upload/armazenamento de arquivos
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -92,7 +97,6 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 ### Curto prazo
 - **WhatsApp**: arquitetura de notificação já pronta para receber um novo canal; falta só a conta em um provedor (Twilio, Z-API, Meta Cloud API) para integrar de verdade
-- **Storage em nuvem (S3 ou equivalente)** para comprovantes e documentos fiscais anexados — hoje ficam em disco local, o que não escala bem se o servidor mudar ou se houver mais de uma instância
 
 ### Médio prazo
 - **API REST** para app do motorista (ex: lançar combustível/comprovante direto do celular, sem acessar o painel admin)
@@ -112,6 +116,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 - **Deploy em produção**: pausado por decisão do time (2026-07-01). Quando retomar, checklist mínimo:
   - Configurar `.env` de produção com `MAIL_MAILER=resend` + `RESEND_API_KEY` (já testado em dev)
+  - Configurar `.env` de produção com `UPLOADS_DISK=r2` + credenciais R2 (já testado em dev)
   - Confirmar cron do Laravel ativo (`* * * * * php artisan schedule:run`) para a anonimização mensal LGPD funcionar
   - Rodar `php artisan migrate --force` (22 migrations pendentes de aplicar no ambiente de produção)
   - Revisar `config/lgpd.php` / prazos de retenção com jurídico/contábil antes de confiar no expurgo automático
