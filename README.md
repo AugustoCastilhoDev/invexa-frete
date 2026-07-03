@@ -86,6 +86,8 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Exportação em PDF (landscape) e CSV
 - Acertos por Motorista com histórico individual
 - Separação de saldo a pagar vs total já pago
+- **DRE simplificado** por período (Receita → Custos Diretos → Resultado Bruto → Despesas Operacionais → Resultado Líquido), considerando apenas viagens encerradas, com exportação em PDF
+- **Despesas Gerais**: cadastro de custos administrativos (aluguel, salários, contas, seguro etc.) que alimentam o DRE
 
 ### 👥 Usuários & Permissões
 - Papéis: **admin** (gerencia usuários e vê tudo) e **operador** (acesso operacional)
@@ -133,7 +135,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (164+ testes) |
+| Testes | PHPUnit (177+ testes) |
 | CI | GitHub Actions |
 
 ---

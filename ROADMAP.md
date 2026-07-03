@@ -55,6 +55,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Resumo por motorista com paginação
 - Composição de despesas em gráfico
 - Exportação em PDF (landscape) e CSV
+- **DRE simplificado** por período: Receita Bruta → Custos Diretos (comissão, combustível, manutenção de viagem) → Resultado Bruto → Despesas Operacionais (manutenção de frota avulsa + despesas administrativas) → Resultado Líquido. Considera apenas viagens encerradas. Exportação em PDF
+- **Despesas Gerais**: cadastro de custos administrativos não ligados a uma viagem (aluguel, salários, contas, seguro, impostos, marketing, outros), com filtro por período/categoria — alimenta o DRE
 
 ### Dashboard
 - Cards de resumo: viagens abertas, faturamento, lucro, frota
@@ -89,7 +91,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Em dev continua no disco local (`public`) sem precisar de credenciais; troca de ambiente é só variável de ambiente, sem alteração de código
 
 ### Infraestrutura de qualidade
-- 164 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização e upload/armazenamento de arquivos
+- 177 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização e upload/armazenamento de arquivos
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -102,8 +104,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 ### Médio prazo
 - **API REST** para app do motorista (ex: lançar combustível/comprovante direto do celular, sem acessar o painel admin)
 - **Portal do motorista/cliente**: acesso restrito só aos próprios dados (viagens, acertos, documentos)
-- **Fluxo de caixa / DRE simplificado**: visão financeira mais completa que o relatório atual, pensando em decisões gerenciais
 - **Assinatura digital do comprovante de acerto**: hoje é só impressão em PDF; um fluxo de assinatura eletrônica reduziria atrito operacional
+- **Fluxo de caixa**: complementar ao DRE (que é por competência); acompanharia entradas/saídas reais de caixa por data de pagamento
 
 ### Longo prazo (apostas maiores, ligadas ao plano de vender para outras transportadoras)
 - **Multi-tenant**: isolar dados por empresa cliente (`empresa_id` + escopo global em todas as tabelas). Pré-requisito real antes de vender a segunda licença — a estrutura de papéis (admin/operador) já construída é a base para isso
