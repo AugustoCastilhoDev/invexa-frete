@@ -177,7 +177,45 @@
         <i class="bi bi-chevron-right text-muted me-1" style="font-size:.7rem"></i>
         @yield('title', 'Dashboard')
     </h6>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-3">
+        <div class="dropdown">
+            <button class="btn btn-link text-muted position-relative p-0" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false" title="Notificações">
+                <i class="bi bi-bell" style="font-size:1.2rem"></i>
+                @if($notificacoesNaoLidas->count() > 0)
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                      style="font-size:.6rem">
+                    {{ $notificacoesNaoLidas->count() > 9 ? '9+' : $notificacoesNaoLidas->count() }}
+                </span>
+                @endif
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-0" style="width:340px;max-height:420px;overflow-y:auto">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                    <span class="fw-semibold small">Notificações</span>
+                    @if($notificacoesNaoLidas->count() > 0)
+                    <form method="POST" action="{{ route('notificacoes.ler-todas') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size:.75rem">
+                            Marcar todas como lidas
+                        </button>
+                    </form>
+                    @endif
+                </div>
+                @forelse($notificacoesNaoLidas as $notificacao)
+                <form method="POST" action="{{ route('notificacoes.ler', $notificacao->id) }}">
+                    @csrf
+                    <button type="submit" class="dropdown-item py-2 border-bottom" style="white-space:normal">
+                        <div class="fw-semibold small">{{ $notificacao->data['titulo'] ?? 'Notificação' }}</div>
+                        <div class="text-muted" style="font-size:.75rem">{{ $notificacao->data['mensagem'] ?? '' }}</div>
+                        <div class="text-muted" style="font-size:.65rem">{{ $notificacao->created_at->diffForHumans() }}</div>
+                    </button>
+                </form>
+                @empty
+                <div class="text-center text-muted small py-4">Nenhuma notificação pendente</div>
+                @endforelse
+            </div>
+        </div>
+
         <i class="bi bi-person-circle text-muted"></i>
         <span class="text-muted small">{{ Auth::user()?->name }}</span>
     </div>

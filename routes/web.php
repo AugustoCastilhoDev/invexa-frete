@@ -14,6 +14,7 @@ use App\Http\Controllers\AcertosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\ManutencoesController;
+use App\Http\Controllers\NotificacoesController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 
 Route::get('/', function () {
@@ -39,6 +40,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('two-factor.disable');
     Route::post('/user/two-factor-recovery-codes', [TwoFactorAuthenticationController::class, 'regenerateRecoveryCodes'])
         ->name('two-factor.recovery-codes');
+
+    // Notificações
+    Route::post('notificacoes/{notificacao}/ler', [NotificacoesController::class, 'marcarComoLida'])
+        ->name('notificacoes.ler');
+    Route::post('notificacoes/ler-todas', [NotificacoesController::class, 'marcarTodasComoLidas'])
+        ->name('notificacoes.ler-todas');
 
     // Usuários do sistema (apenas admin)
     Route::resource('users', UsersController::class)

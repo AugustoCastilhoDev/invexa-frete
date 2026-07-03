@@ -17,7 +17,7 @@ class ViagemAguardandoAcertoNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -31,5 +31,16 @@ class ViagemAguardandoAcertoNotification extends Notification
             ->line('Saldo a pagar: R$ ' . number_format($viagem->saldo_motorista, 2, ',', '.'))
             ->action('Ver viagem', route('viagens.show', $viagem))
             ->line('Este é um aviso automático do Invexa Frete.');
+    }
+
+    public function toArray(object $notifiable): array
+    {
+        $viagem = $this->viagem;
+
+        return [
+            'titulo'   => "Viagem #{$viagem->id} aguardando acerto",
+            'mensagem' => "{$viagem->origem} → {$viagem->destino} · motorista {$viagem->motorista->nome} · saldo R$ " . number_format($viagem->saldo_motorista, 2, ',', '.'),
+            'url'      => route('viagens.show', $viagem),
+        ];
     }
 }
