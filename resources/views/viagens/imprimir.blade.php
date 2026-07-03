@@ -474,9 +474,18 @@
     {{-- ── ASSINATURAS ── --}}
     <div class="assinaturas">
         <div class="assinatura-box">
-            <div class="assinatura-linha"></div>
+            @if($assinaturaBase64)
+                <img src="{{ $assinaturaBase64 }}" alt="Assinatura" style="max-height:50px;max-width:100%">
+            @else
+                <div class="assinatura-linha"></div>
+            @endif
             <div class="assinatura-nome">{{ $viagem->motorista->nome }}</div>
-            <div class="assinatura-label">Motorista — CPF: {{ $viagem->motorista->cpf }}</div>
+            <div class="assinatura-label">
+                Motorista — CPF: {{ $viagem->motorista->cpf }}
+                @if($assinaturaBase64)
+                    <br>Assinado digitalmente em {{ $viagem->assinatura_motorista_em->format('d/m/Y \à\s H:i') }}
+                @endif
+            </div>
         </div>
         <div class="assinatura-box">
             <div class="assinatura-linha"></div>

@@ -563,6 +563,135 @@
             </div>
         </div>
 
+        {{-- Assinatura Digital do Motorista --}}
+        <div class="card mb-4">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-pen me-2 text-primary"></i>Assinatura Digital do Motorista
+            </div>
+            <div class="card-body">
+                @if($viagem->assinatura_motorista_path)
+                    <img src="{{ $viagem->assinatura_motorista_url }}" alt="Assinatura do motorista"
+                         style="max-width:100%;max-height:120px;border:1px solid #e9ecef;border-radius:8px;background:#fff">
+                    <div class="text-muted small mt-2">
+                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                        Assinado em {{ $viagem->assinatura_motorista_em->format('d/m/Y \à\s H:i') }}
+                    </div>
+                    @if($viagem->podeSerAssinada())
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+                            data-bs-toggle="modal" data-bs-target="#modalAssinatura">
+                        <i class="bi bi-arrow-repeat me-1"></i> Assinar Novamente
+                    </button>
+                    @endif
+                @elseif($viagem->podeSerAssinada())
+                    <p class="text-muted small mb-2">O motorista ainda não assinou o comprovante de acerto desta viagem.</p>
+                    <button type="button" class="btn btn-primary btn-sm"
+                            data-bs-toggle="modal" data-bs-target="#modalAssinatura">
+                        <i class="bi bi-pen me-1"></i> Coletar Assinatura
+                    </button>
+                @else
+                    <p class="text-muted small mb-0">A assinatura fica disponível quando a viagem estiver aguardando acerto ou encerrada.</p>
+                @endif
+            </div>
+        </div>
+
     </div>
 </div>
+
+{{-- Modal de Assinatura --}}
+<div class="modal fade" id="modalAssinatura" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title mb-0"><i class="bi bi-pen me-2"></i>Assinatura do Motorista</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">
+                    Peça para <strong>{{ $viagem->motorista->nome }}</strong> assinar no espaço abaixo, confirmando o acerto desta viagem.
+                </p>
+                <canvas id="assinatura-canvas" width="460" height="180"
+                        style="border:1px solid #ced4da;border-radius:8px;width:100%;touch-action:none;cursor:crosshair;background:#fff"></canvas>
+                <div class="text-end mt-2">
+                    <button type="button" id="btn-limpar-assinatura" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-eraser me-1"></i> Limpar
+                    </button>
+                </div>
+                <div class="text-danger small mt-1" id="erro-assinatura" style="display:none">
+                    Colete a assinatura antes de confirmar.
+                </div>
+                <form id="form-assinatura" action="{{ route('viagens.assinar', $viagem) }}" method="POST">
+                    @csrf @method('PATCH')
+                    <input type="hidden" name="assinatura" id="input-assinatura">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btn-confirmar-assinatura" class="btn btn-primary btn-sm">
+                    <i class="bi bi-check-lg me-1"></i> Confirmar Assinatura
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+(function () {
+    const canvas = document.getElementById('assinatura-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let desenhando = false;
+    let temTraco = false;
+
+    function limparCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        temTraco = false;
+        document.getElementById('erro-assinatura').style.display = 'none';
+    }
+
+    function posicao(e) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (e.clientX - rect.left) * (canvas.width / rect.width),
+            y: (e.clientY - rect.top) * (canvas.height / rect.height),
+        };
+    }
+
+    canvas.addEventListener('pointerdown', function (e) {
+        desenhando = true;
+        temTraco = true;
+        const p = posicao(e);
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#1a1a2e';
+    });
+
+    canvas.addEventListener('pointermove', function (e) {
+        if (!desenhando) return;
+        const p = posicao(e);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+    });
+
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (evento) {
+        canvas.addEventListener(evento, function () { desenhando = false; });
+    });
+
+    document.getElementById('btn-limpar-assinatura').addEventListener('click', limparCanvas);
+    document.getElementById('modalAssinatura').addEventListener('shown.bs.modal', limparCanvas);
+
+    document.getElementById('btn-confirmar-assinatura').addEventListener('click', function () {
+        if (!temTraco) {
+            document.getElementById('erro-assinatura').style.display = 'block';
+            return;
+        }
+        document.getElementById('input-assinatura').value = canvas.toDataURL('image/png');
+        document.getElementById('form-assinatura').submit();
+    });
+})();
+</script>
+@endpush
 @endsection

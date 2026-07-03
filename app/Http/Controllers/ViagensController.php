@@ -8,6 +8,9 @@ use App\Models\Veiculo;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Cliente;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ViagensController extends Controller
 {
@@ -177,11 +180,50 @@ class ViagensController extends Controller
             ->with('success', 'Viagem encerrada com sucesso!');
     }
 
+    public function assinar(Request $request, Viagem $viagem)
+    {
+        abort_unless($viagem->podeSerAssinada(), 400, 'Esta viagem ainda não está pronta para acerto.');
+
+        $request->validate([
+            'assinatura' => ['required', 'string', 'regex:/^data:image\/png;base64,/'],
+        ]);
+
+        $base64  = substr($request->input('assinatura'), strlen('data:image/png;base64,'));
+        $binario = base64_decode($base64, true);
+
+        if ($binario === false || strlen($binario) > 500 * 1024 || @getimagesizefromstring($binario) === false) {
+            throw ValidationException::withMessages(['assinatura' => 'Assinatura inválida.']);
+        }
+
+        $disco   = config('filesystems.uploads_disk');
+        $caminho = 'assinaturas/viagem-' . $viagem->id . '-' . (string) Str::uuid() . '.png';
+
+        Storage::disk($disco)->put($caminho, $binario);
+
+        if ($viagem->assinatura_motorista_path) {
+            Storage::disk($disco)->delete($viagem->assinatura_motorista_path);
+        }
+
+        $viagem->forceFill([
+            'assinatura_motorista_path' => $caminho,
+            'assinatura_motorista_em'   => now(),
+        ])->save();
+
+        return redirect()->route('viagens.show', $viagem)
+            ->with('success', 'Assinatura do motorista registrada com sucesso!');
+    }
+
     public function imprimir(Viagem $viagem)
     {
         $viagem->load(['motorista', 'veiculo', 'lancamentos', 'descontos']);
 
-        $pdf = Pdf::loadView('viagens.imprimir', compact('viagem'))
+        $assinaturaBase64 = null;
+        if ($viagem->assinatura_motorista_path) {
+            $conteudo = Storage::disk(config('filesystems.uploads_disk'))->get($viagem->assinatura_motorista_path);
+            $assinaturaBase64 = $conteudo ? 'data:image/png;base64,' . base64_encode($conteudo) : null;
+        }
+
+        $pdf = Pdf::loadView('viagens.imprimir', compact('viagem', 'assinaturaBase64'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream('acerto-viagem-' . $viagem->id . '.pdf');

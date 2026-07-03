@@ -83,6 +83,9 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('viagens/{viagem}/encerrar', [ViagensController::class, 'encerrar'])
         ->name('viagens.encerrar');
 
+    Route::patch('viagens/{viagem}/assinatura', [ViagensController::class, 'assinar'])
+        ->name('viagens.assinar');
+
     Route::get('viagens/{viagem}/imprimir', [ViagensController::class, 'imprimir'])
     ->name('viagens.imprimir');
 

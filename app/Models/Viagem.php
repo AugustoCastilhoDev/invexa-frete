@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUploadedFile;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
 use App\Notifications\ViagemAguardandoAcertoNotification;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Notification;
 
 class Viagem extends Model
 {
-    use HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
+    use HasFactory, HasUploadedFile, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $table = 'viagens';
 
@@ -79,6 +80,7 @@ class Viagem extends Model
         'adiantamento_descontavel' => 'boolean',
         'saldo_motorista'      => 'decimal:2',
         'lucro_transportadora' => 'decimal:2',
+        'assinatura_motorista_em' => 'datetime',
     ];
 
     // Viagem pertence a um motorista
@@ -136,6 +138,17 @@ class Viagem extends Model
     public function getProximoStatusLabelAttribute(): ?string
     {
         return self::PROXIMO_STATUS_LABEL[$this->proximo_status] ?? null;
+    }
+
+    // Assinatura digital do motorista no comprovante de acerto
+    public function getAssinaturaMotoristaUrlAttribute(): ?string
+    {
+        return $this->uploadedFileUrl($this->assinatura_motorista_path);
+    }
+
+    public function podeSerAssinada(): bool
+    {
+        return in_array($this->status, ['aguardando_acerto', 'encerrada'], true);
     }
 
     // Acessor: KM rodados
