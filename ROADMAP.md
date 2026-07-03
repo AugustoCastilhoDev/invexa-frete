@@ -45,6 +45,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Impressão de comprovante de acerto em PDF
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 - Avanço de status direto na tela da viagem (Aberta → Em Andamento → Aguardando Acerto), sem precisar abrir a edição; não permite pular etapas, evitando reabrir uma viagem já encerrada por engano
+- **Assinatura digital do motorista**: captura a assinatura por canvas na tela da viagem (aguardando acerto ou encerrada), sem depender de app externo; a assinatura sai embutida no comprovante em PDF, com data/hora do momento em que foi coletada
 
 ### Financeiro / Acertos
 - Acertos por Motorista com histórico individual
@@ -93,7 +94,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Em dev continua no disco local (`public`) sem precisar de credenciais; troca de ambiente é só variável de ambiente, sem alteração de código
 
 ### Infraestrutura de qualidade
-- 177 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização e upload/armazenamento de arquivos
+- 183 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização e upload/armazenamento de arquivos
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -106,7 +107,6 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 ### Médio prazo
 - **API REST** para app do motorista (ex: lançar combustível/comprovante direto do celular, sem acessar o painel admin)
 - **Portal do motorista/cliente**: acesso restrito só aos próprios dados (viagens, acertos, documentos)
-- **Assinatura digital do comprovante de acerto**: hoje é só impressão em PDF; um fluxo de assinatura eletrônica reduziria atrito operacional
 - **Fluxo de caixa**: complementar ao DRE (que é por competência); acompanharia entradas/saídas reais de caixa por data de pagamento
 
 ### Longo prazo (apostas maiores, ligadas ao plano de vender para outras transportadoras)
@@ -125,4 +125,5 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
   - Confirmar cron do Laravel ativo (`* * * * * php artisan schedule:run`) para a anonimização mensal LGPD funcionar
   - Rodar `php artisan migrate --force` (22 migrations pendentes de aplicar no ambiente de produção)
   - Revisar `config/lgpd.php` / prazos de retenção com jurídico/contábil antes de confiar no expurgo automático
+  - Confirmar que a extensão PHP `gd` está habilitada no servidor (necessária para o comprovante em PDF exibir a assinatura digital do motorista)
 - **WhatsApp**: aguardando decisão de provedor
