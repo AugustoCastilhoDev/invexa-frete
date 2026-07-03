@@ -43,6 +43,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Documentos fiscais (CT-e, MDF-e, NF-e)
 - Impressão de comprovante de acerto em PDF
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
+- Avanço de status direto na tela da viagem, sem precisar abrir a edição; não permite pular etapas
 
 ### 👤 Motoristas
 - Cadastro completo (CPF, CNH, categoria, validade)
@@ -95,6 +96,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Login bloqueado para usuário inativo
 - Proteções contra autodesativação e remoção do último admin ativo
 - Autenticação em Dois Fatores (2FA) opcional via TOTP, com QR Code, confirmação obrigatória antes de ativar e códigos de recuperação de uso único
+- Telas de login, recuperação de senha e desafio de 2FA com identidade visual própria (logo, cores da marca)
 
 ### 🔔 Notificações
 - E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"

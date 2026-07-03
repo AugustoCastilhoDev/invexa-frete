@@ -44,6 +44,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Documentos fiscais (CT-e, MDF-e, NF-e)
 - Impressão de comprovante de acerto em PDF
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
+- Avanço de status direto na tela da viagem (Aberta → Em Andamento → Aguardando Acerto), sem precisar abrir a edição; não permite pular etapas, evitando reabrir uma viagem já encerrada por engano
 
 ### Financeiro / Acertos
 - Acertos por Motorista com histórico individual
@@ -72,6 +73,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Login bloqueado para usuário inativo
 - Proteções: ninguém desativa/rebaixa a si mesmo; sempre precisa sobrar um admin ativo
 - Autenticação em Dois Fatores (2FA) opcional via TOTP (Google Authenticator, Authy etc.), autogerenciável na tela de Perfil, com códigos de recuperação de uso único
+- Telas de login, recuperação de senha e desafio de 2FA com identidade visual própria (logo, cores da marca)
 
 ### Notificações
 - E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"
