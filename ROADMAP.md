@@ -69,6 +69,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Autocadastro público desativado — usuários só são criados por um admin
 - Login bloqueado para usuário inativo
 - Proteções: ninguém desativa/rebaixa a si mesmo; sempre precisa sobrar um admin ativo
+- Autenticação em Dois Fatores (2FA) opcional via TOTP (Google Authenticator, Authy etc.), autogerenciável na tela de Perfil, com códigos de recuperação de uso único
 
 ### Notificações
 - E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"
@@ -82,7 +83,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Agendado mensalmente (requer cron do Laravel ativo no servidor de produção)
 
 ### Infraestrutura de qualidade
-- 142 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, notificações e anonimização
+- 155 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações e anonimização
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -91,7 +92,6 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 ### Curto prazo
 - **WhatsApp**: arquitetura de notificação já pronta para receber um novo canal; falta só a conta em um provedor (Twilio, Z-API, Meta Cloud API) para integrar de verdade
-- **2FA para admins**: camada extra de segurança para quem gerencia usuários e vê o financeiro completo
 - **Storage em nuvem (S3 ou equivalente)** para comprovantes e documentos fiscais anexados — hoje ficam em disco local, o que não escala bem se o servidor mudar ou se houver mais de uma instância
 
 ### Médio prazo

@@ -92,6 +92,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Tela de gestão de usuários restrita a admin — autocadastro público desativado
 - Login bloqueado para usuário inativo
 - Proteções contra autodesativação e remoção do último admin ativo
+- Autenticação em Dois Fatores (2FA) opcional via TOTP, com QR Code, confirmação obrigatória antes de ativar e códigos de recuperação de uso único
 
 ### 🔔 Notificações
 - E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"
@@ -105,7 +106,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
 
 ### ✅ Qualidade
-- 142+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, permissões, notificações e anonimização de dados
+- 155+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, permissões, 2FA, notificações e anonimização de dados
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -119,12 +120,13 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Build | Vite 5.x |
 | Banco de dados | MySQL 8.0 |
 | Autenticação | Laravel Breeze (customizado, com papéis admin/operador) |
+| 2FA | pragmarx/google2fa-laravel + bacon/bacon-qr-code |
 | PDF | barryvdh/laravel-dompdf |
 | E-mail | Resend (resend/resend-php) |
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (142+ testes) |
+| Testes | PHPUnit (155+ testes) |
 | CI | GitHub Actions |
 
 ---
