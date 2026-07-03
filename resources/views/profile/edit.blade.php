@@ -21,6 +21,12 @@
             </div>
         </div>
 
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                @include('profile.partials.two-factor-authentication-form')
+            </div>
+        </div>
+
         <div class="card border-danger-subtle">
             <div class="card-body p-4">
                 @include('profile.partials.delete-user-form')

@@ -36,13 +36,17 @@ class LoginRequest extends FormRequest
     /**
      * Attempt to authenticate the request's credentials.
      *
+     * Não usa Auth::attempt() diretamente porque, quando o usuário tem 2FA
+     * ativado, o login só deve ser efetivado depois de validar o segundo
+     * fator (ver requiresTwoFactorChallenge()).
+     *
      * @throws ValidationException
      */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (! Auth::validate($this->only('email', 'password'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -50,8 +54,9 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        if (Auth::user()->status !== 'ativo') {
-            Auth::logout();
+        $user = Auth::getProvider()->retrieveByCredentials($this->only('email', 'password'));
+
+        if ($user->status !== 'ativo') {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -60,6 +65,23 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        if ($user->hasEnabledTwoFactorAuthentication()) {
+            $this->session()->put('login.id', $user->id);
+            $this->session()->put('login.remember', $this->boolean('remember'));
+
+            return;
+        }
+
+        Auth::login($user, $this->boolean('remember'));
+    }
+
+    /**
+     * Indica se o login ficou pendente de segundo fator (2FA).
+     */
+    public function requiresTwoFactorChallenge(): bool
+    {
+        return $this->session()->has('login.id');
     }
 
     /**

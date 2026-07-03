@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use PragmaRX\Google2FAQRCode\Google2FA;
 
 class ProfileController extends Controller
 {
@@ -16,8 +17,20 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+        $qrCodeSvg = null;
+
+        if ($user->two_factor_secret && ! $user->hasEnabledTwoFactorAuthentication()) {
+            $qrCodeSvg = (new Google2FA())->getQRCodeInline(
+                config('app.name'),
+                $user->email,
+                $user->two_factor_secret
+            );
+        }
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'qrCodeSvg' => $qrCodeSvg,
         ]);
     }
 
