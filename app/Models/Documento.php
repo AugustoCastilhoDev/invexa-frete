@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUploadedFile;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Documento extends Model
 {
-    use HasFactory, TracksUser;
+    use HasFactory, HasUploadedFile, TracksUser;
 
     protected $fillable = [
         'viagem_id',
@@ -59,5 +60,11 @@ class Documento extends Model
             'cancelado'  => 'danger',
             default      => 'warning',
         };
+    }
+
+    // Accessor: URL para baixar o arquivo (assinada e temporária, se o disco for a nuvem)
+    public function getArquivoUrlAttribute(): ?string
+    {
+        return $this->uploadedFileUrl($this->arquivo);
     }
 }

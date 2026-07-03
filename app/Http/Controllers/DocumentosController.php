@@ -27,7 +27,7 @@ class DocumentosController extends Controller
 
         if ($request->hasFile('arquivo')) {
             $data['arquivo'] = $request->file('arquivo')
-                ->store('documentos', 'public');
+                ->store('documentos', config('filesystems.uploads_disk'));
         }
 
         Documento::create($data);

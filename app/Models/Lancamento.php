@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUploadedFile;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Lancamento extends Model
 {
-    use HasFactory, TracksUser;
+    use HasFactory, HasUploadedFile, TracksUser;
 
     protected $fillable = [
         'viagem_id',
@@ -29,6 +30,12 @@ class Lancamento extends Model
     public function viagem()
     {
         return $this->belongsTo(Viagem::class);
+    }
+
+    // Accessor: URL para baixar o comprovante (assinada e temporária, se o disco for a nuvem)
+    public function getComprovanteUrlAttribute(): ?string
+    {
+        return $this->uploadedFileUrl($this->comprovante);
     }
 
     // Após salvar, recalcula os totais da viagem

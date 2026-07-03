@@ -24,7 +24,7 @@ class LancamentosController extends Controller
 
         if ($request->hasFile('comprovante')) {
             $data['comprovante'] = $request->file('comprovante')
-                ->store('comprovantes', 'public');
+                ->store('comprovantes', config('filesystems.uploads_disk'));
         }
 
         Lancamento::create($data);

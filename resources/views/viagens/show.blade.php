@@ -278,7 +278,7 @@
                             <td>
                                 <div class="d-flex gap-1">
                                     @if($doc->arquivo)
-                                    <a href="{{ asset('storage/'.$doc->arquivo) }}"
+                                    <a href="{{ $doc->arquivo_url }}"
                                        target="_blank"
                                        class="btn btn-sm btn-outline-secondary"
                                        title="Baixar arquivo">
