@@ -159,6 +159,53 @@ class ViagemLifecycleTest extends TestCase
         $this->assertNotNull($viagem->data_retorno);
     }
 
+    public function test_avancar_status_de_aberta_move_para_em_andamento(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create(['status' => 'aberta']);
+
+        $response = $this->patch(route('viagens.avancar-status', $viagem));
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $this->assertEquals('em_andamento', $viagem->fresh()->status);
+    }
+
+    public function test_avancar_status_de_em_andamento_move_para_aguardando_acerto(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create(['status' => 'em_andamento']);
+
+        $response = $this->patch(route('viagens.avancar-status', $viagem));
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $this->assertEquals('aguardando_acerto', $viagem->fresh()->status);
+    }
+
+    public function test_avancar_status_nao_pula_para_encerrada(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create(['status' => 'aguardando_acerto']);
+
+        $response = $this->patch(route('viagens.avancar-status', $viagem));
+
+        $response->assertStatus(400);
+        $this->assertEquals('aguardando_acerto', $viagem->fresh()->status);
+    }
+
+    public function test_avancar_status_de_viagem_encerrada_e_rejeitado(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->encerrada()->create();
+
+        $response = $this->patch(route('viagens.avancar-status', $viagem));
+
+        $response->assertStatus(400);
+    }
+
     public function test_excluir_viagem_remove_da_listagem_padrao(): void
     {
         $this->actingAs(User::factory()->create());

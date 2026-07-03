@@ -70,6 +70,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('viagens', ViagensController::class)->parameters([
     'viagens' => 'viagem']);
     
+    Route::patch('viagens/{viagem}/avancar-status', [ViagensController::class, 'avancarStatus'])
+        ->name('viagens.avancar-status');
+
     Route::patch('viagens/{viagem}/encerrar', [ViagensController::class, 'encerrar'])
         ->name('viagens.encerrar');
 

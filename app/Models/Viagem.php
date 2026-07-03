@@ -116,6 +116,28 @@ class Viagem extends Model
     {
         return $this->hasMany(Documento::class);
     }
+    // Próximo status no fluxo (aberta → em_andamento → aguardando_acerto).
+    // O encerramento tem sua própria ação (rota "encerrar"), por isso não entra aqui.
+    private const PROXIMO_STATUS = [
+        'aberta'       => 'em_andamento',
+        'em_andamento' => 'aguardando_acerto',
+    ];
+
+    private const PROXIMO_STATUS_LABEL = [
+        'em_andamento'      => 'Iniciar Viagem',
+        'aguardando_acerto' => 'Marcar Aguardando Acerto',
+    ];
+
+    public function getProximoStatusAttribute(): ?string
+    {
+        return self::PROXIMO_STATUS[$this->status] ?? null;
+    }
+
+    public function getProximoStatusLabelAttribute(): ?string
+    {
+        return self::PROXIMO_STATUS_LABEL[$this->proximo_status] ?? null;
+    }
+
     // Acessor: KM rodados
     public function getKmRodadosAttribute(): int
     {

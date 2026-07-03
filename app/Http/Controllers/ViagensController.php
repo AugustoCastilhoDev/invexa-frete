@@ -152,6 +152,19 @@ class ViagensController extends Controller
             ->with('success', 'Viagem removida com sucesso!');
     }
 
+    public function avancarStatus(Viagem $viagem)
+    {
+        $proximo = $viagem->proximo_status;
+
+        abort_if(! $proximo, 400, 'Não há um próximo status para esta viagem.');
+
+        $viagem->update(['status' => $proximo]);
+        $viagem->recalcularTotais();
+
+        return redirect()->route('viagens.show', $viagem)
+            ->with('success', 'Status da viagem atualizado com sucesso!');
+    }
+
     public function encerrar(Viagem $viagem)
     {
         $viagem->update([

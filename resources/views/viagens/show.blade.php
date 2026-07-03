@@ -28,6 +28,16 @@
             <a href="{{ route('viagens.edit', $viagem) }}" class="btn btn-outline-primary btn-sm">
                 <i class="bi bi-pencil me-1"></i> Editar
             </a>
+
+            @if($viagem->proximo_status)
+            <form action="{{ route('viagens.avancar-status', $viagem) }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('{{ $viagem->proximo_status_label }}?')">
+                @csrf @method('PATCH')
+                <button class="btn btn-primary btn-sm">
+                    <i class="bi bi-arrow-right-circle me-1"></i> {{ $viagem->proximo_status_label }}
+                </button>
+            </form>
+            @elseif($viagem->status === 'aguardando_acerto')
             <form action="{{ route('viagens.encerrar', $viagem) }}" method="POST" class="d-inline"
                   onsubmit="return confirm('Encerrar esta viagem?')">
                 @csrf @method('PATCH')
@@ -35,6 +45,7 @@
                     <i class="bi bi-check-circle me-1"></i> Encerrar Viagem
                 </button>
             </form>
+            @endif
         @endif
         <a href="{{ route('viagens.index') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left me-1"></i> Voltar
