@@ -14,6 +14,8 @@ use App\Http\Controllers\AcertosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\ManutencoesController;
+use App\Http\Controllers\DespesasGeraisController;
+use App\Http\Controllers\DreController;
 use App\Http\Controllers\NotificacoesController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 
@@ -46,6 +48,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('notificacoes.ler');
     Route::post('notificacoes/ler-todas', [NotificacoesController::class, 'marcarTodasComoLidas'])
         ->name('notificacoes.ler-todas');
+
+    // Despesas gerais (administrativas)
+    Route::resource('despesas-gerais', DespesasGeraisController::class)
+        ->except(['show'])
+        ->parameters(['despesas-gerais' => 'despesaGeral']);
 
     // Usuários do sistema (apenas admin)
     Route::resource('users', UsersController::class)
@@ -100,6 +107,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/relatorios/csv', [RelatorioController::class, 'csv'])
         ->name('relatorios.csv');
+
+    // DRE (Demonstrativo de Resultado)
+    Route::get('/dre', [DreController::class, 'index'])->name('dre.index');
+    Route::get('/dre/pdf', [DreController::class, 'pdf'])->name('dre.pdf');
 
 
     Route::post('viagens/{viagem}/documentos', [DocumentosController::class, 'store'])

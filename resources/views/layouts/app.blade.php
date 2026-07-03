@@ -128,7 +128,11 @@
         href="{{ route('acertos.index') }}">
             <i class="bi bi-person-check"></i> Acertos
         </a>
-    </nav> 
+        <a class="nav-link {{ request()->routeIs('dre.*') ? 'active' : '' }}"
+        href="{{ route('dre.index') }}">
+            <i class="bi bi-clipboard-data"></i> DRE
+        </a>
+    </nav>
 
     <div class="nav-section">Cadastros</div>
     <nav class="nav flex-column">
@@ -143,6 +147,10 @@
         <a class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}"
             href="{{ route('clientes.index') }}">
             <i class="bi bi-building"></i> Clientes
+        </a>
+        <a class="nav-link {{ request()->routeIs('despesas-gerais.*') ? 'active' : '' }}"
+            href="{{ route('despesas-gerais.index') }}">
+            <i class="bi bi-receipt"></i> Despesas Gerais
         </a>
     </nav>
 
