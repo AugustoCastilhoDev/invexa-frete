@@ -36,7 +36,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 ### 🗺️ Viagens
 - Abertura e acompanhamento completo de viagens
 - Status: Aberta → Em Andamento → Aguardando Acerto → Encerrada
-- Lançamento de combustível, manutenção e outros gastos
+- Lançamento de combustível, manutenção e outros gastos, com aprovação: lançamentos feitos pelo motorista pelo Portal ficam pendentes até um operador aprovar
 - Controle de KM inicial e final
 - Adiantamento ao motorista (com opção de desconto ou não)
 - Descontos (vale, multa, outros)
@@ -114,6 +114,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Login próprio do motorista (CPF + senha), separado da autenticação de usuários do sistema
 - Acesso liberado pelo admin na tela de edição do motorista, que define a senha inicial
 - Motorista vê só as próprias viagens/acertos e baixa o comprovante em PDF (com a assinatura digital, se já coletada)
+- Motorista lança combustível/manutenção com foto do comprovante direto da viagem — fica pendente até aprovação de um operador
 - Isolamento total: um motorista não acessa dados de outro, nem o painel administrativo
 
 ### 🔒 Segurança & LGPD
@@ -123,7 +124,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
 
 ### ✅ Qualidade
-- 155+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, permissões, 2FA, notificações e anonimização de dados
+- 208+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações e anonimização de dados
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -144,7 +145,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (200+ testes) |
+| Testes | PHPUnit (208+ testes) |
 | CI | GitHub Actions |
 
 ---

@@ -37,7 +37,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 ### Viagens
 - Abertura e acompanhamento completo de viagens
 - Status: Aberta → Em Andamento → Aguardando Acerto → Encerrada
-- Lançamento de combustível, manutenção e outros gastos
+- Lançamento de combustível, manutenção e outros gastos, com aprovação: lançamentos feitos pelo próprio motorista (no Portal) ficam pendentes e só entram nos totais da viagem depois que um operador aprova
 - Controle de KM inicial e final
 - Adiantamento ao motorista (com opção de desconto ou não) — cálculo correto desde a abertura da viagem
 - Descontos (vale, multa, outros)
@@ -97,11 +97,12 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Acesso próprio do motorista (guard de autenticação separado dos usuários do sistema), login com CPF + senha
 - Acesso concedido pelo admin na tela de edição do motorista, que define a senha inicial — sem autocadastro
 - Motorista vê só as próprias viagens e acertos, com detalhe somente leitura e download do comprovante em PDF (mesmo arquivo gerado para o admin, com a assinatura digital se já coletada)
+- Motorista pode lançar combustível/manutenção direto da viagem, anexando foto do comprovante — fica pendente até um operador aprovar ou rejeitar; só entra nos totais depois de aprovado
 - Isolamento total entre motoristas (um não acessa dado do outro) e entre o portal e o painel administrativo
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 200 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos e o portal do motorista
+- 208 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
