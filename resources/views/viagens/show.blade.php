@@ -303,8 +303,18 @@
                                        title="Verificar na SEFAZ{{ $doc->exige_login_gov_br ? ' (exige login gov.br)' : '' }} — chave: {{ $doc->chave_acesso }}">
                                         <i class="bi bi-patch-check"></i>
                                     </a>
+                                    @elseif(in_array($doc->tipo, ['cte', 'mdfe', 'nfe']))
+                                    <span class="text-muted d-inline-flex align-items-center"
+                                          title="Sem chave de acesso cadastrada — não é possível verificar na SEFAZ. Clique no lápis para adicionar.">
+                                        <i class="bi bi-question-circle"></i>
+                                    </span>
                                     @endif
                                     @if($viagem->status !== 'encerrada')
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            data-bs-toggle="modal" data-bs-target="#editarChaveDoc{{ $doc->id }}"
+                                            title="Editar chave de acesso">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
                                     <form action="{{ route('documentos.destroy', $doc) }}"
                                           method="POST"
                                           onsubmit="return confirm('Remover documento?')">
@@ -317,6 +327,35 @@
                                 </div>
                             </td>
                         </tr>
+                        @if($viagem->status !== 'encerrada')
+                        <div class="modal fade" id="editarChaveDoc{{ $doc->id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form action="{{ route('documentos.update', $doc) }}" method="POST">
+                                        @csrf @method('PATCH')
+                                        <input type="hidden" name="status" value="{{ $doc->status }}">
+                                        <div class="modal-header">
+                                            <h6 class="modal-title mb-0">
+                                                Editar chave de acesso — {{ $doc->tipo_formatado }} {{ $doc->numero }}
+                                            </h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <label class="form-label small fw-semibold">Chave de Acesso (44 dígitos)</label>
+                                            <input type="text" name="chave_acesso" class="form-control"
+                                                   maxlength="60" value="{{ $doc->chave_acesso }}"
+                                                   placeholder="Chave de Acesso (44 dígitos)">
+                                            <div class="form-text">Necessária para o botão "Verificar na SEFAZ" aparecer.</div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-primary btn-sm">Salvar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                         @empty
                         <tr>
                             <td colspan="7" class="text-center text-muted py-2 small">

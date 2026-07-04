@@ -39,11 +39,12 @@ class DocumentosController extends Controller
     public function update(Request $request, Documento $documento)
     {
         $request->validate([
-            'status'     => 'required|in:pendente,autorizado,cancelado',
-            'observacao' => 'nullable|string',
+            'status'       => 'required|in:pendente,autorizado,cancelado',
+            'chave_acesso' => 'nullable|string|max:60',
+            'observacao'   => 'nullable|string',
         ]);
 
-        $documento->update($request->only('status', 'observacao'));
+        $documento->update($request->only('status', 'chave_acesso', 'observacao'));
 
         return redirect()->route('viagens.show', $documento->viagem)
             ->with('success', 'Documento atualizado com sucesso!');
