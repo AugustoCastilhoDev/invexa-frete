@@ -41,7 +41,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Controle de KM inicial e final
 - Adiantamento ao motorista (com opção de desconto ou não) — cálculo correto desde a abertura da viagem
 - Descontos (vale, multa, outros)
-- Documentos fiscais (CT-e, MDF-e, NF-e)
+- Documentos fiscais (CT-e, MDF-e, NF-e), com botão para verificar autenticidade direto no portal público oficial da SEFAZ (chave de acesso), sem custo e sem certificado digital — CT-e/NF-e é só chave + captcha; MDF-e exige login gov.br do próprio usuário, por não ter consulta pública simples equivalente
 - Impressão de comprovante de acerto em PDF
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 - Avanço de status direto na tela da viagem (Aberta → Em Andamento → Aguardando Acerto), sem precisar abrir a edição; não permite pular etapas, evitando reabrir uma viagem já encerrada por engano
@@ -112,7 +112,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 226 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 232 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -130,7 +130,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 ### Longo prazo (apostas maiores, ligadas ao plano de vender para outras transportadoras)
 - **Billing/assinatura** se o modelo for SaaS auto-serviço, ou fluxo de onboarding manual se for venda direta (hoje o onboarding já é manual: o super admin cadastra a empresa e o admin inicial dela pela própria tela)
 - **Integração com rastreamento veicular (GPS)** para KM automático em vez de digitação manual
-- **Integração fiscal (SEFAZ)** para validar CT-e/MDF-e/NF-e automaticamente em vez de só registrar os números
+- **Validação fiscal automática (via API paga)**: o link de verificação manual na SEFAZ já foi implementado (ver seção Viagens); uma automação completa (status buscado e exibido sem o usuário sair do sistema) exigiria assinar um provedor como Danfe Rápida (~R$497/mês) ou Nuvem Fiscal/Focus NFe — avaliado e não contratado ainda, pois o link manual já resolve a necessidade atual sem custo recorrente
 
 ---
 

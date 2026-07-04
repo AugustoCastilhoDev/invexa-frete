@@ -40,7 +40,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Controle de KM inicial e final
 - Adiantamento ao motorista (com opção de desconto ou não)
 - Descontos (vale, multa, outros)
-- Documentos fiscais (CT-e, MDF-e, NF-e)
+- Documentos fiscais (CT-e, MDF-e, NF-e), com botão para verificar a autenticidade direto no portal público oficial da SEFAZ pela chave de acesso — gratuito, sem certificado digital (MDF-e pede login gov.br do próprio usuário, os demais só captcha)
 - Impressão de comprovante de acerto em PDF
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 - Avanço de status direto na tela da viagem, sem precisar abrir a edição; não permite pular etapas
@@ -133,7 +133,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
 
 ### ✅ Qualidade
-- 226+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
+- 232+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -154,7 +154,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (226+ testes) |
+| Testes | PHPUnit (232+ testes) |
 | CI | GitHub Actions |
 
 ---

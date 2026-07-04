@@ -296,6 +296,14 @@
                                         <i class="bi bi-download"></i>
                                     </a>
                                     @endif
+                                    @if($doc->url_consulta_sefaz)
+                                    <a href="{{ $doc->url_consulta_sefaz }}"
+                                       target="_blank"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Verificar na SEFAZ{{ $doc->exige_login_gov_br ? ' (exige login gov.br)' : '' }} — chave: {{ $doc->chave_acesso }}">
+                                        <i class="bi bi-patch-check"></i>
+                                    </a>
+                                    @endif
                                     @if($viagem->status !== 'encerrada')
                                     <form action="{{ route('documentos.destroy', $doc) }}"
                                           method="POST"

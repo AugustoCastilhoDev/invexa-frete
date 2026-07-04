@@ -68,4 +68,27 @@ class Documento extends Model
     {
         return $this->uploadedFileUrl($this->arquivo);
     }
+
+    // Portal público oficial da SEFAZ para consultar a autenticidade pela chave de
+    // acesso. NF-e e CT-e são só chave + captcha; MDF-e exige login gov.br (não tem
+    // consulta pública simples equivalente até o momento).
+    private const URL_CONSULTA_SEFAZ = [
+        'nfe'  => 'https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx',
+        'cte'  => 'https://www.cte.fazenda.gov.br/portal/consultaRecaptcha.aspx',
+        'mdfe' => 'https://dfe-portal.svrs.rs.gov.br/Mdfe/consulta',
+    ];
+
+    public function getUrlConsultaSefazAttribute(): ?string
+    {
+        if (! $this->chave_acesso) {
+            return null;
+        }
+
+        return self::URL_CONSULTA_SEFAZ[$this->tipo] ?? null;
+    }
+
+    public function getExigeLoginGovBrAttribute(): bool
+    {
+        return $this->tipo === 'mdfe';
+    }
 }
