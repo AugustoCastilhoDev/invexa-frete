@@ -81,6 +81,22 @@ class PortalAuthTest extends TestCase
         $response->assertRedirect(route('portal.login'));
     }
 
+    public function test_login_nao_reaproveita_url_pretendida_deixada_por_uma_tentativa_de_acesso_admin(): void
+    {
+        $motorista = Motorista::factory()->comAcessoPortal('minha-senha')->create(['cpf' => '123.456.789-10']);
+
+        // Simula o rastro deixado por uma visita anterior (não autenticada) a uma
+        // rota do painel admin, que fica gravado numa chave de sessão compartilhada.
+        $this->get(route('dashboard'));
+
+        $response = $this->post(route('portal.login'), [
+            'cpf'      => '123.456.789-10',
+            'password' => 'minha-senha',
+        ]);
+
+        $response->assertRedirect(route('portal.viagens.index'));
+    }
+
     public function test_logout_encerra_a_sessao_do_motorista(): void
     {
         $motorista = Motorista::factory()->comAcessoPortal()->create();
