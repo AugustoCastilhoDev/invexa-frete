@@ -95,6 +95,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Cada empresa cliente (transportadora) tem seus dados totalmente isolados dos de outra: motoristas, veículos, clientes, viagens, financeiro — tudo escopado automaticamente por empresa
 - Papel **super admin**, sem empresa própria, gerencia as empresas clientes numa tela dedicada (cria a empresa e o administrador inicial dela) — não enxerga dados operacionais de nenhuma empresa
 - Tela de detalhe por empresa para suporte: usuários cadastrados e resumo operacional (motoristas, veículos, clientes, viagens, despesas gerais) — sem precisar acessar o banco para investigar um chamado
+- **Modo suporte**: botão "Suporte" que faz o super admin passar a navegar autenticado como o administrador daquela empresa, vendo o sistema exatamente como o cliente vê — com um aviso fixo no topo da tela e um botão para encerrar e voltar a ser super admin a qualquer momento
 - Empresa pode ser desativada (ex.: inadimplência), o que bloqueia login de todos os usuários e motoristas dela imediatamente
 - E-mail, CPF, placa e CNPJ continuam únicos em todo o sistema — login por e-mail/CPF não precisa saber a qual empresa a conta pertence
 
@@ -132,7 +133,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
 
 ### ✅ Qualidade
-- 219+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
+- 226+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -153,7 +154,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (219+ testes) |
+| Testes | PHPUnit (226+ testes) |
 | CI | GitHub Actions |
 
 ---

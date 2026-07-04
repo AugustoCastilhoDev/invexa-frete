@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Models\Veiculo;
 use App\Models\Viagem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -113,5 +115,51 @@ class EmpresasController extends Controller
 
         return redirect()->route('empresas.index')
             ->with('success', 'Status da empresa atualizado com sucesso!');
+    }
+
+    /**
+     * Super admin passa a navegar autenticado como o admin da empresa, para
+     * dar suporte vendo exatamente o que o cliente vê. A identidade original
+     * fica guardada na sessão para poder voltar depois.
+     */
+    public function iniciarSuporte(Request $request, Empresa $empresa)
+    {
+        $superAdminId = $request->user()->id;
+
+        $admin = User::where('empresa_id', $empresa->id)
+            ->where('role', 'admin')
+            ->where('status', 'ativo')
+            ->orderBy('id')
+            ->first();
+
+        abort_unless($admin, 404, 'Esta empresa não tem nenhum administrador ativo para representar.');
+
+        Auth::login($admin);
+        $request->session()->regenerate();
+        session([
+            'suporte_super_admin_id' => $superAdminId,
+            'suporte_empresa_nome'   => $empresa->nome,
+        ]);
+
+        Log::info("Suporte iniciado: super admin #{$superAdminId} acessando a empresa #{$empresa->id} ({$empresa->nome}) como {$admin->email}");
+
+        return redirect()->route('dashboard')
+            ->with('success', "Acessando como suporte em {$empresa->nome}.");
+    }
+
+    public function encerrarSuporte(Request $request)
+    {
+        $superAdminId = $request->session()->pull('suporte_super_admin_id');
+        $request->session()->forget('suporte_empresa_nome');
+
+        abort_unless($superAdminId, 403);
+
+        Auth::loginUsingId($superAdminId);
+        $request->session()->regenerate();
+
+        Log::info("Suporte encerrado: voltando para o super admin #{$superAdminId}");
+
+        return redirect()->route('empresas.index')
+            ->with('success', 'Modo suporte encerrado.');
     }
 }

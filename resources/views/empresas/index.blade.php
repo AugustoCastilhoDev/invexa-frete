@@ -91,6 +91,14 @@
                                 <i class="bi {{ $empresa->status === 'ativo' ? 'bi-slash-circle' : 'bi-check-circle' }}"></i>
                             </button>
                         </form>
+                        <form action="{{ route('empresas.suporte.iniciar', $empresa) }}"
+                              method="POST" class="d-inline"
+                              onsubmit="return confirm('Acessar o sistema como administrador de {{ $empresa->nome }}?')">
+                            @csrf
+                            <button class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-headset"></i> Suporte
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 @empty

@@ -74,6 +74,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - E-mail, CPF, placa e CNPJ continuam únicos globalmente (decisão deliberada): mantém o login por e-mail/CPF exatamente como já era, sem precisar informar a empresa antes de entrar
 - Dados existentes antes dessa mudança foram preservados numa "Empresa Padrão" criada automaticamente pela migration de backfill — nada foi perdido
 - Tela de detalhe da empresa (`/empresas/{id}`) para dar suporte: lista os usuários dela e um resumo operacional (motoristas, veículos, clientes, viagens, despesas gerais), sem precisar consultar o banco direto quando o cliente relata um problema
+- **Modo suporte**: botão "Suporte" que loga o super admin como o administrador ativo daquela empresa (guardando a identidade original na sessão), com aviso fixo no topo de toda tela e botão para encerrar e voltar a ser super admin — pensado para reproduzir problemas relatados vendo exatamente a mesma tela do cliente
 
 ### Usuários e permissões
 - Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa) e operador (acesso operacional)
@@ -111,7 +112,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 219 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 226 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---

@@ -47,6 +47,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('notificacoes.ler');
     Route::post('notificacoes/ler-todas', [NotificacoesController::class, 'marcarTodasComoLidas'])
         ->name('notificacoes.ler-todas');
+
+    // Encerrar o modo suporte (o usuário autenticado aqui é o admin representado, não o super admin)
+    Route::post('suporte/encerrar', [EmpresasController::class, 'encerrarSuporte'])
+        ->name('suporte.encerrar');
 });
 
 // Gestão de empresas (tenants) — restrita ao super admin da plataforma
@@ -54,6 +58,8 @@ Route::middleware(['auth', 'super_admin'])->group(function () {
     Route::resource('empresas', EmpresasController::class)->except(['destroy']);
     Route::patch('empresas/{empresa}/status', [EmpresasController::class, 'toggleStatus'])
         ->name('empresas.toggle-status');
+    Route::post('empresas/{empresa}/suporte', [EmpresasController::class, 'iniciarSuporte'])
+        ->name('empresas.suporte.iniciar');
 });
 
 // Área operacional — escopada por empresa, o super admin (sem empresa) não acessa

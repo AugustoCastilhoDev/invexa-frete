@@ -78,9 +78,31 @@
         .page-link { color: #f97316; padding: .25rem .6rem; font-size: .8rem; }
         .page-item.active .page-link { background: #f97316; border-color: #f97316; }
         .page-link:hover { color: #ea6c0a; }
+
+        .suporte-banner {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+            background: #b45309; color: #fff; text-align: center;
+            padding: 8px 20px; font-size: .85rem;
+        }
+        .suporte-banner form { display: inline; }
+        body.modo-suporte .sidebar { top: 38px; min-height: calc(100vh - 38px); }
+        body.modo-suporte .topbar { top: 38px; }
+        body.modo-suporte .main-content { padding-top: 68px; }
     </style>
 </head>
-<body>
+<body class="{{ session('suporte_super_admin_id') ? 'modo-suporte' : '' }}">
+
+@if(session('suporte_super_admin_id'))
+<div class="suporte-banner">
+    <i class="bi bi-shield-exclamation me-1"></i>
+    Acesso de <strong>suporte</strong> — você está vendo o sistema como administrador de
+    <strong>{{ session('suporte_empresa_nome') }}</strong>.
+    <form action="{{ route('suporte.encerrar') }}" method="POST" class="ms-2">
+        @csrf
+        <button type="submit" class="btn btn-sm btn-dark">Encerrar suporte</button>
+    </form>
+</div>
+@endif
 
 {{-- Sidebar --}}
 <div class="sidebar">

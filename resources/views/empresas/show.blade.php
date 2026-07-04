@@ -13,6 +13,14 @@
         </small>
     </div>
     <div>
+        <form action="{{ route('empresas.suporte.iniciar', $empresa) }}"
+              method="POST" class="d-inline"
+              onsubmit="return confirm('Acessar o sistema como administrador de {{ $empresa->nome }}?')">
+            @csrf
+            <button class="btn btn-warning">
+                <i class="bi bi-headset me-1"></i> Suporte
+            </button>
+        </form>
         <a href="{{ route('empresas.edit', $empresa) }}" class="btn btn-outline-primary">
             <i class="bi bi-pencil me-1"></i> Editar
         </a>
