@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Portal\PortalAuthController;
+use App\Http\Controllers\Portal\PortalLancamentosController;
 use App\Http\Controllers\Portal\PortalSenhaController;
 use App\Http\Controllers\Portal\PortalViagensController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/', [PortalViagensController::class, 'index'])->name('viagens.index');
         Route::get('viagens/{viagem}', [PortalViagensController::class, 'show'])->name('viagens.show');
         Route::get('viagens/{viagem}/comprovante', [PortalViagensController::class, 'comprovante'])->name('viagens.comprovante');
+
+        Route::post('viagens/{viagem}/lancamentos', [PortalLancamentosController::class, 'store'])
+            ->name('lancamentos.store');
 
         Route::get('senha', [PortalSenhaController::class, 'edit'])->name('senha.edit');
         Route::put('senha', [PortalSenhaController::class, 'update'])->name('senha.update');

@@ -27,10 +27,28 @@ class LancamentosController extends Controller
                 ->store('comprovantes', config('filesystems.uploads_disk'));
         }
 
-        Lancamento::create($data);
+        $lancamento = new Lancamento($data);
+        $lancamento->status = 'aprovado';
+        $lancamento->save();
 
         return redirect()->route('viagens.show', $viagem)
             ->with('success', 'Lançamento adicionado com sucesso!');
+    }
+
+    public function aprovar(Lancamento $lancamento)
+    {
+        $lancamento->forceFill(['status' => 'aprovado'])->save();
+
+        return redirect()->route('viagens.show', $lancamento->viagem)
+            ->with('success', 'Lançamento aprovado com sucesso!');
+    }
+
+    public function rejeitar(Lancamento $lancamento)
+    {
+        $lancamento->forceFill(['status' => 'rejeitado'])->save();
+
+        return redirect()->route('viagens.show', $lancamento->viagem)
+            ->with('success', 'Lançamento rejeitado.');
     }
 
     public function destroy(Lancamento $lancamento)

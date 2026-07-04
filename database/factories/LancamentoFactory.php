@@ -29,4 +29,9 @@ class LancamentoFactory extends Factory
     {
         return $this->state(fn () => ['tipo' => 'manutencao']);
     }
+
+    public function pendente(): static
+    {
+        return $this->state(fn () => ['status' => 'pendente']);
+    }
 }

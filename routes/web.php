@@ -98,6 +98,10 @@ Route::middleware(['auth'])->group(function () {
     // Lançamentos (aninhados na viagem)
     Route::post('viagens/{viagem}/lancamentos', [LancamentosController::class, 'store'])
         ->name('lancamentos.store');
+    Route::patch('lancamentos/{lancamento}/aprovar', [LancamentosController::class, 'aprovar'])
+        ->name('lancamentos.aprovar');
+    Route::patch('lancamentos/{lancamento}/rejeitar', [LancamentosController::class, 'rejeitar'])
+        ->name('lancamentos.rejeitar');
     Route::delete('lancamentos/{lancamento}', [LancamentosController::class, 'destroy'])
         ->name('lancamentos.destroy');
 

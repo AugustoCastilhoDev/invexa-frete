@@ -164,10 +164,10 @@ class Viagem extends Model
     public function recalcularTotais(): void
 {
     $this->total_combustivel = $this->lancamentos()
-        ->where('tipo', 'combustivel')->sum('valor');
+        ->where('tipo', 'combustivel')->where('status', 'aprovado')->sum('valor');
 
     $this->total_manutencao = $this->lancamentos()
-        ->where('tipo', 'manutencao')->sum('valor');
+        ->where('tipo', 'manutencao')->where('status', 'aprovado')->sum('valor');
 
     $this->total_descontos = $this->descontos()->sum('valor');
 

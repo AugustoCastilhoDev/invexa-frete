@@ -108,21 +108,59 @@
             <div class="card-body p-0">
                 <table class="table table-sm mb-0">
                     <thead class="table-light">
-                        <tr><th class="ps-3">Tipo</th><th>Descrição</th><th class="text-end pe-3">Valor</th></tr>
+                        <tr><th class="ps-3">Tipo</th><th>Descrição</th><th>Valor</th><th class="pe-3">Status</th></tr>
                     </thead>
                     <tbody>
                         @forelse($viagem->lancamentos as $l)
                         <tr>
                             <td class="ps-3">{{ ucfirst($l->tipo) }}</td>
                             <td>{{ $l->descricao }}</td>
-                            <td class="text-end pe-3">R$ {{ number_format($l->valor, 2, ',', '.') }}</td>
+                            <td>R$ {{ number_format($l->valor, 2, ',', '.') }}</td>
+                            <td class="pe-3">
+                                <span class="badge bg-{{ $l->status_badge }}">{{ ucfirst($l->status) }}</span>
+                            </td>
                         </tr>
                         @empty
-                        <tr><td colspan="3" class="text-center text-muted py-3">Nenhum lançamento.</td></tr>
+                        <tr><td colspan="4" class="text-center text-muted py-3">Nenhum lançamento.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+            @if($viagem->status !== 'encerrada')
+            <div class="card-footer bg-white">
+                <form action="{{ route('portal.lancamentos.store', $viagem) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <select name="tipo" class="form-select form-select-sm" required>
+                                <option value="">Tipo</option>
+                                <option value="combustivel">Combustível</option>
+                                <option value="manutencao">Manutenção</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="descricao" class="form-control form-control-sm" placeholder="Descrição" required>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" name="valor" class="form-control form-control-sm" placeholder="Valor" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="file" name="comprovante" class="form-control form-control-sm" accept=".jpg,.jpeg,.png,.pdf" required>
+                        </div>
+                        <input type="hidden" name="data_lancamento" value="{{ date('Y-m-d') }}">
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-warning btn-sm w-100">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-text">
+                        Anexe a foto do comprovante (combustível, manutenção etc). Fica pendente até a transportadora aprovar.
+                    </div>
+                </form>
+            </div>
+            @endif
         </div>
 
         <div class="card mb-4">

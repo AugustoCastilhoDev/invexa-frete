@@ -38,6 +38,15 @@ class Lancamento extends Model
         return $this->uploadedFileUrl($this->comprovante);
     }
 
+    public function getStatusBadgeAttribute(): string
+    {
+        return match ($this->status) {
+            'aprovado'  => 'success',
+            'rejeitado' => 'danger',
+            default     => 'warning',
+        };
+    }
+
     // Após salvar, recalcula os totais da viagem
     protected static function booted(): void
     {

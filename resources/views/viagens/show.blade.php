@@ -411,6 +411,7 @@
                             <th>Descrição</th>
                             <th>Data</th>
                             <th>Valor</th>
+                            <th>Status</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -432,13 +433,38 @@
                             <td>
                                 {{ $lancamento->descricao }}
                                 <br><small class="text-muted">por {{ $lancamento->criadoPor?->name ?? '—' }}</small>
+                                @if($lancamento->comprovante)
+                                <br><a href="{{ $lancamento->comprovante_url }}" target="_blank" class="small">
+                                    <i class="bi bi-paperclip"></i> Comprovante
+                                </a>
+                                @endif
                             </td>
                             <td>{{ $lancamento->data_lancamento->format('d/m/Y') }}</td>
                             <td>R$ {{ number_format($lancamento->valor, 2, ',', '.') }}</td>
                             <td>
+                                <span class="badge bg-{{ $lancamento->status_badge }}">
+                                    {{ ucfirst($lancamento->status) }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-2">
+                                @if($lancamento->status === 'pendente')
+                                <form action="{{ route('lancamentos.aprovar', $lancamento) }}" method="POST" class="d-inline">
+                                    @csrf @method('PATCH')
+                                    <button class="btn btn-sm btn-link text-success p-0 me-2" title="Aprovar">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ route('lancamentos.rejeitar', $lancamento) }}" method="POST" class="d-inline"
+                                      onsubmit="return confirm('Rejeitar este lançamento?')">
+                                    @csrf @method('PATCH')
+                                    <button class="btn btn-sm btn-link text-danger p-0 me-2" title="Rejeitar">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                                @endif
                                 @if($viagem->status !== 'encerrada')
                                 <form action="{{ route('lancamentos.destroy', $lancamento) }}"
-                                      method="POST"
+                                      method="POST" class="d-inline"
                                       onsubmit="return confirm('Remover lançamento?')">
                                     @csrf @method('DELETE')
                                     <button class="btn btn-sm btn-link text-danger p-0">
@@ -449,7 +475,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="5" class="text-center text-muted py-2 small">
+                        <tr><td colspan="6" class="text-center text-muted py-2 small">
                             Nenhum lançamento registrado.
                         </td></tr>
                         @endforelse
