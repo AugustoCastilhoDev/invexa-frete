@@ -130,7 +130,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 ### Longo prazo (apostas maiores, ligadas ao plano de vender para outras transportadoras)
 - **Billing/assinatura** se o modelo for SaaS auto-serviço, ou fluxo de onboarding manual se for venda direta (hoje o onboarding já é manual: o super admin cadastra a empresa e o admin inicial dela pela própria tela)
 - **Integração com rastreamento veicular (GPS)** para KM automático em vez de digitação manual
-- **Validação fiscal automática (via API paga)**: o link de verificação manual na SEFAZ já foi implementado (ver seção Viagens); uma automação completa (status buscado e exibido sem o usuário sair do sistema) exigiria assinar um provedor como Danfe Rápida (~R$497/mês) ou Nuvem Fiscal/Focus NFe — avaliado e não contratado ainda, pois o link manual já resolve a necessidade atual sem custo recorrente
+- **Validação fiscal automática (via API paga)**: o link de verificação manual na SEFAZ já foi implementado (ver seção Viagens); uma automação completa (status buscado e exibido sem o usuário sair do sistema) exigiria assinar um provedor como Danfe Rápida, Nuvem Fiscal ou Focus NFe — avaliado e não contratado ainda, pois o link manual já resolve a necessidade atual sem custo recorrente
 
 ---
 
