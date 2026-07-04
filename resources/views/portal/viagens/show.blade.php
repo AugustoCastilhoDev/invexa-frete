@@ -131,7 +131,7 @@
                 <form action="{{ route('portal.lancamentos.store', $viagem) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row g-2">
-                        <div class="col-md-3">
+                        <div class="col-sm-4">
                             <select name="tipo" class="form-select form-select-sm" required>
                                 <option value="">Tipo</option>
                                 <option value="combustivel">Combustível</option>
@@ -139,17 +139,17 @@
                                 <option value="outros">Outros</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-sm-5">
                             <input type="text" name="descricao" class="form-control form-control-sm" placeholder="Descrição" required>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-sm-3">
                             <input type="number" name="valor" class="form-control form-control-sm" placeholder="Valor" step="0.01" min="0" required>
                         </div>
-                        <div class="col-md-3">
+                        <input type="hidden" name="data_lancamento" value="{{ date('Y-m-d') }}">
+                        <div class="col-9">
                             <input type="file" name="comprovante" class="form-control form-control-sm" accept=".jpg,.jpeg,.png,.pdf" required>
                         </div>
-                        <input type="hidden" name="data_lancamento" value="{{ date('Y-m-d') }}">
-                        <div class="col-md-1">
+                        <div class="col-3">
                             <button type="submit" class="btn btn-warning btn-sm w-100">
                                 <i class="bi bi-plus"></i>
                             </button>
