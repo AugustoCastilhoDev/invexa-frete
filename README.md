@@ -97,7 +97,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Tela de detalhe por empresa para suporte: usuários cadastrados e resumo operacional (motoristas, veículos, clientes, viagens, despesas gerais) — sem precisar acessar o banco para investigar um chamado
 - **Modo suporte**: botão "Suporte" que faz o super admin passar a navegar autenticado como o administrador daquela empresa, vendo o sistema exatamente como o cliente vê — com um aviso fixo no topo da tela e um botão para encerrar e voltar a ser super admin a qualquer momento
 - Empresa pode ser desativada (ex.: inadimplência), o que bloqueia login de todos os usuários e motoristas dela imediatamente
-- **Limite de veículos por plano**: cada empresa pode ter um teto de veículos configurado pelo super admin (ex.: plano até 5 veículos); tentar cadastrar acima do limite é bloqueado com uma mensagem clara, e o painel de suporte mostra "X / Y veículos" cadastrados
+- **Limite de veículos por plano**: cada empresa pode ter um teto de veículos configurado pelo super admin (ex.: plano até 5 veículos); tentar cadastrar acima do limite é bloqueado com uma mensagem clara, e tanto o painel de suporte quanto a própria tela de Veículos do cliente mostram "X / Y veículos" cadastrados
 - E-mail, CPF, placa e CNPJ continuam únicos em todo o sistema — login por e-mail/CPF não precisa saber a qual empresa a conta pertence
 
 ### 👥 Usuários & Permissões
@@ -134,7 +134,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
 
 ### ✅ Qualidade
-- 244+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
+- 247+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -155,7 +155,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (244+ testes) |
+| Testes | PHPUnit (247+ testes) |
 | CI | GitHub Actions |
 
 ---

@@ -75,7 +75,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Dados existentes antes dessa mudança foram preservados numa "Empresa Padrão" criada automaticamente pela migration de backfill — nada foi perdido
 - Tela de detalhe da empresa (`/empresas/{id}`) para dar suporte: lista os usuários dela e um resumo operacional (motoristas, veículos, clientes, viagens, despesas gerais), sem precisar consultar o banco direto quando o cliente relata um problema
 - **Modo suporte**: botão "Suporte" que loga o super admin como o administrador ativo daquela empresa (guardando a identidade original na sessão), com aviso fixo no topo de toda tela e botão para encerrar e voltar a ser super admin — pensado para reproduzir problemas relatados vendo exatamente a mesma tela do cliente
-- **Limite de veículos por plano**: campo configurável por empresa (nulo = sem limite) que bloqueia o cadastro de um novo veículo ao atingir o teto contratado — pensado para o modelo de cobrança por faixa de frota (ex.: até 5 veículos = plano X)
+- **Limite de veículos por plano**: campo configurável por empresa (nulo = sem limite) que bloqueia o cadastro de um novo veículo ao atingir o teto contratado — pensado para o modelo de cobrança por faixa de frota (ex.: até 5 veículos = plano X). A própria tela de Veículos do cliente mostra "X / Y" e avisa quando o limite é atingido, sem precisar entrar em contato para descobrir
 
 ### Usuários e permissões
 - Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa) e operador (acesso operacional)
@@ -113,7 +113,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 244 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 247 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---

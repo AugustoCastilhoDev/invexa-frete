@@ -124,4 +124,46 @@ class VeiculosCrudTest extends TestCase
         $response->assertRedirect(route('veiculos.index'));
         $this->assertDatabaseHas('veiculos', ['placa' => 'ABC1D23']);
     }
+
+    public function test_tela_de_veiculos_mostra_quantidade_do_plano(): void
+    {
+        $empresa = Empresa::factory()->create(['limite_veiculos' => 5]);
+        $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+        Veiculo::factory()->count(2)->create(['empresa_id' => $empresa->id]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get(route('veiculos.index'));
+
+        $response->assertOk();
+        $response->assertSee('2 / 5');
+        $response->assertDontSee('Você atingiu o limite');
+    }
+
+    public function test_tela_de_veiculos_avisa_quando_limite_e_atingido(): void
+    {
+        $empresa = Empresa::factory()->create(['limite_veiculos' => 2]);
+        $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+        Veiculo::factory()->count(2)->create(['empresa_id' => $empresa->id]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get(route('veiculos.index'));
+
+        $response->assertOk();
+        $response->assertSee('Você atingiu o limite');
+    }
+
+    public function test_tela_de_veiculos_nao_mostra_nada_quando_sem_limite(): void
+    {
+        $empresa = Empresa::factory()->create(['limite_veiculos' => null]);
+        $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get(route('veiculos.index'));
+
+        $response->assertOk();
+        $response->assertDontSee('do seu plano');
+    }
 }

@@ -20,7 +20,10 @@ class VeiculosController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('veiculos.index', compact('veiculos', 'busca'));
+        $totalVeiculos  = Veiculo::count();
+        $limiteVeiculos = $request->user()->empresa?->limite_veiculos;
+
+        return view('veiculos.index', compact('veiculos', 'busca', 'totalVeiculos', 'limiteVeiculos'));
     }
 
     public function create()
