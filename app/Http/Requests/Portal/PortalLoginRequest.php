@@ -56,6 +56,14 @@ class PortalLoginRequest extends FormRequest
             ]);
         }
 
+        if ($motorista->empresa?->status !== 'ativo') {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'cpf' => 'O acesso da transportadora está temporariamente suspenso.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
 
         Auth::guard('motorista')->login($motorista, $this->boolean('remember'));

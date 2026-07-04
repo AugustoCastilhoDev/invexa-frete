@@ -18,6 +18,7 @@ use App\Http\Controllers\DespesasGeraisController;
 use App\Http\Controllers\DreController;
 use App\Http\Controllers\MotoristaPortalAccessController;
 use App\Http\Controllers\NotificacoesController;
+use App\Http\Controllers\EmpresasController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 
 Route::get('/', function () {
@@ -25,9 +26,6 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
 
     // Perfil do usuário
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -49,6 +47,20 @@ Route::middleware(['auth'])->group(function () {
         ->name('notificacoes.ler');
     Route::post('notificacoes/ler-todas', [NotificacoesController::class, 'marcarTodasComoLidas'])
         ->name('notificacoes.ler-todas');
+});
+
+// Gestão de empresas (tenants) — restrita ao super admin da plataforma
+Route::middleware(['auth', 'super_admin'])->group(function () {
+    Route::resource('empresas', EmpresasController::class)->except(['show', 'destroy']);
+    Route::patch('empresas/{empresa}/status', [EmpresasController::class, 'toggleStatus'])
+        ->name('empresas.toggle-status');
+});
+
+// Área operacional — escopada por empresa, o super admin (sem empresa) não acessa
+Route::middleware(['auth', 'not_super_admin'])->group(function () {
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
 
     // Despesas gerais (administrativas)
     Route::resource('despesas-gerais', DespesasGeraisController::class)

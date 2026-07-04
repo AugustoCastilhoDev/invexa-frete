@@ -50,6 +50,11 @@ class UserFactory extends Factory
         return $this->state(fn () => ['role' => 'admin']);
     }
 
+    public function superAdmin(): static
+    {
+        return $this->state(fn () => ['role' => 'super_admin', 'empresa_id' => null]);
+    }
+
     public function inativo(): static
     {
         return $this->state(fn () => ['status' => 'inativo']);

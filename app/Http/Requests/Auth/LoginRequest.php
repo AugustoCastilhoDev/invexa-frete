@@ -64,6 +64,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if ($user->empresa_id && $user->empresa?->status !== 'ativo') {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'O acesso da sua empresa está temporariamente suspenso. Contate o suporte.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
 
         if ($user->hasEnabledTwoFactorAuthentication()) {

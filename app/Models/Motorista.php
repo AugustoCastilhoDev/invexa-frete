@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToEmpresa;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Motorista extends Model implements AuthenticatableContract
 {
-    use Authenticatable, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
+    use Authenticatable, BelongsToEmpresa, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $fillable = [
         'nome',

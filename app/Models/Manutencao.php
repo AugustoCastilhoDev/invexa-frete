@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToEmpresa;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Manutencao extends Model
 {
-    use HasFactory, TracksUser;
+    use BelongsToEmpresa, HasFactory, TracksUser;
 
     protected $table = 'manutencoes';
 

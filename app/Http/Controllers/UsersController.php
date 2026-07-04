@@ -13,7 +13,8 @@ class UsersController extends Controller
     {
         $busca = $request->input('busca');
 
-        $users = User::when($busca, function ($query) use ($busca) {
+        $users = User::where('empresa_id', $request->user()->empresa_id)
+            ->when($busca, function ($query) use ($busca) {
                 $query->where('name', 'like', "%{$busca}%")
                     ->orWhere('email', 'like', "%{$busca}%");
             })
@@ -51,13 +52,17 @@ class UsersController extends Controller
             ->with('success', 'Usuário cadastrado com sucesso!');
     }
 
-    public function edit(User $user)
+    public function edit(Request $request, User $user)
     {
+        abort_unless($user->empresa_id === $request->user()->empresa_id, 404);
+
         return view('users.edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
     {
+        abort_unless($user->empresa_id === $request->user()->empresa_id, 404);
+
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
@@ -93,6 +98,8 @@ class UsersController extends Controller
 
     public function destroy(Request $request, User $user)
     {
+        abort_unless($user->empresa_id === $request->user()->empresa_id, 404);
+
         if ($user->id === $request->user()->id) {
             return back()->with('error', 'Você não pode desativar seu próprio usuário.');
         }
@@ -117,6 +124,9 @@ class UsersController extends Controller
             return false;
         }
 
-        return User::where('role', 'admin')->where('status', 'ativo')->count() <= 1;
+        return User::where('empresa_id', $user->empresa_id)
+            ->where('role', 'admin')
+            ->where('status', 'ativo')
+            ->count() <= 1;
     }
 }

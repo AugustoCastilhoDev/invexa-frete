@@ -106,6 +106,15 @@
     </div>
 </a>
 
+    @if(auth()->user()?->isSuperAdmin())
+    <div class="nav-section">Plataforma</div>
+    <nav class="nav flex-column">
+        <a class="nav-link {{ request()->routeIs('empresas.*') ? 'active' : '' }}"
+        href="{{ route('empresas.index') }}">
+            <i class="bi bi-buildings"></i> Empresas
+        </a>
+    </nav>
+    @else
     <div class="nav-section">Principal</div>
     <nav class="nav flex-column">
         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
@@ -162,6 +171,7 @@
             <i class="bi bi-people"></i> Usuários
         </a>
     </nav>
+    @endif
     @endif
 
     <div class="nav-section">Conta</div>

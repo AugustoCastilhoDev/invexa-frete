@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToEmpresa;
 use App\Models\Concerns\HasUploadedFile;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Notification;
 
 class Viagem extends Model
 {
-    use HasFactory, HasUploadedFile, SoftDeletes, TracksUser, TracksDeletingUser;
+    use BelongsToEmpresa, HasFactory, HasUploadedFile, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $table = 'viagens';
 
@@ -26,7 +27,10 @@ class Viagem extends Model
             }
 
             if ($viagem->status === 'aguardando_acerto') {
-                $admins = User::where('role', 'admin')->where('status', 'ativo')->get();
+                $admins = User::where('empresa_id', $viagem->empresa_id)
+                    ->where('role', 'admin')
+                    ->where('status', 'ativo')
+                    ->get();
                 Notification::send($admins, new ViagemAguardandoAcertoNotification($viagem));
             }
 
