@@ -43,15 +43,17 @@ class EmpresasController extends Controller
         $request->validate([
             'nome'                 => 'required|string|max:255',
             'cnpj'                 => 'nullable|string|max:20|unique:empresas,cnpj',
+            'limite_veiculos'      => 'nullable|integer|min:1',
             'admin_name'           => 'required|string|max:255',
             'admin_email'          => 'required|email|unique:users,email',
             'admin_password'       => ['required', 'confirmed', Password::defaults()],
         ]);
 
         $empresa = Empresa::create([
-            'nome'   => $request->nome,
-            'cnpj'   => $request->cnpj,
-            'status' => 'ativo',
+            'nome'            => $request->nome,
+            'cnpj'            => $request->cnpj,
+            'limite_veiculos' => $request->limite_veiculos,
+            'status'          => 'ativo',
         ]);
 
         $admin = new User([
@@ -99,11 +101,12 @@ class EmpresasController extends Controller
     public function update(Request $request, Empresa $empresa)
     {
         $request->validate([
-            'nome' => 'required|string|max:255',
-            'cnpj' => ['nullable', 'string', 'max:20', Rule::unique('empresas', 'cnpj')->ignore($empresa->id)],
+            'nome'            => 'required|string|max:255',
+            'cnpj'            => ['nullable', 'string', 'max:20', Rule::unique('empresas', 'cnpj')->ignore($empresa->id)],
+            'limite_veiculos' => 'nullable|integer|min:1',
         ]);
 
-        $empresa->update($request->only('nome', 'cnpj'));
+        $empresa->update($request->only('nome', 'cnpj', 'limite_veiculos'));
 
         return redirect()->route('empresas.index')
             ->with('success', 'Empresa atualizada com sucesso!');

@@ -41,6 +41,14 @@ class VeiculosController extends Controller
             'status'       => 'required|in:ativo,inativo,manutencao',
         ]);
 
+        $empresa = $request->user()->empresa;
+
+        if ($empresa && $empresa->limiteVeiculosAtingido()) {
+            return back()->withErrors([
+                'placa' => "Limite de {$empresa->limite_veiculos} veículo(s) do seu plano foi atingido. Fale com o suporte para ampliar.",
+            ])->withInput();
+        }
+
         Veiculo::create($request->all());
 
         return redirect()->route('veiculos.index')

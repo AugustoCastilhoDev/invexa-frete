@@ -29,6 +29,18 @@
                            value="{{ old('cnpj', $empresa->cnpj) }}">
                     @error('cnpj')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Limite de Veículos</label>
+                    <input type="number" name="limite_veiculos" min="1"
+                           class="form-control @error('limite_veiculos') is-invalid @enderror"
+                           value="{{ old('limite_veiculos', $empresa->limite_veiculos) }}"
+                           placeholder="Deixe em branco para ilimitado">
+                    @error('limite_veiculos')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="form-text">
+                        De acordo com o plano contratado. Vazio = sem limite.
+                        Atualmente com {{ $empresa->veiculos()->withoutGlobalScope('empresa')->count() }} veículo(s) cadastrado(s).
+                    </div>
+                </div>
                 <div class="col-12 text-end">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-check-lg me-1"></i> Salvar Alterações

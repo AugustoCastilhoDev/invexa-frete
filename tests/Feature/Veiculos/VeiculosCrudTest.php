@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Veiculos;
 
+use App\Models\Empresa;
 use App\Models\User;
 use App\Models\Veiculo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,5 +66,62 @@ class VeiculosCrudTest extends TestCase
 
         $response->assertRedirect(route('veiculos.index'));
         $this->assertSoftDeleted($veiculo);
+    }
+
+    public function test_bloqueia_cadastro_ao_atingir_limite_de_veiculos_do_plano(): void
+    {
+        $empresa = Empresa::factory()->create(['limite_veiculos' => 1]);
+        $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+        Veiculo::factory()->create(['empresa_id' => $empresa->id]);
+
+        $this->actingAs($admin);
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'  => 'ABC1D23',
+            'modelo' => 'FH 540',
+            'tipo'   => 'carreta',
+            'status' => 'ativo',
+        ]);
+
+        $response->assertSessionHasErrors('placa');
+        $this->assertDatabaseMissing('veiculos', ['placa' => 'ABC1D23']);
+    }
+
+    public function test_permite_cadastro_dentro_do_limite_de_veiculos_do_plano(): void
+    {
+        $empresa = Empresa::factory()->create(['limite_veiculos' => 2]);
+        $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+        Veiculo::factory()->create(['empresa_id' => $empresa->id]);
+
+        $this->actingAs($admin);
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'  => 'ABC1D23',
+            'modelo' => 'FH 540',
+            'tipo'   => 'carreta',
+            'status' => 'ativo',
+        ]);
+
+        $response->assertRedirect(route('veiculos.index'));
+        $this->assertDatabaseHas('veiculos', ['placa' => 'ABC1D23']);
+    }
+
+    public function test_sem_limite_definido_cadastro_e_ilimitado(): void
+    {
+        $empresa = Empresa::factory()->create(['limite_veiculos' => null]);
+        $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+        Veiculo::factory()->count(10)->create(['empresa_id' => $empresa->id]);
+
+        $this->actingAs($admin);
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'  => 'ABC1D23',
+            'modelo' => 'FH 540',
+            'tipo'   => 'carreta',
+            'status' => 'ativo',
+        ]);
+
+        $response->assertRedirect(route('veiculos.index'));
+        $this->assertDatabaseHas('veiculos', ['placa' => 'ABC1D23']);
     }
 }

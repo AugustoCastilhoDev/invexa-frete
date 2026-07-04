@@ -75,6 +75,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Dados existentes antes dessa mudança foram preservados numa "Empresa Padrão" criada automaticamente pela migration de backfill — nada foi perdido
 - Tela de detalhe da empresa (`/empresas/{id}`) para dar suporte: lista os usuários dela e um resumo operacional (motoristas, veículos, clientes, viagens, despesas gerais), sem precisar consultar o banco direto quando o cliente relata um problema
 - **Modo suporte**: botão "Suporte" que loga o super admin como o administrador ativo daquela empresa (guardando a identidade original na sessão), com aviso fixo no topo de toda tela e botão para encerrar e voltar a ser super admin — pensado para reproduzir problemas relatados vendo exatamente a mesma tela do cliente
+- **Limite de veículos por plano**: campo configurável por empresa (nulo = sem limite) que bloqueia o cadastro de um novo veículo ao atingir o teto contratado — pensado para o modelo de cobrança por faixa de frota (ex.: até 5 veículos = plano X)
 
 ### Usuários e permissões
 - Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa) e operador (acesso operacional)
@@ -112,7 +113,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 236 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 244 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -128,7 +129,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Fluxo de caixa**: complementar ao DRE (que é por competência); acompanharia entradas/saídas reais de caixa por data de pagamento — avaliado e não priorizado por ora, já que o DRE atual cobre bem a necessidade atual
 
 ### Longo prazo (apostas maiores, ligadas ao plano de vender para outras transportadoras)
-- **Billing/assinatura** se o modelo for SaaS auto-serviço, ou fluxo de onboarding manual se for venda direta (hoje o onboarding já é manual: o super admin cadastra a empresa e o admin inicial dela pela própria tela)
+- **Billing/assinatura**: decidido cobrar por faixa de veículos (ex.: até 5 = plano X), com a assinatura recorrente gerada direto no Asaas (cobrança fixa, PIX/boleto/cartão) — sem integração automática por ora; o limite de veículos por plano já é aplicado no sistema (ver seção Multi-tenant), e a suspensão por inadimplência é manual (super admin desativa a empresa pela tela). Uma integração via webhook do Asaas para automatizar a suspensão fica para quando o volume de clientes justificar
 - **Integração com rastreamento veicular (GPS)** para KM automático em vez de digitação manual
 - **Validação fiscal automática (via API paga)**: o link de verificação manual na SEFAZ já foi implementado (ver seção Viagens); uma automação completa (status buscado e exibido sem o usuário sair do sistema) exigiria assinar um provedor como Danfe Rápida, Nuvem Fiscal ou Focus NFe — avaliado e não contratado ainda, pois o link manual já resolve a necessidade atual sem custo recorrente
 

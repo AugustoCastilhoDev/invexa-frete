@@ -30,6 +30,14 @@
                            value="{{ old('cnpj') }}">
                     @error('cnpj')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Limite de Veículos</label>
+                    <input type="number" name="limite_veiculos" min="1"
+                           class="form-control @error('limite_veiculos') is-invalid @enderror"
+                           value="{{ old('limite_veiculos') }}" placeholder="Deixe em branco para ilimitado">
+                    @error('limite_veiculos')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="form-text">De acordo com o plano contratado. Vazio = sem limite.</div>
+                </div>
             </div>
 
             <h6 class="fw-semibold mb-3">Administrador inicial</h6>

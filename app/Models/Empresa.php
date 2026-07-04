@@ -14,10 +14,26 @@ class Empresa extends Model
         'nome',
         'cnpj',
         'status',
+        'limite_veiculos',
     ];
 
     public function usuarios()
     {
         return $this->hasMany(User::class);
+    }
+
+    public function veiculos()
+    {
+        return $this->hasMany(Veiculo::class);
+    }
+
+    // null = sem limite (ilimitado)
+    public function limiteVeiculosAtingido(): bool
+    {
+        if ($this->limite_veiculos === null) {
+            return false;
+        }
+
+        return $this->veiculos()->withoutGlobalScope('empresa')->count() >= $this->limite_veiculos;
     }
 }

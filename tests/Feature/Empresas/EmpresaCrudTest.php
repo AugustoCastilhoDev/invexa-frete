@@ -101,6 +101,36 @@ class EmpresaCrudTest extends TestCase
         $this->assertEquals('Nome Novo', $empresa->fresh()->nome);
     }
 
+    public function test_super_admin_pode_definir_limite_de_veiculos_ao_criar_empresa(): void
+    {
+        $this->actingAs(User::factory()->superAdmin()->create());
+
+        $this->post(route('empresas.store'), [
+            'nome'                        => 'Transportadora Pequena',
+            'limite_veiculos'             => 5,
+            'admin_name'                  => 'Admin Pequena',
+            'admin_email'                 => 'admin@pequena.com',
+            'admin_password'              => 'senha12345',
+            'admin_password_confirmation' => 'senha12345',
+        ]);
+
+        $this->assertDatabaseHas('empresas', ['nome' => 'Transportadora Pequena', 'limite_veiculos' => 5]);
+    }
+
+    public function test_super_admin_pode_alterar_limite_de_veiculos_de_uma_empresa(): void
+    {
+        $this->actingAs(User::factory()->superAdmin()->create());
+        $empresa = Empresa::factory()->create(['limite_veiculos' => 5]);
+
+        $this->put(route('empresas.update', $empresa), [
+            'nome'            => $empresa->nome,
+            'cnpj'            => $empresa->cnpj,
+            'limite_veiculos' => 10,
+        ]);
+
+        $this->assertEquals(10, $empresa->fresh()->limite_veiculos);
+    }
+
     public function test_super_admin_pode_desativar_e_reativar_empresa(): void
     {
         $this->actingAs(User::factory()->superAdmin()->create());

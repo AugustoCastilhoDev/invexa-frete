@@ -44,8 +44,15 @@
     <div class="col-md-2 col-6">
         <div class="card text-center">
             <div class="card-body py-3">
-                <div class="fs-4 fw-bold">{{ $resumo['veiculos'] }}</div>
+                <div class="fs-4 fw-bold">
+                    {{ $resumo['veiculos'] }}{{ $empresa->limite_veiculos ? ' / ' . $empresa->limite_veiculos : '' }}
+                </div>
                 <small class="text-muted">Veículos</small>
+                @if($empresa->limite_veiculos)
+                    <div class="text-muted" style="font-size:.7rem">
+                        {{ $empresa->limiteVeiculosAtingido() ? 'limite atingido' : 'do plano' }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>
