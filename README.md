@@ -98,6 +98,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Proteções contra autodesativação e remoção do último admin ativo
 - Autenticação em Dois Fatores (2FA) opcional via TOTP, com QR Code, confirmação obrigatória antes de ativar e códigos de recuperação de uso único
 - Telas de login, recuperação de senha e desafio de 2FA com identidade visual própria (logo, cores da marca)
+- Botão para mostrar/esconder a senha digitada no login
 
 ### 🔔 Notificações
 - E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"
@@ -304,26 +305,40 @@ app/
 │   ├── ClientesController.php
 │   ├── DashboardController.php
 │   ├── DescontosController.php
+│   ├── DespesasGeraisController.php
 │   ├── DocumentosController.php
+│   ├── DreController.php
 │   ├── LancamentosController.php
 │   ├── ManutencoesController.php
+│   ├── MotoristaPortalAccessController.php  # admin libera/revoga acesso do motorista ao portal
 │   ├── MotoristasController.php
+│   ├── NotificacoesController.php
 │   ├── RelatorioController.php
 │   ├── UsersController.php
 │   ├── VeiculosController.php
-│   └── ViagensController.php
+│   ├── ViagensController.php
+│   ├── Auth/                           # login, 2FA, reset de senha (admin)
+│   ├── Concerns/
+│   │   └── GeraComprovanteAcerto.php   # PDF do comprovante, reaproveitado pelo admin e pelo portal
+│   └── Portal/                         # controllers exclusivos do Portal do Motorista
+│       ├── PortalAuthController.php
+│       ├── PortalLancamentosController.php
+│       ├── PortalSenhaController.php
+│       └── PortalViagensController.php
 ├── Http/Middleware/
 │   └── EnsureUserIsAdmin.php
 ├── Models/
 │   ├── Concerns/
-│   │   ├── TracksUser.php             # created_by / updated_by automáticos
-│   │   └── TracksDeletingUser.php     # deleted_by automático
+│   │   ├── TracksUser.php             # created_by / updated_by automáticos (guard "web")
+│   │   ├── TracksDeletingUser.php     # deleted_by automático (guard "web")
+│   │   └── HasUploadedFile.php        # URL do arquivo, assinada se o disco for a nuvem
 │   ├── Cliente.php
 │   ├── Desconto.php
+│   ├── DespesaGeral.php
 │   ├── Documento.php
 │   ├── Lancamento.php
 │   ├── Manutencao.php
-│   ├── Motorista.php
+│   ├── Motorista.php                  # Authenticatable — guard próprio do Portal
 │   ├── User.php
 │   ├── Veiculo.php
 │   └── Viagem.php
@@ -331,13 +346,17 @@ app/
     ├── ViagemAguardandoAcertoNotification.php
     └── ViagemEncerradaNotification.php
 config/
+├── auth.php                            # guards "web" (usuários) e "motorista" (portal)
 └── lgpd.php                            # prazos de retenção de dados
 resources/
 └── views/
 ├── acertos/
 ├── clientes/
-├── layouts/
+├── despesas-gerais/
+├── dre/
+├── layouts/                            # app.blade.php (admin), guest.blade.php (auth), portal.blade.php
 ├── motoristas/
+├── portal/                             # auth/, viagens/, senha/ — telas do motorista
 ├── relatorios/
 ├── users/
 ├── veiculos/
@@ -347,8 +366,11 @@ database/
 tests/
 ├── Unit/Models/
 └── Feature/
+    └── Portal/                          # testes do guard/isolamento do Portal do Motorista
 routes/
-└── web.php
+├── web.php
+├── auth.php                             # login/2FA/reset de senha (admin)
+└── portal.php                           # login e rotas do Portal do Motorista
 
 ---
 

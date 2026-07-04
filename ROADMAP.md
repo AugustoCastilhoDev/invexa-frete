@@ -75,6 +75,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Proteções: ninguém desativa/rebaixa a si mesmo; sempre precisa sobrar um admin ativo
 - Autenticação em Dois Fatores (2FA) opcional via TOTP (Google Authenticator, Authy etc.), autogerenciável na tela de Perfil, com códigos de recuperação de uso único
 - Telas de login, recuperação de senha e desafio de 2FA com identidade visual própria (logo, cores da marca)
+- Botão para mostrar/esconder a senha digitada no login
 
 ### Notificações
 - E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"
@@ -113,7 +114,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **WhatsApp**: arquitetura de notificação já pronta para receber um novo canal; falta só a conta em um provedor (Twilio, Z-API, Meta Cloud API) para integrar de verdade
 
 ### Médio prazo
-- **API REST** para app do motorista (ex: lançar combustível/comprovante direto do celular, sem acessar o painel admin)
+- **API REST** para um futuro app nativo do motorista (o Portal do Motorista via navegador já cobre o uso do dia a dia pelo celular; API só valeria a pena se um app nativo entrar em pauta)
 - **Portal do cliente**: mesma ideia do portal do motorista, mas para o cliente acompanhar suas próprias viagens/documentos
 - **Fluxo de caixa**: complementar ao DRE (que é por competência); acompanharia entradas/saídas reais de caixa por data de pagamento — avaliado e não priorizado por ora, já que o DRE atual cobre bem a necessidade atual
 
@@ -131,7 +132,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
   - Configurar `.env` de produção com `MAIL_MAILER=resend` + `RESEND_API_KEY` (já testado em dev)
   - Configurar `.env` de produção com `UPLOADS_DISK=r2` + credenciais R2 (já testado em dev)
   - Confirmar cron do Laravel ativo (`* * * * * php artisan schedule:run`) para a anonimização mensal LGPD funcionar
-  - Rodar `php artisan migrate --force` (22 migrations pendentes de aplicar no ambiente de produção)
+  - Rodar `php artisan migrate --force` (28 migrations pendentes de aplicar no ambiente de produção)
   - Revisar `config/lgpd.php` / prazos de retenção com jurídico/contábil antes de confiar no expurgo automático
   - Confirmar que a extensão PHP `gd` está habilitada no servidor (necessária para o comprovante em PDF exibir a assinatura digital do motorista)
 - **WhatsApp**: aguardando decisão de provedor
