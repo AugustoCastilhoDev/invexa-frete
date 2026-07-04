@@ -10,15 +10,15 @@ trait TracksUser
     public static function bootTracksUser(): void
     {
         static::creating(function ($model) {
-            if (Auth::check()) {
-                $model->created_by = $model->created_by ?? Auth::id();
-                $model->updated_by = Auth::id();
+            if (Auth::guard('web')->check()) {
+                $model->created_by = $model->created_by ?? Auth::guard('web')->id();
+                $model->updated_by = Auth::guard('web')->id();
             }
         });
 
         static::updating(function ($model) {
-            if (Auth::check()) {
-                $model->updated_by = Auth::id();
+            if (Auth::guard('web')->check()) {
+                $model->updated_by = Auth::guard('web')->id();
             }
         });
     }

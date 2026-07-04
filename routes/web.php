@@ -16,6 +16,7 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\ManutencoesController;
 use App\Http\Controllers\DespesasGeraisController;
 use App\Http\Controllers\DreController;
+use App\Http\Controllers\MotoristaPortalAccessController;
 use App\Http\Controllers\NotificacoesController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 
@@ -61,6 +62,11 @@ Route::middleware(['auth'])->group(function () {
 
     // Motoristas
     Route::resource('motoristas', MotoristasController::class);
+
+    Route::post('motoristas/{motorista}/portal', [MotoristaPortalAccessController::class, 'store'])
+        ->name('motoristas.portal.store');
+    Route::delete('motoristas/{motorista}/portal', [MotoristaPortalAccessController::class, 'destroy'])
+        ->name('motoristas.portal.destroy');
 
     // Veículos
     Route::resource('veiculos', VeiculosController::class);
@@ -140,3 +146,4 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+require __DIR__.'/portal.php';

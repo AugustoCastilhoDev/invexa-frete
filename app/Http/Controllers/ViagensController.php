@@ -6,14 +6,16 @@ use App\Models\Viagem;
 use App\Models\Motorista;
 use App\Models\Veiculo;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Cliente;
+use App\Http\Controllers\Concerns\GeraComprovanteAcerto;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ViagensController extends Controller
 {
+    use GeraComprovanteAcerto;
+
     public function index()
 {
     $status     = request('status', 'todas');
@@ -215,17 +217,6 @@ class ViagensController extends Controller
 
     public function imprimir(Viagem $viagem)
     {
-        $viagem->load(['motorista', 'veiculo', 'lancamentos', 'descontos']);
-
-        $assinaturaBase64 = null;
-        if ($viagem->assinatura_motorista_path) {
-            $conteudo = Storage::disk(config('filesystems.uploads_disk'))->get($viagem->assinatura_motorista_path);
-            $assinaturaBase64 = $conteudo ? 'data:image/png;base64,' . base64_encode($conteudo) : null;
-        }
-
-        $pdf = Pdf::loadView('viagens.imprimir', compact('viagem', 'assinaturaBase64'))
-            ->setPaper('a4', 'portrait');
-
-        return $pdf->stream('acerto-viagem-' . $viagem->id . '.pdf');
+        return $this->streamComprovanteAcerto($viagem);
     }
 }

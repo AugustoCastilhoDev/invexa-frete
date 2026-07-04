@@ -4,13 +4,15 @@ namespace App\Models;
 
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Motorista extends Model
+class Motorista extends Model implements AuthenticatableContract
 {
-    use HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
+    use Authenticatable, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $fillable = [
         'nome',
@@ -24,11 +26,22 @@ class Motorista extends Model
         'status',
     ];
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
     protected $casts = [
         'validade_cnh' => 'date',
         'percentual_comissao' => 'decimal:2',
         'anonymized_at' => 'datetime',
+        'portal_ativo' => 'boolean',
     ];
+
+    public function hasPortalAtivo(): bool
+    {
+        return $this->portal_ativo && $this->password !== null;
+    }
 
     // Um motorista tem muitas viagens
     public function viagens()

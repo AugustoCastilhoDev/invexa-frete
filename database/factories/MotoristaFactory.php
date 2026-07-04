@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 class MotoristaFactory extends Factory
 {
@@ -24,5 +25,13 @@ class MotoristaFactory extends Factory
     public function inativo(): static
     {
         return $this->state(fn () => ['status' => 'inativo']);
+    }
+
+    public function comAcessoPortal(string $senha = 'senha-motorista'): static
+    {
+        return $this->state(fn () => [
+            'password'     => Hash::make($senha),
+            'portal_ativo' => true,
+        ]);
     }
 }

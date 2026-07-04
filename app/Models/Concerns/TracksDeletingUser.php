@@ -10,8 +10,8 @@ trait TracksDeletingUser
     public static function bootTracksDeletingUser(): void
     {
         static::deleting(function ($model) {
-            if (Auth::check() && ! $model->isForceDeleting()) {
-                $model->deleted_by = Auth::id();
+            if (Auth::guard('web')->check() && ! $model->isForceDeleting()) {
+                $model->deleted_by = Auth::guard('web')->id();
                 $model->saveQuietly();
             }
         });

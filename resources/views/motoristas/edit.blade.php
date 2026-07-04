@@ -86,4 +86,50 @@
         </form>
     </div>
 </div>
+
+<div class="card mt-4">
+    <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-phone me-2 text-primary"></i>Acesso ao Portal do Motorista
+    </div>
+    <div class="card-body">
+        <p class="text-muted small">
+            Permite que {{ $motorista->nome }} acesse suas próprias viagens e acertos, usando o CPF como login.
+        </p>
+
+        @if($motorista->portal_ativo)
+            <span class="badge bg-success mb-3"><i class="bi bi-check-circle me-1"></i>Acesso ativo</span>
+
+            <form action="{{ route('motoristas.portal.destroy', $motorista) }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('Desativar o acesso ao portal deste motorista?')">
+                @csrf @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-outline-danger mb-3">
+                    <i class="bi bi-x-circle me-1"></i> Desativar Acesso
+                </button>
+            </form>
+        @else
+            <span class="badge bg-secondary mb-3"><i class="bi bi-slash-circle me-1"></i>Sem acesso</span>
+        @endif
+
+        <form action="{{ route('motoristas.portal.store', $motorista) }}" method="POST">
+            @csrf
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">{{ $motorista->portal_ativo ? 'Nova Senha' : 'Senha de Acesso' }} *</label>
+                    <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
+                    @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Confirmar Senha *</label>
+                    <input type="password" name="password_confirmation" class="form-control" required>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-key me-1"></i>
+                        {{ $motorista->portal_ativo ? 'Definir Nova Senha' : 'Ativar Acesso e Definir Senha' }}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Motorista;
 use App\Models\User;
 
 return [
@@ -42,6 +43,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'motorista' => [
+            'driver' => 'session',
+            'provider' => 'motoristas',
+        ],
     ],
 
     /*
@@ -65,6 +71,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'motoristas' => [
+            'driver' => 'eloquent',
+            'model' => Motorista::class,
         ],
 
         // 'users' => [
