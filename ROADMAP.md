@@ -93,8 +93,15 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Bucket privado: acesso aos arquivos só por URL assinada e temporária (10 min), gerada sob demanda — nada fica público por padrão
 - Em dev continua no disco local (`public`) sem precisar de credenciais; troca de ambiente é só variável de ambiente, sem alteração de código
 
+### Portal do Motorista
+- Acesso próprio do motorista (guard de autenticação separado dos usuários do sistema), login com CPF + senha
+- Acesso concedido pelo admin na tela de edição do motorista, que define a senha inicial — sem autocadastro
+- Motorista vê só as próprias viagens e acertos, com detalhe somente leitura e download do comprovante em PDF (mesmo arquivo gerado para o admin, com a assinatura digital se já coletada)
+- Isolamento total entre motoristas (um não acessa dado do outro) e entre o portal e o painel administrativo
+- Troca de senha pelo próprio motorista
+
 ### Infraestrutura de qualidade
-- 183 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização e upload/armazenamento de arquivos
+- 200 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -106,8 +113,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 ### Médio prazo
 - **API REST** para app do motorista (ex: lançar combustível/comprovante direto do celular, sem acessar o painel admin)
-- **Portal do motorista/cliente**: acesso restrito só aos próprios dados (viagens, acertos, documentos)
-- **Fluxo de caixa**: complementar ao DRE (que é por competência); acompanharia entradas/saídas reais de caixa por data de pagamento
+- **Portal do cliente**: mesma ideia do portal do motorista, mas para o cliente acompanhar suas próprias viagens/documentos
+- **Fluxo de caixa**: complementar ao DRE (que é por competência); acompanharia entradas/saídas reais de caixa por data de pagamento — avaliado e não priorizado por ora, já que o DRE atual cobre bem a necessidade atual
 
 ### Longo prazo (apostas maiores, ligadas ao plano de vender para outras transportadoras)
 - **Multi-tenant**: isolar dados por empresa cliente (`empresa_id` + escopo global em todas as tabelas). Pré-requisito real antes de vender a segunda licença — a estrutura de papéis (admin/operador) já construída é a base para isso

@@ -110,6 +110,12 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Acesso somente via URL assinada e temporária (10 min) — nada fica público por padrão
 - Disco configurável por variável de ambiente (`UPLOADS_DISK`): local em dev, R2 em produção, sem alteração de código
 
+### 📱 Portal do Motorista
+- Login próprio do motorista (CPF + senha), separado da autenticação de usuários do sistema
+- Acesso liberado pelo admin na tela de edição do motorista, que define a senha inicial
+- Motorista vê só as próprias viagens/acertos e baixa o comprovante em PDF (com a assinatura digital, se já coletada)
+- Isolamento total: um motorista não acessa dados de outro, nem o painel administrativo
+
 ### 🔒 Segurança & LGPD
 - Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, por serem documentos de identificação assinados)
 - Política de retenção de dados configurável (`config/lgpd.php`)
@@ -138,7 +144,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (183+ testes) |
+| Testes | PHPUnit (200+ testes) |
 | CI | GitHub Actions |
 
 ---
