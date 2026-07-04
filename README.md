@@ -91,9 +91,15 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **DRE simplificado** por período (Receita → Custos Diretos → Resultado Bruto → Despesas Operacionais → Resultado Líquido), considerando apenas viagens encerradas, com exportação em PDF
 - **Despesas Gerais**: cadastro de custos administrativos (aluguel, salários, contas, seguro etc.) que alimentam o DRE
 
+### 🏢 Multi-tenant (Empresas)
+- Cada empresa cliente (transportadora) tem seus dados totalmente isolados dos de outra: motoristas, veículos, clientes, viagens, financeiro — tudo escopado automaticamente por empresa
+- Papel **super admin**, sem empresa própria, gerencia as empresas clientes numa tela dedicada (cria a empresa e o administrador inicial dela) — não enxerga dados operacionais de nenhuma empresa
+- Empresa pode ser desativada (ex.: inadimplência), o que bloqueia login de todos os usuários e motoristas dela imediatamente
+- E-mail, CPF, placa e CNPJ continuam únicos em todo o sistema — login por e-mail/CPF não precisa saber a qual empresa a conta pertence
+
 ### 👥 Usuários & Permissões
-- Papéis: **admin** (gerencia usuários e vê tudo) e **operador** (acesso operacional)
-- Tela de gestão de usuários restrita a admin — autocadastro público desativado
+- Papéis: **super admin** (gerencia empresas clientes), **admin** (gerencia usuários da própria empresa e vê tudo dela) e **operador** (acesso operacional)
+- Tela de gestão de usuários restrita a admin, escopada à própria empresa — autocadastro público desativado
 - Login bloqueado para usuário inativo
 - Proteções contra autodesativação e remoção do último admin ativo
 - Autenticação em Dois Fatores (2FA) opcional via TOTP, com QR Code, confirmação obrigatória antes de ativar e códigos de recuperação de uso único
@@ -125,7 +131,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
 
 ### ✅ Qualidade
-- 208+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações e anonimização de dados
+- 219+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -146,7 +152,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (208+ testes) |
+| Testes | PHPUnit (219+ testes) |
 | CI | GitHub Actions |
 
 ---
@@ -210,25 +216,33 @@ Acesse: **http://localhost:8000**
 
 ---
 
-## 👤 Criando o primeiro usuário
+## 👤 Criando a primeira empresa e usuário
 
-O autocadastro público está desativado — usuários só são criados por um admin, então o primeiro precisa ser criado direto no banco:
+O autocadastro público está desativado. As migrations já deixam um usuário **super admin** pronto (sem senha utilizável — o acesso é reivindicado pela tela "Esqueci minha senha", já que o e-mail está configurado). Com ele:
+
+1. Faça login como super admin e acesse **Empresas**
+2. Cadastre a primeira empresa cliente, informando nome e os dados do administrador inicial dela
+3. A partir daí, esse admin já pode logar e criar novos usuários (admin ou operador) da própria empresa pela tela **Usuários**
+
+Para ambiente local, se preferir pular a etapa do super admin, dá pra criar a empresa e o admin direto no banco:
 
 ```bash
 php artisan tinker
 ```
 
 ```php
-App\Models\User::create([
+$empresa = App\Models\Empresa::create(['nome' => 'Minha Transportadora', 'status' => 'ativo']);
+
+$admin = new App\Models\User([
     'name'     => 'Administrador',
     'email'    => 'admin@invexafrete.com',
-    'password' => bcrypt('sua_senha'),
+    'password' => 'sua_senha',
     'role'     => 'admin',
     'status'   => 'ativo',
 ]);
+$admin->empresa_id = $empresa->id;
+$admin->save();
 ```
-
-A partir daí, novos usuários (admin ou operador) são criados pela tela **Usuários** dentro do sistema.
 
 ---
 
@@ -308,6 +322,7 @@ app/
 │   ├── DespesasGeraisController.php
 │   ├── DocumentosController.php
 │   ├── DreController.php
+│   ├── EmpresasController.php          # CRUD de empresas (tenants), restrito ao super admin
 │   ├── LancamentosController.php
 │   ├── ManutencoesController.php
 │   ├── MotoristaPortalAccessController.php  # admin libera/revoga acesso do motorista ao portal
@@ -326,9 +341,14 @@ app/
 │       ├── PortalSenhaController.php
 │       └── PortalViagensController.php
 ├── Http/Middleware/
-│   └── EnsureUserIsAdmin.php
+│   ├── EnsureUserIsAdmin.php
+│   ├── EnsureUserIsSuperAdmin.php      # restringe telas de gestão de empresas ao super admin
+│   └── EnsureUserIsNotSuperAdmin.php   # super admin não acessa telas operacionais (são por empresa)
+├── Support/
+│   └── TenantContext.php               # resolve a empresa do usuário/motorista autenticado no momento
 ├── Models/
 │   ├── Concerns/
+│   │   ├── BelongsToEmpresa.php       # escopo global + preenchimento automático de empresa_id
 │   │   ├── TracksUser.php             # created_by / updated_by automáticos (guard "web")
 │   │   ├── TracksDeletingUser.php     # deleted_by automático (guard "web")
 │   │   └── HasUploadedFile.php        # URL do arquivo, assinada se o disco for a nuvem
@@ -336,6 +356,7 @@ app/
 │   ├── Desconto.php
 │   ├── DespesaGeral.php
 │   ├── Documento.php
+│   ├── Empresa.php                    # tenant — empresa cliente da plataforma
 │   ├── Lancamento.php
 │   ├── Manutencao.php
 │   ├── Motorista.php                  # Authenticatable — guard próprio do Portal
@@ -354,6 +375,7 @@ resources/
 ├── clientes/
 ├── despesas-gerais/
 ├── dre/
+├── empresas/                            # telas de gestão de empresas (super admin)
 ├── layouts/                            # app.blade.php (admin), guest.blade.php (auth), portal.blade.php
 ├── motoristas/
 ├── portal/                             # auth/, viagens/, senha/ — telas do motorista
@@ -366,6 +388,8 @@ database/
 tests/
 ├── Unit/Models/
 └── Feature/
+    ├── Empresas/                        # testes do CRUD de empresas
+    ├── MultiTenantIsolationTest.php     # garante que uma empresa não vê dados de outra
     └── Portal/                          # testes do guard/isolamento do Portal do Motorista
 routes/
 ├── web.php

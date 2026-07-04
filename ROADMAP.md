@@ -67,9 +67,16 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Viagens em aberto e Top 5 motoristas do mês
 - Painel de **Pendências**: CNH de motorista vencida/vencendo, veículos em manutenção, documentos fiscais pendentes, manutenção preventiva vencendo
 
+### Multi-tenant (Empresas)
+- Todas as tabelas de domínio (motoristas, veículos, clientes, viagens, lançamentos, descontos, documentos, manutenções, despesas gerais) são escopadas por `empresa_id` via escopo global no model — cada empresa cliente só enxerga e só cria dados dentro da própria empresa, automaticamente, sem precisar reescrever cada consulta existente
+- Novo papel **super admin** (sem empresa própria): tela dedicada (`/empresas`) para cadastrar empresas clientes e o administrador inicial de cada uma; não acessa nenhuma tela operacional (que é sempre escopada por empresa)
+- Empresa pode ser desativada (ex.: inadimplência) — bloqueia login de todos os usuários e motoristas dela de uma vez, sem precisar desativar um por um
+- E-mail, CPF, placa e CNPJ continuam únicos globalmente (decisão deliberada): mantém o login por e-mail/CPF exatamente como já era, sem precisar informar a empresa antes de entrar
+- Dados existentes antes dessa mudança foram preservados numa "Empresa Padrão" criada automaticamente pela migration de backfill — nada foi perdido
+
 ### Usuários e permissões
-- Papéis: admin (gerencia usuários) e operador (acesso operacional)
-- Tela de gestão de usuários (`/users`), restrita a admin
+- Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa) e operador (acesso operacional)
+- Tela de gestão de usuários (`/users`), restrita a admin e escopada à própria empresa
 - Autocadastro público desativado — usuários só são criados por um admin
 - Login bloqueado para usuário inativo
 - Proteções: ninguém desativa/rebaixa a si mesmo; sempre precisa sobrar um admin ativo
@@ -103,7 +110,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 208 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos e o portal do motorista
+- 219 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -119,8 +126,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Fluxo de caixa**: complementar ao DRE (que é por competência); acompanharia entradas/saídas reais de caixa por data de pagamento — avaliado e não priorizado por ora, já que o DRE atual cobre bem a necessidade atual
 
 ### Longo prazo (apostas maiores, ligadas ao plano de vender para outras transportadoras)
-- **Multi-tenant**: isolar dados por empresa cliente (`empresa_id` + escopo global em todas as tabelas). Pré-requisito real antes de vender a segunda licença — a estrutura de papéis (admin/operador) já construída é a base para isso
-- **Billing/assinatura** se o modelo for SaaS auto-serviço, ou fluxo de onboarding manual se for venda direta
+- **Billing/assinatura** se o modelo for SaaS auto-serviço, ou fluxo de onboarding manual se for venda direta (hoje o onboarding já é manual: o super admin cadastra a empresa e o admin inicial dela pela própria tela)
 - **Integração com rastreamento veicular (GPS)** para KM automático em vez de digitação manual
 - **Integração fiscal (SEFAZ)** para validar CT-e/MDF-e/NF-e automaticamente em vez de só registrar os números
 
@@ -132,7 +138,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
   - Configurar `.env` de produção com `MAIL_MAILER=resend` + `RESEND_API_KEY` (já testado em dev)
   - Configurar `.env` de produção com `UPLOADS_DISK=r2` + credenciais R2 (já testado em dev)
   - Confirmar cron do Laravel ativo (`* * * * * php artisan schedule:run`) para a anonimização mensal LGPD funcionar
-  - Rodar `php artisan migrate --force` (28 migrations pendentes de aplicar no ambiente de produção)
+  - Rodar `php artisan migrate --force` (39 migrations pendentes de aplicar no ambiente de produção, incluindo a criação do usuário super admin — ver abaixo)
+  - Confirmar o e-mail do super admin da plataforma (`ac.castilho87@gmail.com`, hardcoded na migration de multi-tenant) antes de rodar em produção; o acesso é reivindicado via "esqueci minha senha" depois do primeiro `migrate`
   - Revisar `config/lgpd.php` / prazos de retenção com jurídico/contábil antes de confiar no expurgo automático
   - Confirmar que a extensão PHP `gd` está habilitada no servidor (necessária para o comprovante em PDF exibir a assinatura digital do motorista)
 - **WhatsApp**: aguardando decisão de provedor
