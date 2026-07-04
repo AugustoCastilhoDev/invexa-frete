@@ -3,6 +3,7 @@
 namespace Tests\Feature\Empresas;
 
 use App\Models\Empresa;
+use App\Models\Motorista;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -59,6 +60,31 @@ class EmpresaCrudTest extends TestCase
             'role'       => 'admin',
             'empresa_id' => $empresa->id,
         ]);
+    }
+
+    public function test_super_admin_pode_visualizar_detalhes_de_uma_empresa(): void
+    {
+        $this->actingAs(User::factory()->superAdmin()->create());
+        $empresa = Empresa::factory()->create(['nome' => 'Transportadora Detalhada']);
+        $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id, 'name' => 'Admin da Detalhada']);
+        Motorista::factory()->create(['empresa_id' => $empresa->id]);
+
+        $response = $this->get(route('empresas.show', $empresa));
+
+        $response->assertOk();
+        $response->assertSee('Transportadora Detalhada');
+        $response->assertSee('Admin da Detalhada');
+        $response->assertViewHas('resumo', fn ($resumo) => $resumo['motoristas'] === 1);
+    }
+
+    public function test_admin_comum_nao_pode_visualizar_detalhes_de_empresa(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $empresa = Empresa::factory()->create();
+
+        $response = $this->get(route('empresas.show', $empresa));
+
+        $response->assertForbidden();
     }
 
     public function test_super_admin_pode_editar_empresa(): void

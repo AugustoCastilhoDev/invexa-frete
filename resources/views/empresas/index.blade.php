@@ -75,6 +75,10 @@
                         </span>
                     </td>
                     <td class="text-end pe-4">
+                        <a href="{{ route('empresas.show', $empresa) }}"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-eye"></i>
+                        </a>
                         <a href="{{ route('empresas.edit', $empresa) }}"
                            class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil"></i>

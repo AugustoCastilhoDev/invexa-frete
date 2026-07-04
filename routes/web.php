@@ -51,7 +51,7 @@ Route::middleware(['auth'])->group(function () {
 
 // Gestão de empresas (tenants) — restrita ao super admin da plataforma
 Route::middleware(['auth', 'super_admin'])->group(function () {
-    Route::resource('empresas', EmpresasController::class)->except(['show', 'destroy']);
+    Route::resource('empresas', EmpresasController::class)->except(['destroy']);
     Route::patch('empresas/{empresa}/status', [EmpresasController::class, 'toggleStatus'])
         ->name('empresas.toggle-status');
 });

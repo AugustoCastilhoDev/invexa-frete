@@ -94,6 +94,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 ### 🏢 Multi-tenant (Empresas)
 - Cada empresa cliente (transportadora) tem seus dados totalmente isolados dos de outra: motoristas, veículos, clientes, viagens, financeiro — tudo escopado automaticamente por empresa
 - Papel **super admin**, sem empresa própria, gerencia as empresas clientes numa tela dedicada (cria a empresa e o administrador inicial dela) — não enxerga dados operacionais de nenhuma empresa
+- Tela de detalhe por empresa para suporte: usuários cadastrados e resumo operacional (motoristas, veículos, clientes, viagens, despesas gerais) — sem precisar acessar o banco para investigar um chamado
 - Empresa pode ser desativada (ex.: inadimplência), o que bloqueia login de todos os usuários e motoristas dela imediatamente
 - E-mail, CPF, placa e CNPJ continuam únicos em todo o sistema — login por e-mail/CPF não precisa saber a qual empresa a conta pertence
 

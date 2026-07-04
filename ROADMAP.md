@@ -73,6 +73,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Empresa pode ser desativada (ex.: inadimplência) — bloqueia login de todos os usuários e motoristas dela de uma vez, sem precisar desativar um por um
 - E-mail, CPF, placa e CNPJ continuam únicos globalmente (decisão deliberada): mantém o login por e-mail/CPF exatamente como já era, sem precisar informar a empresa antes de entrar
 - Dados existentes antes dessa mudança foram preservados numa "Empresa Padrão" criada automaticamente pela migration de backfill — nada foi perdido
+- Tela de detalhe da empresa (`/empresas/{id}`) para dar suporte: lista os usuários dela e um resumo operacional (motoristas, veículos, clientes, viagens, despesas gerais), sem precisar consultar o banco direto quando o cliente relata um problema
 
 ### Usuários e permissões
 - Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa) e operador (acesso operacional)
