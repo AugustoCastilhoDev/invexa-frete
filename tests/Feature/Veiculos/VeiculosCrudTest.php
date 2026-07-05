@@ -59,13 +59,24 @@ class VeiculosCrudTest extends TestCase
 
     public function test_exclusao_e_soft_delete(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
         $veiculo = Veiculo::factory()->create();
 
         $response = $this->delete(route('veiculos.destroy', $veiculo));
 
         $response->assertRedirect(route('veiculos.index'));
         $this->assertSoftDeleted($veiculo);
+    }
+
+    public function test_operador_nao_pode_excluir_veiculo(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $veiculo = Veiculo::factory()->create();
+
+        $response = $this->delete(route('veiculos.destroy', $veiculo));
+
+        $response->assertForbidden();
+        $this->assertNotSoftDeleted($veiculo);
     }
 
     public function test_bloqueia_cadastro_ao_atingir_limite_de_veiculos_do_plano(): void

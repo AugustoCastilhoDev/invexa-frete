@@ -68,10 +68,11 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // Despesas gerais (administrativas)
+    // Despesas gerais (administrativas) — restrito a admin: custo interno, não é operacional
     Route::resource('despesas-gerais', DespesasGeraisController::class)
         ->except(['show'])
-        ->parameters(['despesas-gerais' => 'despesaGeral']);
+        ->parameters(['despesas-gerais' => 'despesaGeral'])
+        ->middleware('admin');
 
     // Usuários do sistema (apenas admin)
     Route::resource('users', UsersController::class)
@@ -79,7 +80,9 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         ->middleware('admin');
 
     // Motoristas
-    Route::resource('motoristas', MotoristasController::class);
+    Route::resource('motoristas', MotoristasController::class)->except(['destroy']);
+    Route::delete('motoristas/{motorista}', [MotoristasController::class, 'destroy'])
+        ->middleware('admin')->name('motoristas.destroy');
 
     Route::post('motoristas/{motorista}/portal', [MotoristaPortalAccessController::class, 'store'])
         ->name('motoristas.portal.store');
@@ -87,7 +90,9 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         ->name('motoristas.portal.destroy');
 
     // Veículos
-    Route::resource('veiculos', VeiculosController::class);
+    Route::resource('veiculos', VeiculosController::class)->except(['destroy']);
+    Route::delete('veiculos/{veiculo}', [VeiculosController::class, 'destroy'])
+        ->middleware('admin')->name('veiculos.destroy');
 
     // Manutenções (aninhadas no veículo)
     Route::post('veiculos/{veiculo}/manutencoes', [ManutencoesController::class, 'store'])
@@ -95,12 +100,14 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
     Route::patch('manutencoes/{manutencao}', [ManutencoesController::class, 'update'])
         ->name('manutencoes.update');
     Route::delete('manutencoes/{manutencao}', [ManutencoesController::class, 'destroy'])
-        ->name('manutencoes.destroy');
+        ->middleware('admin')->name('manutencoes.destroy');
 
     // Viagens
-    Route::resource('viagens', ViagensController::class)->parameters([
+    Route::resource('viagens', ViagensController::class)->except(['destroy'])->parameters([
     'viagens' => 'viagem']);
-    
+    Route::delete('viagens/{viagem}', [ViagensController::class, 'destroy'])
+        ->middleware('admin')->name('viagens.destroy');
+
     Route::patch('viagens/{viagem}/avancar-status', [ViagensController::class, 'avancarStatus'])
         ->name('viagens.avancar-status');
 
@@ -121,41 +128,44 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
     Route::patch('lancamentos/{lancamento}/rejeitar', [LancamentosController::class, 'rejeitar'])
         ->name('lancamentos.rejeitar');
     Route::delete('lancamentos/{lancamento}', [LancamentosController::class, 'destroy'])
-        ->name('lancamentos.destroy');
+        ->middleware('admin')->name('lancamentos.destroy');
 
     // Descontos (aninhados na viagem)
     Route::post('viagens/{viagem}/descontos', [DescontosController::class, 'store'])
         ->name('descontos.store');
     Route::delete('descontos/{desconto}', [DescontosController::class, 'destroy'])
-        ->name('descontos.destroy');
+        ->middleware('admin')->name('descontos.destroy');
 
-    // Relatórios
-    Route::get('/relatorios', [RelatorioController::class, 'index'])
-        ->name('relatorios.index');
+    // Relatórios (financeiro/estratégico) — restrito a admin
+    Route::middleware('admin')->group(function () {
+        Route::get('/relatorios', [RelatorioController::class, 'index'])
+            ->name('relatorios.index');
 
-    Route::get('/relatorios/pdf', [RelatorioController::class, 'pdf'])
-        ->name('relatorios.pdf');
+        Route::get('/relatorios/pdf', [RelatorioController::class, 'pdf'])
+            ->name('relatorios.pdf');
 
-    Route::get('/relatorios/csv', [RelatorioController::class, 'csv'])
-        ->name('relatorios.csv');
+        Route::get('/relatorios/csv', [RelatorioController::class, 'csv'])
+            ->name('relatorios.csv');
 
-    // DRE (Demonstrativo de Resultado)
-    Route::get('/dre', [DreController::class, 'index'])->name('dre.index');
-    Route::get('/dre/pdf', [DreController::class, 'pdf'])->name('dre.pdf');
-
+        // DRE (Demonstrativo de Resultado)
+        Route::get('/dre', [DreController::class, 'index'])->name('dre.index');
+        Route::get('/dre/pdf', [DreController::class, 'pdf'])->name('dre.pdf');
+    });
 
     Route::post('viagens/{viagem}/documentos', [DocumentosController::class, 'store'])
         ->name('documentos.store');
     Route::patch('documentos/{documento}', [DocumentosController::class, 'update'])
         ->name('documentos.update');
     Route::delete('documentos/{documento}', [DocumentosController::class, 'destroy'])
-        ->name('documentos.destroy');
+        ->middleware('admin')->name('documentos.destroy');
 
     Route::get('/dashboard/grafico', [DashboardController::class, 'grafico'])
     ->name('dashboard.grafico');
 
     // Clientes
-    Route::resource('clientes', ClientesController::class);
+    Route::resource('clientes', ClientesController::class)->except(['destroy']);
+    Route::delete('clientes/{cliente}', [ClientesController::class, 'destroy'])
+        ->middleware('admin')->name('clientes.destroy');
 
     // Acertos
     Route::get('/acertos', [AcertosController::class, 'index'])

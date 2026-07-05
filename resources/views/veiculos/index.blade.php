@@ -106,6 +106,7 @@
                            class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil"></i>
                         </a>
+                        @if(auth()->user()?->isAdmin())
                         <form action="{{ route('veiculos.destroy', $veiculo) }}"
                               method="POST" class="d-inline"
                               onsubmit="return confirm('Confirma exclusão?')">
@@ -114,6 +115,7 @@
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
+                        @endif
                     </td>
                 </tr>
                 @empty

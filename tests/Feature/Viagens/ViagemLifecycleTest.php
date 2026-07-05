@@ -208,7 +208,7 @@ class ViagemLifecycleTest extends TestCase
 
     public function test_excluir_viagem_remove_da_listagem_padrao(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $viagem = Viagem::factory()->create();
 
@@ -216,6 +216,18 @@ class ViagemLifecycleTest extends TestCase
 
         $response->assertRedirect(route('viagens.index'));
         $this->assertSoftDeleted($viagem);
+    }
+
+    public function test_operador_nao_pode_excluir_viagem(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create();
+
+        $response = $this->delete(route('viagens.destroy', $viagem));
+
+        $response->assertForbidden();
+        $this->assertNotSoftDeleted($viagem);
     }
 
     public function test_imprimir_gera_pdf_da_viagem(): void

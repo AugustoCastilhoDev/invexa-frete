@@ -153,6 +153,7 @@
                             <i class="bi bi-pencil"></i>
                         </a>
                         @endif
+                        @if(auth()->user()?->isAdmin())
                         <form action="{{ route('viagens.destroy', $viagem) }}"
                               method="POST" class="d-inline"
                               onsubmit="return confirm('Confirma exclusão desta viagem?')">
@@ -161,6 +162,7 @@
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
+                        @endif
                     </td>
                 </tr>
                 @empty

@@ -158,6 +158,7 @@
                                 @endif
                             </td>
                             <td>
+                                @if(auth()->user()?->isAdmin())
                                 <form action="{{ route('manutencoes.destroy', $manutencao) }}" method="POST"
                                       onsubmit="return confirm('Remover este registro de manutenção?')">
                                     @csrf @method('DELETE')
@@ -165,6 +166,7 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
+                                @endif
                             </td>
                         </tr>
                         @empty

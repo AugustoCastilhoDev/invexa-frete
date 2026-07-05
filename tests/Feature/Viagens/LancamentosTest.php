@@ -104,7 +104,7 @@ class LancamentosTest extends TestCase
 
     public function test_remover_lancamento_recalcula_totais_da_viagem(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $viagem     = Viagem::factory()->create(['valor_frete' => 1000, 'percentual_motorista' => 10]);
         $lancamento = Lancamento::factory()->manutencao()->create(['viagem_id' => $viagem->id, 'valor' => 200]);
@@ -119,5 +119,17 @@ class LancamentosTest extends TestCase
         $viagem->refresh();
         $this->assertEquals(0, $viagem->total_manutencao);
         $this->assertDatabaseMissing('lancamentos', ['id' => $lancamento->id]);
+    }
+
+    public function test_operador_nao_pode_excluir_lancamento(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $lancamento = Lancamento::factory()->create();
+
+        $response = $this->delete(route('lancamentos.destroy', $lancamento));
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('lancamentos', ['id' => $lancamento->id]);
     }
 }

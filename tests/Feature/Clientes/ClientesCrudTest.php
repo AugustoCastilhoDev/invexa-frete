@@ -58,12 +58,23 @@ class ClientesCrudTest extends TestCase
 
     public function test_exclusao_e_soft_delete(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
         $cliente = Cliente::factory()->create();
 
         $response = $this->delete(route('clientes.destroy', $cliente));
 
         $response->assertRedirect(route('clientes.index'));
         $this->assertSoftDeleted($cliente);
+    }
+
+    public function test_operador_nao_pode_excluir_cliente(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $cliente = Cliente::factory()->create();
+
+        $response = $this->delete(route('clientes.destroy', $cliente));
+
+        $response->assertForbidden();
+        $this->assertNotSoftDeleted($cliente);
     }
 }

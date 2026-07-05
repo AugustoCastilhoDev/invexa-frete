@@ -21,7 +21,7 @@ class DespesasGeraisTest extends TestCase
 
     public function test_cadastra_despesa_geral(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $response = $this->post(route('despesas-gerais.store'), [
             'categoria'    => 'aluguel',
@@ -41,7 +41,7 @@ class DespesasGeraisTest extends TestCase
 
     public function test_index_totaliza_apenas_despesas_do_periodo_e_categoria_selecionados(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $dataDentro = Carbon::now()->startOfMonth()->addDays(2)->format('Y-m-d');
 
@@ -70,7 +70,7 @@ class DespesasGeraisTest extends TestCase
 
     public function test_atualiza_despesa_geral(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $despesa = DespesaGeral::factory()->create(['valor' => 100]);
 
@@ -88,7 +88,7 @@ class DespesasGeraisTest extends TestCase
 
     public function test_remove_despesa_geral(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $despesa = DespesaGeral::factory()->create();
 
@@ -96,5 +96,14 @@ class DespesasGeraisTest extends TestCase
 
         $response->assertRedirect(route('despesas-gerais.index'));
         $this->assertDatabaseMissing('despesas_gerais', ['id' => $despesa->id]);
+    }
+
+    public function test_operador_nao_pode_acessar_despesas_gerais(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->get(route('despesas-gerais.index'));
+
+        $response->assertForbidden();
     }
 }

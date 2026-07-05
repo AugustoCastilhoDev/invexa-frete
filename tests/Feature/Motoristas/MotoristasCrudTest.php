@@ -58,12 +58,23 @@ class MotoristasCrudTest extends TestCase
 
     public function test_exclusao_e_soft_delete(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
         $motorista = Motorista::factory()->create();
 
         $response = $this->delete(route('motoristas.destroy', $motorista));
 
         $response->assertRedirect(route('motoristas.index'));
         $this->assertSoftDeleted($motorista);
+    }
+
+    public function test_operador_nao_pode_excluir_motorista(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $motorista = Motorista::factory()->create();
+
+        $response = $this->delete(route('motoristas.destroy', $motorista));
+
+        $response->assertForbidden();
+        $this->assertNotSoftDeleted($motorista);
     }
 }

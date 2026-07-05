@@ -193,7 +193,7 @@
                             <td>{{ $desconto->data_desconto->format('d/m/Y') }}</td>
                             <td>R$ {{ number_format($desconto->valor, 2, ',', '.') }}</td>
                             <td>
-                                @if($viagem->status !== 'encerrada')
+                                @if($viagem->status !== 'encerrada' && auth()->user()?->isAdmin())
                                 <form action="{{ route('descontos.destroy', $desconto) }}"
                                       method="POST"
                                       onsubmit="return confirm('Remover desconto?')">
@@ -315,6 +315,7 @@
                                             title="Editar chave de acesso">
                                         <i class="bi bi-pencil"></i>
                                     </button>
+                                    @if(auth()->user()?->isAdmin())
                                     <form action="{{ route('documentos.destroy', $doc) }}"
                                           method="POST"
                                           onsubmit="return confirm('Remover documento?')">
@@ -323,6 +324,7 @@
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
+                                    @endif
                                     @endif
                                 </div>
                             </td>
@@ -509,7 +511,7 @@
                                     </button>
                                 </form>
                                 @endif
-                                @if($viagem->status !== 'encerrada')
+                                @if($viagem->status !== 'encerrada' && auth()->user()?->isAdmin())
                                 <form action="{{ route('lancamentos.destroy', $lancamento) }}"
                                       method="POST" class="d-inline"
                                       onsubmit="return confirm('Remover lançamento?')">

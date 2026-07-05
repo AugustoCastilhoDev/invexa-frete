@@ -54,7 +54,7 @@ class DescontosTest extends TestCase
 
     public function test_remover_desconto_recalcula_saldo_do_motorista(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $viagem   = Viagem::factory()->create(['valor_frete' => 1000, 'percentual_motorista' => 10]);
         $desconto = Desconto::factory()->create(['viagem_id' => $viagem->id, 'valor' => 30]);
@@ -69,5 +69,17 @@ class DescontosTest extends TestCase
         $viagem->refresh();
         $this->assertEquals(100, $viagem->saldo_motorista);
         $this->assertDatabaseMissing('descontos', ['id' => $desconto->id]);
+    }
+
+    public function test_operador_nao_pode_excluir_desconto(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $desconto = Desconto::factory()->create();
+
+        $response = $this->delete(route('descontos.destroy', $desconto));
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('descontos', ['id' => $desconto->id]);
     }
 }

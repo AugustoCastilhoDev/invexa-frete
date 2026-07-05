@@ -81,4 +81,26 @@ class DocumentosTest extends TestCase
 
         $this->assertEquals('autorizado', $documento->fresh()->status);
     }
+
+    public function test_admin_pode_excluir_documento(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $documento = Documento::factory()->create();
+
+        $response = $this->delete(route('documentos.destroy', $documento));
+
+        $response->assertRedirect(route('viagens.show', $documento->viagem));
+        $this->assertDatabaseMissing('documentos', ['id' => $documento->id]);
+    }
+
+    public function test_operador_nao_pode_excluir_documento(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $documento = Documento::factory()->create();
+
+        $response = $this->delete(route('documentos.destroy', $documento));
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('documentos', ['id' => $documento->id]);
+    }
 }

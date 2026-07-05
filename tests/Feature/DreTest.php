@@ -24,7 +24,7 @@ class DreTest extends TestCase
 
     public function test_dre_considera_apenas_viagens_encerradas_do_periodo(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $dataDentro = Carbon::now()->startOfMonth()->addDays(2)->format('Y-m-d');
 
@@ -62,7 +62,7 @@ class DreTest extends TestCase
 
     public function test_dre_inclui_manutencao_avulsa_e_despesas_gerais_como_despesas_operacionais(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $dataDentro = Carbon::now()->startOfMonth()->addDays(2)->format('Y-m-d');
 
@@ -98,7 +98,7 @@ class DreTest extends TestCase
 
     public function test_pdf_gera_documento_do_dre(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         Viagem::factory()->encerrada()->create(['data_saida' => now()->format('Y-m-d')]);
 
@@ -106,5 +106,14 @@ class DreTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_operador_nao_pode_acessar_dre(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->get(route('dre.index'));
+
+        $response->assertForbidden();
     }
 }

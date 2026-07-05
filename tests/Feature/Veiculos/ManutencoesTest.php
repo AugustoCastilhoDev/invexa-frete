@@ -57,13 +57,24 @@ class ManutencoesTest extends TestCase
 
     public function test_excluir_manutencao_remove_registro(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
         $manutencao = Manutencao::factory()->create();
 
         $response = $this->delete(route('manutencoes.destroy', $manutencao));
 
         $response->assertRedirect(route('veiculos.show', $manutencao->veiculo));
         $this->assertDatabaseMissing('manutencoes', ['id' => $manutencao->id]);
+    }
+
+    public function test_operador_nao_pode_excluir_manutencao(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $manutencao = Manutencao::factory()->create();
+
+        $response = $this->delete(route('manutencoes.destroy', $manutencao));
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('manutencoes', ['id' => $manutencao->id]);
     }
 
     public function test_veiculo_show_exibe_historico_de_manutencoes(): void

@@ -78,7 +78,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Limite de veículos por plano**: campo configurável por empresa (nulo = sem limite) que bloqueia o cadastro de um novo veículo ao atingir o teto contratado — pensado para o modelo de cobrança por faixa de frota (ex.: até 5 veículos = plano X). A própria tela de Veículos do cliente mostra "X / Y" e avisa quando o limite é atingido, sem precisar entrar em contato para descobrir
 
 ### Usuários e permissões
-- Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa) e operador (acesso operacional)
+- Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa e vê tudo dela) e operador (acesso operacional do dia a dia)
+- **Escopo do operador**: acessa Viagens, Motoristas, Veículos, Clientes, Lançamentos, Descontos, Documentos, Manutenções e Acertos; fica de fora do DRE, Relatórios Financeiros e Despesas Gerais (dados estratégicos/administrativos) e não exclui nenhum registro (motorista, veículo, viagem, lançamento, desconto, documento, manutenção) — só o admin apaga. Antes dessa mudança o operador tinha acesso igual ao admin em tudo, exceto gestão de usuários
 - Tela de gestão de usuários (`/users`), restrita a admin e escopada à própria empresa
 - Autocadastro público desativado — usuários só são criados por um admin
 - Login bloqueado para usuário inativo
@@ -113,7 +114,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 247 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 259 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
