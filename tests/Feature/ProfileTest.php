@@ -61,9 +61,9 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account(): void
+    public function test_admin_can_delete_their_account(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $response = $this
             ->actingAs($user)
@@ -81,7 +81,7 @@ class ProfileTest extends TestCase
 
     public function test_correct_password_must_be_provided_to_delete_account(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $response = $this
             ->actingAs($user)
@@ -95,5 +95,19 @@ class ProfileTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertNotNull($user->fresh());
+    }
+
+    public function test_operador_nao_pode_excluir_a_propria_conta(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->delete('/profile', [
+                'password' => 'password',
+            ]);
+
+        $response->assertForbidden();
+        $this->assertNotSoftDeleted($user);
     }
 }

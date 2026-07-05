@@ -79,7 +79,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 ### Usuários e permissões
 - Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa e vê tudo dela) e operador (acesso operacional do dia a dia)
-- **Escopo do operador**: acessa Viagens, Motoristas, Veículos, Clientes, Lançamentos, Descontos, Documentos, Manutenções e Acertos; fica de fora do DRE, Relatórios Financeiros e Despesas Gerais (dados estratégicos/administrativos) e não exclui nenhum registro (motorista, veículo, viagem, lançamento, desconto, documento, manutenção) — só o admin apaga. Antes dessa mudança o operador tinha acesso igual ao admin em tudo, exceto gestão de usuários
+- **Escopo do operador**: acessa Viagens, Motoristas, Veículos, Clientes, Lançamentos, Descontos, Documentos, Manutenções e Acertos; fica de fora do DRE, Relatórios Financeiros e Despesas Gerais (dados estratégicos/administrativos) e não exclui nenhum registro (motorista, veículo, viagem, lançamento, desconto, documento, manutenção) nem a própria conta na tela "Meu Perfil" — só o admin apaga. Antes dessa mudança o operador tinha acesso igual ao admin em tudo, exceto gestão de usuários
 - Tela de gestão de usuários (`/users`), restrita a admin e escopada à própria empresa
 - Autocadastro público desativado — usuários só são criados por um admin
 - Login bloqueado para usuário inativo
@@ -114,7 +114,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 259 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 260 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---

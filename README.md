@@ -102,7 +102,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 
 ### 👥 Usuários & Permissões
 - Papéis: **super admin** (gerencia empresas clientes), **admin** (gerencia usuários da própria empresa e vê tudo dela) e **operador** (acesso operacional do dia a dia)
-- Operador acessa Viagens, Motoristas, Veículos, Clientes, Lançamentos, Descontos, Documentos, Manutenções e Acertos — mas **não** vê DRE, Relatórios Financeiros nem Despesas Gerais (informação estratégica/administrativa), e **não** exclui registros (só o admin apaga)
+- Operador acessa Viagens, Motoristas, Veículos, Clientes, Lançamentos, Descontos, Documentos, Manutenções e Acertos — mas **não** vê DRE, Relatórios Financeiros nem Despesas Gerais (informação estratégica/administrativa), **não** exclui registros e **não** exclui a própria conta (só o admin apaga)
 - Tela de gestão de usuários restrita a admin, escopada à própria empresa — autocadastro público desativado
 - Login bloqueado para usuário inativo
 - Proteções contra autodesativação e remoção do último admin ativo
@@ -135,7 +135,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
 
 ### ✅ Qualidade
-- 259+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
+- 260+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -156,7 +156,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (259+ testes) |
+| Testes | PHPUnit (260+ testes) |
 | CI | GitHub Actions |
 
 ---

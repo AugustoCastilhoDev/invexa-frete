@@ -27,11 +27,13 @@
             </div>
         </div>
 
+        @if(auth()->user()?->isAdmin())
         <div class="card border-danger-subtle">
             <div class="card-body p-4">
                 @include('profile.partials.delete-user-form')
             </div>
         </div>
+        @endif
     </div>
 </div>
 @endsection
