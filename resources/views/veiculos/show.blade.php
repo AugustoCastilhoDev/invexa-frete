@@ -34,6 +34,13 @@
                     <tr><td class="text-muted">Chassi</td><td>{{ $veiculo->chassi ?? '-' }}</td></tr>
                     <tr><td class="text-muted">Validade do Documento</td>
                         <td>{{ $veiculo->validade_documento?->format('d/m/Y') ?? '-' }}</td></tr>
+                    @if($veiculo->tipo === 'carreta')
+                    <tr><td class="text-muted">Cavalo Vinculado</td>
+                        <td>{{ $veiculo->cavalo ? $veiculo->cavalo->placa . ' — ' . $veiculo->cavalo->modelo : '-' }}</td></tr>
+                    @elseif($veiculo->tipo === 'truck')
+                    <tr><td class="text-muted">Carreta(s) Vinculada(s)</td>
+                        <td>{{ $veiculo->carretas->isNotEmpty() ? $veiculo->carretas->pluck('placa')->join(', ') : '-' }}</td></tr>
+                    @endif
                     <tr><td class="text-muted">Capacidade</td>
                         <td>{{ $veiculo->capacidade_kg
                             ? number_format($veiculo->capacidade_kg, 0, ',', '.').' kg'

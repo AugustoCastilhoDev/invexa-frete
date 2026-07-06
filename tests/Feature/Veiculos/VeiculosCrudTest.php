@@ -70,6 +70,135 @@ class VeiculosCrudTest extends TestCase
         $this->assertSame('2027-03-15', $veiculo->validade_documento->format('Y-m-d'));
     }
 
+    public function test_vincula_carreta_a_um_cavalo_ao_cadastrar(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $cavalo = Veiculo::factory()->create(['tipo' => 'truck']);
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'     => 'CAR1R23',
+            'modelo'    => 'Carreta Graneleira',
+            'tipo'      => 'carreta',
+            'status'    => 'ativo',
+            'cavalo_id' => $cavalo->id,
+        ]);
+
+        $response->assertRedirect(route('veiculos.index'));
+        $this->assertDatabaseHas('veiculos', ['placa' => 'CAR1R23', 'cavalo_id' => $cavalo->id]);
+    }
+
+    public function test_atualiza_vinculo_de_carreta_a_cavalo(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $cavalo  = Veiculo::factory()->create(['tipo' => 'truck']);
+        $carreta = Veiculo::factory()->carreta()->create();
+
+        $response = $this->put(route('veiculos.update', $carreta), [
+            'placa'     => $carreta->placa,
+            'modelo'    => $carreta->modelo,
+            'tipo'      => 'carreta',
+            'status'    => 'ativo',
+            'cavalo_id' => $cavalo->id,
+        ]);
+
+        $response->assertRedirect(route('veiculos.index'));
+        $this->assertSame($cavalo->id, $carreta->fresh()->cavalo_id);
+    }
+
+    public function test_nao_permite_cavalo_id_em_veiculo_que_nao_e_carreta(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $cavalo = Veiculo::factory()->create(['tipo' => 'truck']);
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'     => 'UTL1L23',
+            'modelo'    => 'Van de Carga',
+            'tipo'      => 'utilitario',
+            'status'    => 'ativo',
+            'cavalo_id' => $cavalo->id,
+        ]);
+
+        $response->assertSessionHasErrors('cavalo_id');
+        $this->assertDatabaseMissing('veiculos', ['placa' => 'UTL1L23']);
+    }
+
+    public function test_nao_permite_vincular_carreta_a_veiculo_que_nao_e_cavalo(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $outraCarreta = Veiculo::factory()->carreta()->create();
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'     => 'CAR2R23',
+            'modelo'    => 'Carreta Sider',
+            'tipo'      => 'carreta',
+            'status'    => 'ativo',
+            'cavalo_id' => $outraCarreta->id,
+        ]);
+
+        $response->assertSessionHasErrors('cavalo_id');
+        $this->assertDatabaseMissing('veiculos', ['placa' => 'CAR2R23']);
+    }
+
+    public function test_carreta_vinculada_a_um_cavalo_nao_conta_separadamente_no_limite_do_plano(): void
+    {
+        $empresa = Empresa::factory()->create(['limite_veiculos' => 1]);
+        $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+        $cavalo  = Veiculo::factory()->create(['tipo' => 'truck', 'empresa_id' => $empresa->id]);
+        Veiculo::factory()->vinculadaA($cavalo)->create(['empresa_id' => $empresa->id]);
+
+        $this->actingAs($admin);
+
+        // Limite de 1 já preenchido pelo cavalo; a carreta vinculada não deveria contar,
+        // então cadastrar um segundo veículo avulso ainda deve ser bloqueado (limite = 1).
+        $response = $this->get(route('veiculos.index'));
+
+        $response->assertOk();
+        $response->assertSee('1 / 1');
+    }
+
+    public function test_carreta_avulsa_sem_cavalo_conta_no_limite_do_plano(): void
+    {
+        $empresa = Empresa::factory()->create(['limite_veiculos' => 1]);
+        $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+        Veiculo::factory()->carreta()->create(['empresa_id' => $empresa->id]);
+
+        $this->actingAs($admin);
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'  => 'ABC1D23',
+            'modelo' => 'FH 540',
+            'tipo'   => 'truck',
+            'status' => 'ativo',
+        ]);
+
+        $response->assertSessionHasErrors('placa');
+        $this->assertDatabaseMissing('veiculos', ['placa' => 'ABC1D23']);
+    }
+
+    public function test_tela_de_detalhe_exibe_cavalo_vinculado_da_carreta(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $cavalo  = Veiculo::factory()->create(['tipo' => 'truck', 'placa' => 'CAV1L23']);
+        $carreta = Veiculo::factory()->vinculadaA($cavalo)->create();
+
+        $response = $this->get(route('veiculos.show', $carreta));
+
+        $response->assertOk();
+        $response->assertSee('CAV1L23');
+    }
+
+    public function test_tela_de_detalhe_exibe_carretas_vinculadas_do_cavalo(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $cavalo = Veiculo::factory()->create(['tipo' => 'truck']);
+        Veiculo::factory()->vinculadaA($cavalo)->create(['placa' => 'CAR3R23']);
+
+        $response = $this->get(route('veiculos.show', $cavalo));
+
+        $response->assertOk();
+        $response->assertSee('CAR3R23');
+    }
+
     public function test_nao_permite_placa_duplicada(): void
     {
         $this->actingAs(User::factory()->create());

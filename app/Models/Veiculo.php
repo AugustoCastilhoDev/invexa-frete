@@ -22,6 +22,7 @@ class Veiculo extends Model
         'renavam',
         'chassi',
         'validade_documento',
+        'cavalo_id',
         'capacidade_kg',
         'status',
     ];
@@ -42,8 +43,29 @@ class Veiculo extends Model
         return $this->hasMany(Manutencao::class)->orderByDesc('data_manutencao');
     }
 
+    // Cavalo mecânico ao qual esta carreta está vinculada
+    public function cavalo()
+    {
+        return $this->belongsTo(Veiculo::class, 'cavalo_id');
+    }
+
+    // Carreta(s) vinculada(s) a este cavalo mecânico
+    public function carretas()
+    {
+        return $this->hasMany(Veiculo::class, 'cavalo_id');
+    }
+
     public function scopeEmManutencao($query)
     {
         return $query->where('status', 'manutencao');
+    }
+
+    // Conjunto (cavalo + carreta) conta como 1 veículo no limite do plano:
+    // a carreta só entra na contagem separadamente enquanto não está vinculada a um cavalo.
+    public function scopeContamParaLimite($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('tipo', '!=', 'carreta')->orWhereNull('cavalo_id');
+        });
     }
 }

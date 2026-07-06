@@ -34,6 +34,6 @@ class Empresa extends Model
             return false;
         }
 
-        return $this->veiculos()->withoutGlobalScope('empresa')->count() >= $this->limite_veiculos;
+        return $this->veiculos()->withoutGlobalScope('empresa')->contamParaLimite()->count() >= $this->limite_veiculos;
     }
 }

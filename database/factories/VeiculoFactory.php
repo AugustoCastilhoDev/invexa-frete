@@ -29,4 +29,14 @@ class VeiculoFactory extends Factory
     {
         return $this->state(fn () => ['status' => 'manutencao']);
     }
+
+    public function carreta(): static
+    {
+        return $this->state(fn () => ['tipo' => 'carreta']);
+    }
+
+    public function vinculadaA(\App\Models\Veiculo $cavalo): static
+    {
+        return $this->state(fn () => ['tipo' => 'carreta', 'cavalo_id' => $cavalo->id]);
+    }
 }

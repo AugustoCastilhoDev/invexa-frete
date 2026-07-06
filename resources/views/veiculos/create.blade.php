@@ -45,10 +45,22 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Tipo *</label>
-                    <select name="tipo" class="form-select" required>
+                    <select name="tipo" id="tipo-veiculo" class="form-select" required
+                            onchange="document.getElementById('wrapper-cavalo-vinculado').classList.toggle('d-none', this.value !== 'carreta')">
                         @foreach(['truck'=>'Truck','carreta'=>'Carreta','van'=>'Van','utilitario'=>'Utilitário','outro'=>'Outro'] as $val => $label)
                             <option value="{{ $val }}" {{ old('tipo') == $val ? 'selected' : '' }}>
                                 {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4 {{ old('tipo') !== 'carreta' ? 'd-none' : '' }}" id="wrapper-cavalo-vinculado">
+                    <label class="form-label fw-semibold">Cavalo Vinculado</label>
+                    <select name="cavalo_id" class="form-select">
+                        <option value="">— Nenhum (avulsa) —</option>
+                        @foreach($cavalos as $cavalo)
+                            <option value="{{ $cavalo->id }}" {{ (string) old('cavalo_id') === (string) $cavalo->id ? 'selected' : '' }}>
+                                {{ $cavalo->placa }} — {{ $cavalo->modelo }}
                             </option>
                         @endforeach
                     </select>

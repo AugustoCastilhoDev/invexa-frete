@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Veiculo;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class VeiculosController extends Controller
 {
@@ -20,7 +21,7 @@ class VeiculosController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        $totalVeiculos  = Veiculo::count();
+        $totalVeiculos  = Veiculo::contamParaLimite()->count();
         $limiteVeiculos = $request->user()->empresa?->limite_veiculos;
 
         return view('veiculos.index', compact('veiculos', 'busca', 'totalVeiculos', 'limiteVeiculos'));
@@ -28,7 +29,9 @@ class VeiculosController extends Controller
 
     public function create()
     {
-        return view('veiculos.create');
+        $cavalos = Veiculo::where('tipo', 'truck')->orderBy('placa')->get();
+
+        return view('veiculos.create', compact('cavalos'));
     }
 
     public function store(Request $request)
@@ -42,6 +45,7 @@ class VeiculosController extends Controller
             'renavam'      => 'nullable|string|max:20',
             'chassi'       => 'nullable|string|max:30',
             'validade_documento' => 'nullable|date',
+            'cavalo_id'    => ['nullable', 'prohibited_unless:tipo,carreta', Rule::exists('veiculos', 'id')->where('tipo', 'truck')],
             'capacidade_kg'=> 'nullable|numeric|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
         ]);
@@ -62,14 +66,16 @@ class VeiculosController extends Controller
 
     public function show(Veiculo $veiculo)
     {
-        $veiculo->load('criadoPor', 'atualizadoPor', 'manutencoes');
+        $veiculo->load('criadoPor', 'atualizadoPor', 'manutencoes', 'cavalo', 'carretas');
         $viagens = $veiculo->viagens()->orderByDesc('data_saida')->paginate(10);
         return view('veiculos.show', compact('veiculo', 'viagens'));
     }
 
     public function edit(Veiculo $veiculo)
     {
-        return view('veiculos.edit', compact('veiculo'));
+        $cavalos = Veiculo::where('tipo', 'truck')->orderBy('placa')->get();
+
+        return view('veiculos.edit', compact('veiculo', 'cavalos'));
     }
 
     public function update(Request $request, Veiculo $veiculo)
@@ -83,6 +89,7 @@ class VeiculosController extends Controller
             'renavam'      => 'nullable|string|max:20',
             'chassi'       => 'nullable|string|max:30',
             'validade_documento' => 'nullable|date',
+            'cavalo_id'    => ['nullable', 'prohibited_unless:tipo,carreta', Rule::exists('veiculos', 'id')->where('tipo', 'truck')],
             'capacidade_kg'=> 'nullable|numeric|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
         ]);
