@@ -88,6 +88,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Cria automaticamente o cliente e a assinatura recorrente no Asaas (sandbox ou produção, via `ASAAS_ENV`), com 14 dias de trial antes da primeira cobrança — plano Enterprise fica de fora (sempre negociado manualmente, sem assinatura automática)
 - Resiliente à ausência de credencial: sem `ASAAS_API_KEY` configurada (ou se a chamada à API falhar), o cadastro da empresa continua funcionando normalmente — só fica sem o vínculo de cobrança, visível na tela de detalhe da empresa com um aviso
 - Webhook (`POST /webhooks/asaas`, protegido por token) recebe os eventos de pagamento e só registra o status/data do último evento na empresa — a suspensão por inadimplência continua manual, decisão do super admin pela tela (não desativa sozinho)
+- **Criar assinatura retroativamente**: empresa sem vínculo de cobrança (criada antes dessa feature, Enterprise que virou plano padrão, ou falha na chamada original) mostra um formulário na própria tela de detalhe para escolher/reescolher plano e ciclo e tentar de novo, sem precisar recriar a empresa
 
 ### Usuários e permissões
 - Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa e vê tudo dela) e operador (acesso operacional do dia a dia)
@@ -139,7 +140,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Verificado visualmente em viewport de celular (390px) antes e depois da correção
 
 ### Infraestrutura de qualidade
-- 310 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 314 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -167,7 +168,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Deploy em produção**: pausado por decisão do time (2026-07-01). Quando retomar, checklist mínimo:
   - Configurar `.env` de produção com `MAIL_MAILER=resend` + `RESEND_API_KEY` (já testado em dev)
   - Configurar `.env` de produção com `UPLOADS_DISK=r2` + credenciais R2 (já testado em dev)
-  - Configurar `.env` de produção com `ASAAS_API_KEY` (de produção, não sandbox) + `ASAAS_ENV=production` + `ASAAS_WEBHOOK_TOKEN`, e cadastrar a URL do webhook (`/webhooks/asaas`) no painel do Asaas
+  - Configurar `.env` de produção com `ASAAS_API_KEY` (de produção, não sandbox) + `ASAAS_ENV=production` + `ASAAS_WEBHOOK_TOKEN`
+  - Cadastrar o webhook no painel do Asaas (Configurações → Integrações → Webhooks): URL `https://SEU-DOMINIO/webhooks/asaas`, eventos `PAYMENT_RECEIVED`, `PAYMENT_CONFIRMED`, `PAYMENT_OVERDUE`, `PAYMENT_REFUNDED`, e o mesmo token definido em `ASAAS_WEBHOOK_TOKEN` no campo de autenticação do webhook. O Asaas não tem catálogo de planos — os 4 planos (Starter/Pro/Business/Enterprise) já estão definidos em `App\Services\Asaas\PlanoPricing`, aplicados por assinatura na hora da criação; não há nada de plano pra configurar no lado do Asaas
   - Confirmar cron do Laravel ativo (`* * * * * php artisan schedule:run`) para a anonimização mensal LGPD funcionar
   - Rodar `php artisan migrate --force` (43 migrations pendentes de aplicar no ambiente de produção, incluindo a criação do usuário super admin — ver abaixo)
   - Confirmar o e-mail do super admin da plataforma (`ac.castilho87@gmail.com`, hardcoded na migration de multi-tenant) antes de rodar em produção; o acesso é reivindicado via "esqueci minha senha" depois do primeiro `migrate`

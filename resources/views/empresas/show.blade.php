@@ -128,14 +128,60 @@
                 <div class="fw-semibold">{{ $empresa->asaas_last_event_at?->format('d/m/Y H:i') ?? '-' }}</div>
             </div>
         </div>
-        @if($empresa->plano && $empresa->plano !== 'enterprise' && ! $empresa->asaas_subscription_id)
-        <div class="alert alert-warning py-2 mt-3 mb-0">
-            <i class="bi bi-exclamation-triangle me-1"></i>
-            Nenhuma assinatura foi criada no Asaas para esta empresa — confira se <code>ASAAS_API_KEY</code> está configurada.
+        @if(! $empresa->asaas_subscription_id)
+        <div class="border-top pt-3 mt-3">
+            <div class="alert alert-warning py-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Esta empresa ainda não tem assinatura vinculada no Asaas
+                @if($empresa->plano && $empresa->plano !== 'enterprise')
+                    — confira se <code>ASAAS_API_KEY</code> está configurada, ou tente criar novamente abaixo.
+                @endif
+            </div>
+            <form action="{{ route('empresas.assinatura.criar', $empresa) }}" method="POST" class="row g-2 align-items-end">
+                @csrf
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Plano</label>
+                    <select name="plano" id="plano-assinatura" class="form-select form-select-sm" required>
+                        <option value="">Selecione...</option>
+                        @foreach(\App\Services\Asaas\PlanoPricing::tabela() as $val => $dados)
+                            <option value="{{ $val }}" {{ old('plano', $empresa->plano) === $val ? 'selected' : '' }}>
+                                {{ ucfirst($val) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3" id="wrapper-ciclo-assinatura">
+                    <label class="form-label small fw-semibold">Ciclo</label>
+                    <select name="ciclo_cobranca" class="form-select form-select-sm">
+                        <option value="mensal" {{ old('ciclo_cobranca', $empresa->ciclo_cobranca ?? 'mensal') === 'mensal' ? 'selected' : '' }}>Mensal</option>
+                        <option value="anual" {{ old('ciclo_cobranca', $empresa->ciclo_cobranca) === 'anual' ? 'selected' : '' }}>Anual</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-credit-card me-1"></i> Criar Assinatura
+                    </button>
+                </div>
+            </form>
         </div>
         @endif
     </div>
 </div>
+
+<script>
+    (function () {
+        const plano = document.getElementById('plano-assinatura');
+        const wrapperCiclo = document.getElementById('wrapper-ciclo-assinatura');
+        if (! plano) return;
+
+        function atualizar() {
+            wrapperCiclo.style.display = plano.value === 'enterprise' ? 'none' : '';
+        }
+
+        plano.addEventListener('change', atualizar);
+        atualizar();
+    })();
+</script>
 
 {{-- Usuários da empresa --}}
 <div class="card">

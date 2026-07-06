@@ -113,6 +113,39 @@ class EmpresasController extends Controller
         ]);
     }
 
+    /**
+     * Cria (ou recria) a assinatura no Asaas para uma empresa já cadastrada
+     * sem vínculo de cobrança — seja porque foi criada antes dessa feature
+     * existir, é um Enterprise que virou plano padrão, ou a chamada original
+     * falhou (ex.: chave da API ausente na hora do cadastro).
+     */
+    public function criarAssinatura(Request $request, Empresa $empresa, AsaasClient $asaas)
+    {
+        $request->validate([
+            'plano'          => 'required|in:starter,pro,business,enterprise',
+            'ciclo_cobranca' => 'required_unless:plano,enterprise|in:mensal,anual',
+        ]);
+
+        $empresa->update([
+            'plano'          => $request->plano,
+            'ciclo_cobranca' => $request->plano === 'enterprise' ? null : $request->ciclo_cobranca,
+        ]);
+
+        if ($request->plano === 'enterprise') {
+            return redirect()->route('empresas.show', $empresa)
+                ->with('success', 'Plano atualizado. Enterprise não gera assinatura automática no Asaas.');
+        }
+
+        $admin = $empresa->usuarios()->where('role', 'admin')->where('status', 'ativo')->first();
+
+        abort_unless($admin, 422, 'Esta empresa não tem nenhum administrador ativo para vincular a assinatura.');
+
+        $this->criarAssinaturaAsaas($asaas, $empresa, $admin, $request->plano, $request->ciclo_cobranca);
+
+        return redirect()->route('empresas.show', $empresa)
+            ->with('success', 'Assinatura criada com sucesso no Asaas!');
+    }
+
     public function show(Empresa $empresa)
     {
         $empresa->load('criadoPor');

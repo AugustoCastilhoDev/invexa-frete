@@ -72,6 +72,8 @@ Route::middleware(['auth', 'super_admin'])->group(function () {
         ->name('empresas.toggle-status');
     Route::post('empresas/{empresa}/suporte', [EmpresasController::class, 'iniciarSuporte'])
         ->name('empresas.suporte.iniciar');
+    Route::post('empresas/{empresa}/assinatura', [EmpresasController::class, 'criarAssinatura'])
+        ->name('empresas.assinatura.criar');
 });
 
 // Área operacional — escopada por empresa, o super admin (sem empresa) não acessa

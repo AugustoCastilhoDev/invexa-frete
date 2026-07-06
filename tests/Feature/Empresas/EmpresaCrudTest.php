@@ -258,6 +258,77 @@ class EmpresaCrudTest extends TestCase
         $this->assertDatabaseHas('empresas', ['nome' => 'Transportadora Sem Chave']);
     }
 
+    public function test_super_admin_cria_assinatura_retroativa_para_empresa_sem_asaas(): void
+    {
+        config(['services.asaas.api_key' => 'chave-de-teste']);
+        Http::fake([
+            '*/customers' => Http::response(['id' => 'cus_retro'], 200),
+            '*/subscriptions' => Http::response(['id' => 'sub_retro'], 200),
+        ]);
+
+        $this->actingAs(User::factory()->superAdmin()->create());
+        $empresa = Empresa::factory()->create(['plano' => null, 'asaas_subscription_id' => null]);
+        User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+
+        $response = $this->post(route('empresas.assinatura.criar', $empresa), [
+            'plano' => 'business',
+            'ciclo_cobranca' => 'anual',
+        ]);
+
+        $response->assertRedirect(route('empresas.show', $empresa));
+        $empresa->refresh();
+        $this->assertSame('business', $empresa->plano);
+        $this->assertSame('anual', $empresa->ciclo_cobranca);
+        $this->assertSame('cus_retro', $empresa->asaas_customer_id);
+        $this->assertSame('sub_retro', $empresa->asaas_subscription_id);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/subscriptions')
+            && $request['cycle'] === 'YEARLY'
+            && $request['value'] === 21900.00);
+    }
+
+    public function test_definir_plano_enterprise_na_assinatura_retroativa_nao_chama_asaas(): void
+    {
+        Http::fake();
+        $this->actingAs(User::factory()->superAdmin()->create());
+        $empresa = Empresa::factory()->create(['plano' => null]);
+        User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+
+        $this->post(route('empresas.assinatura.criar', $empresa), ['plano' => 'enterprise']);
+
+        $empresa->refresh();
+        $this->assertSame('enterprise', $empresa->plano);
+        $this->assertNull($empresa->asaas_subscription_id);
+        Http::assertNothingSent();
+    }
+
+    public function test_criar_assinatura_sem_admin_ativo_falha_com_erro_claro(): void
+    {
+        config(['services.asaas.api_key' => 'chave-de-teste']);
+        $this->actingAs(User::factory()->superAdmin()->create());
+        $empresa = Empresa::factory()->create(['plano' => null]);
+
+        $response = $this->post(route('empresas.assinatura.criar', $empresa), [
+            'plano' => 'starter',
+            'ciclo_cobranca' => 'mensal',
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_admin_comum_nao_pode_criar_assinatura_de_empresa(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $empresa = Empresa::factory()->create();
+
+        $response = $this->post(route('empresas.assinatura.criar', $empresa), [
+            'plano' => 'starter',
+            'ciclo_cobranca' => 'mensal',
+        ]);
+
+        $response->assertForbidden();
+    }
+
     public function test_admin_de_empresa_desativada_nao_consegue_logar(): void
     {
         $empresa = Empresa::factory()->inativa()->create();
