@@ -20,6 +20,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Controle de status (ativo, inativo, em manutenção)
 - Histórico de viagens por veículo
 - Busca por placa, modelo ou marca
+- Listagem destaca em vermelho, com ícone de atenção, veículos com validade do documento vencendo em até 30 dias (ou já vencida)
 
 ### Manutenção de veículos
 - Registro de manutenção preventiva/corretiva, independente de viagem
@@ -115,7 +116,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 263 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 265 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---

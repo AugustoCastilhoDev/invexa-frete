@@ -85,6 +85,29 @@ class VeiculosCrudTest extends TestCase
         $response->assertSessionHasErrors('placa');
     }
 
+    public function test_listagem_mostra_validade_do_documento(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Veiculo::factory()->create(['validade_documento' => now()->addDays(90)]);
+
+        $response = $this->get(route('veiculos.index'));
+
+        $response->assertOk();
+        $response->assertSee(now()->addDays(90)->format('d/m/Y'));
+    }
+
+    public function test_listagem_destaca_em_vermelho_documento_vencendo_em_ate_30_dias(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Veiculo::factory()->create(['validade_documento' => now()->addDays(15)]);
+        Veiculo::factory()->create(['validade_documento' => now()->addDays(90)]);
+
+        $response = $this->get(route('veiculos.index'));
+
+        $response->assertOk();
+        $this->assertSame(1, substr_count($response->getContent(), 'bi-exclamation-triangle-fill'));
+    }
+
     public function test_busca_filtra_por_placa_modelo_ou_marca(): void
     {
         $this->actingAs(User::factory()->create());

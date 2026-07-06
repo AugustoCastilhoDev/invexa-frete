@@ -75,6 +75,7 @@
                     <th>Tipo</th>
                     <th>Ano</th>
                     <th>Capacidade</th>
+                    <th>Validade Documento</th>
                     <th>Status</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
@@ -87,6 +88,19 @@
                     <td>{{ ucfirst($veiculo->tipo) }}</td>
                     <td>{{ $veiculo->ano ?? '-' }}</td>
                     <td>{{ $veiculo->capacidade_kg ? number_format($veiculo->capacidade_kg, 0, ',', '.').' kg' : '-' }}</td>
+                    <td>
+                        @if($veiculo->validade_documento)
+                            @php $documentoVencendo = $veiculo->validade_documento->lte(now()->addDays(30)); @endphp
+                            <span class="{{ $documentoVencendo ? 'text-danger fw-semibold' : '' }}">
+                                @if($documentoVencendo)
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                @endif
+                                {{ $veiculo->validade_documento->format('d/m/Y') }}
+                            </span>
+                        @else
+                            -
+                        @endif
+                    </td>
                     <td>
                         @php
                             $badge = match($veiculo->status) {
@@ -120,7 +134,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-4">
+                    <td colspan="8" class="text-center text-muted py-4">
                         <i class="bi bi-car-front fs-3 d-block mb-2"></i>
                         {{ $busca ? 'Nenhum veículo encontrado para "'.$busca.'".' : 'Nenhum veículo cadastrado.' }}
                     </td>
