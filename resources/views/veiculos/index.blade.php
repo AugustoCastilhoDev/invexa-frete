@@ -67,6 +67,7 @@
 
 <div class="card">
     <div class="card-body p-0">
+        <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
@@ -142,6 +143,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
     @if($veiculos->hasPages())
     <div class="card-footer">{{ $veiculos->links() }}</div>

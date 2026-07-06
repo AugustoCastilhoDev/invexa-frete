@@ -88,6 +88,46 @@
         body.modo-suporte .sidebar { top: 38px; min-height: calc(100vh - 38px); }
         body.modo-suporte .topbar { top: 38px; }
         body.modo-suporte .main-content { padding-top: 68px; }
+
+        .sidebar-toggle { display: none; }
+        .sidebar-overlay { display: none; }
+        .sidebar-close { display: none; }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform .25s ease;
+            }
+            .sidebar.show { transform: translateX(0); }
+            .main-content, .topbar, footer { margin-left: 0 !important; }
+            .topbar { padding: 12px 16px; }
+            .main-content { padding: 20px 16px; }
+            .sidebar-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 38px; height: 38px;
+                border: none; background: transparent;
+                color: #495057; font-size: 1.3rem;
+            }
+            .sidebar-overlay.show {
+                display: block;
+                position: fixed; inset: 0;
+                background: rgba(0,0,0,.4);
+                z-index: 99;
+            }
+            .sidebar-close {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                top: 16px; right: 16px;
+                width: 32px; height: 32px;
+                border: none; border-radius: 8px;
+                background: rgba(255,255,255,.1);
+                color: #fff; font-size: 1.1rem;
+            }
+        }
     </style>
 </head>
 <body class="{{ session('suporte_super_admin_id') ? 'modo-suporte' : '' }}">
@@ -106,6 +146,9 @@
 
 {{-- Sidebar --}}
 <div class="sidebar">
+    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="bi bi-x-lg"></i>
+    </button>
     <a class="brand" href="{{ route('dashboard') }}">
     <div class="d-flex align-items-center gap-2">
         <div style="
@@ -219,10 +262,15 @@
 
 {{-- Topbar --}}
 <div class="topbar">
-    <h6 class="mb-0 fw-semibold">
-        <i class="bi bi-chevron-right text-muted me-1" style="font-size:.7rem"></i>
-        @yield('title', 'Dashboard')
-    </h6>
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+            <i class="bi bi-list"></i>
+        </button>
+        <h6 class="mb-0 fw-semibold">
+            <i class="bi bi-chevron-right text-muted me-1" style="font-size:.7rem"></i>
+            @yield('title', 'Dashboard')
+        </h6>
+    </div>
     <div class="d-flex align-items-center gap-3">
         <div class="dropdown">
             <button class="btn btn-link text-muted position-relative p-0" type="button"
@@ -267,6 +315,8 @@
     </div>
 </div>
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 {{-- Conteúdo --}}
 <div class="main-content">
 
@@ -301,6 +351,27 @@
         span.textContent = mostrando ? span.dataset.mascarado : span.dataset.completo;
         btn.querySelector('i').className = mostrando ? 'bi bi-eye' : 'bi bi-eye-slash';
     });
+
+    // Sidebar off-canvas no mobile
+    (function () {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggle = document.getElementById('sidebarToggle');
+        const close = document.getElementById('sidebarClose');
+
+        function closeSidebar() {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        toggle?.addEventListener('click', function () {
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        });
+
+        overlay?.addEventListener('click', closeSidebar);
+        close?.addEventListener('click', closeSidebar);
+    })();
 </script>
 @stack('scripts')
 

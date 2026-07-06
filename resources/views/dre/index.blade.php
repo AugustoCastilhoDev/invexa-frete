@@ -100,6 +100,7 @@
                 <strong><i class="bi bi-pie-chart me-1"></i> Despesas administrativas por categoria</strong>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-sm mb-0">
                     <tbody>
                         @forelse($despesasPorCategoria as $item)
@@ -114,6 +115,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 

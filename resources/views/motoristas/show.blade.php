@@ -24,6 +24,7 @@
                 <i class="bi bi-person-badge me-2 text-primary"></i>Dados Pessoais
             </div>
             <div class="card-body">
+                <div class="table-responsive">
                 <table class="table table-sm table-borderless">
                     <tr><td class="text-muted">CPF</td>
                         <td><x-dado-sensivel :mascarado="$motorista->cpf_mascarado" :completo="$motorista->cpf" /></td></tr>
@@ -40,6 +41,7 @@
                         <td><span class="badge {{ $motorista->status === 'ativo' ? 'bg-success' : 'bg-secondary' }}">
                             {{ ucfirst($motorista->status) }}</span></td></tr>
                 </table>
+                </div>
                 <div class="text-muted border-top pt-2 mt-2" style="font-size:.75rem">
                     <i class="bi bi-person-plus me-1"></i>Cadastrado por {{ $motorista->criadoPor?->name ?? 'desconhecido' }}
                 </div>
@@ -53,6 +55,7 @@
                 <i class="bi bi-truck me-2 text-primary"></i>Histórico de Viagens
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -79,6 +82,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
             @if($viagens->hasPages())
             <div class="card-footer">{{ $viagens->links() }}</div>

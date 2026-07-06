@@ -59,6 +59,7 @@
                 <i class="bi bi-info-circle me-2"></i>Dados da Viagem
             </div>
             <div class="card-body">
+                <div class="table-responsive">
                 <table class="table table-sm mb-0">
                     <tr><td class="text-muted">Cliente</td><td>{{ $viagem->cliente->nome ?? '-' }}</td></tr>
                     <tr><td class="text-muted">Saída</td><td>{{ $viagem->data_saida->format('d/m/Y') }}</td></tr>
@@ -66,6 +67,7 @@
                     <tr><td class="text-muted">KM Rodados</td><td>{{ $viagem->km_rodados > 0 ? number_format($viagem->km_rodados, 0, ',', '.') . ' km' : '-' }}</td></tr>
                     <tr><td class="text-muted">Adiantamento</td><td>R$ {{ number_format($viagem->valor_adiantamento, 2, ',', '.') }}</td></tr>
                 </table>
+                </div>
             </div>
         </div>
 
@@ -74,6 +76,7 @@
                 <i class="bi bi-file-earmark-text me-2"></i>Documentos Fiscais
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-sm mb-0">
                     <thead class="table-light">
                         <tr><th class="ps-3">Tipo</th><th>Número</th><th class="text-end pe-3">Arquivo</th></tr>
@@ -96,6 +99,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>
@@ -106,6 +110,7 @@
                 <i class="bi bi-receipt me-2"></i>Lançamentos
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-sm mb-0">
                     <thead class="table-light">
                         <tr><th class="ps-3">Tipo</th><th>Descrição</th><th>Valor</th><th class="pe-3">Status</th></tr>
@@ -125,6 +130,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
             @if($viagem->status !== 'encerrada')
             <div class="card-footer bg-white">
@@ -168,6 +174,7 @@
                 <i class="bi bi-dash-circle me-2"></i>Descontos
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-sm mb-0">
                     <thead class="table-light">
                         <tr><th class="ps-3">Tipo</th><th>Descrição</th><th class="text-end pe-3">Valor</th></tr>
@@ -184,6 +191,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 

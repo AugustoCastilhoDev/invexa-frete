@@ -307,6 +307,7 @@
                 </a>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -339,6 +340,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>
@@ -351,6 +353,7 @@
                 Top Motoristas do Mês
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -383,6 +386,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>

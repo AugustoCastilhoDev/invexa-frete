@@ -24,6 +24,7 @@
                 <i class="bi bi-person-vcard me-2 text-primary"></i>Dados do Cliente
             </div>
             <div class="card-body">
+                <div class="table-responsive">
                 <table class="table table-sm table-borderless mb-0">
                     <tr><td class="text-muted">Tipo</td>
                         <td>{{ $cliente->tipo_pessoa === 'juridica' ? 'Pessoa Jurídica' : 'Pessoa Física' }}</td></tr>
@@ -53,6 +54,7 @@
                         <td><span class="badge {{ $cliente->status === 'ativo' ? 'bg-success' : 'bg-secondary' }}">
                             {{ ucfirst($cliente->status) }}</span></td></tr>
                 </table>
+                </div>
                 <div class="text-muted border-top pt-2 mt-2" style="font-size:.75rem">
                     <i class="bi bi-person-plus me-1"></i>Cadastrado por {{ $cliente->criadoPor?->name ?? 'desconhecido' }}
                 </div>
@@ -83,6 +85,7 @@
                 <i class="bi bi-truck me-2 text-primary"></i>Histórico de Viagens
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -115,6 +118,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
             @if($viagens->hasPages())
             <div class="card-footer">{{ $viagens->links() }}</div>

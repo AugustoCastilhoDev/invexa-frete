@@ -124,6 +124,11 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Tabela de planos exibida com valores reais (mensal e anual), teto de veículos por plano e taxa de implantação — CTA "Falar com Vendas" leva ao WhatsApp com a mensagem já preenchida com o nome do plano
 - Sem cadastro self-service ainda: toda venda passa por contato manual (WhatsApp/e-mail); a empresa continua sendo criada pelo super admin na tela `/empresas` depois do primeiro contato
 
+### Responsividade mobile do painel
+- Sidebar em off-canvas abaixo de 992px: escondida por padrão, abre com o botão de menu no topbar, fecha pelo X dentro dela ou tocando fora (overlay escurecido) — antes disso a sidebar de 250px fixos ocupava boa parte da tela em qualquer celular, deixando o conteúdo espremido e quebrado
+- Todas as tabelas do painel (viagens, veículos, motoristas, financeiro, DRE, etc.) envolvidas em `table-responsive`: em telas estreitas, a tabela rola horizontalmente dentro do próprio card, sem estourar a largura da página
+- Verificado visualmente em viewport de celular (390px) antes e depois da correção
+
 ### Infraestrutura de qualidade
 - 278 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`

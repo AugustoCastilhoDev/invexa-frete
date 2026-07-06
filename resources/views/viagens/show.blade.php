@@ -116,6 +116,7 @@
                 <i class="bi bi-info-circle me-2 text-primary"></i>Dados da Viagem
             </div>
             <div class="card-body">
+                <div class="table-responsive">
                 <table class="table table-sm table-borderless mb-0">
                     <tr>
                         <td class="text-muted">Cliente</td>
@@ -156,6 +157,7 @@
                         <td>{{ $viagem->observacoes }}</td></tr>
                     @endif
                 </table>
+                </div>
             </div>
         </div>
 
@@ -168,6 +170,7 @@
                 </span>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -212,6 +215,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
             @if($viagem->status !== 'encerrada')
             <div class="card-footer bg-white">
@@ -254,6 +258,7 @@
                 <span class="badge bg-secondary">{{ $viagem->documentos->count() }}</span>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -367,6 +372,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
             @if($viagem->status !== 'encerrada')
             <div class="card-footer bg-white">
@@ -453,6 +459,7 @@
                 </span>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -530,6 +537,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
             @if($viagem->status !== 'encerrada')
             <div class="card-footer bg-white">
@@ -573,6 +581,7 @@
                 </span>
             </div>
             <div class="card-body">
+                <div class="table-responsive">
                 <table class="table table-sm mb-0" style="color:rgba(255,255,255,.8)">
                     <tr>
                         <td>Valor do Frete</td>
@@ -635,6 +644,7 @@
                         </td>
                     </tr>
                 </table>
+                </div>
             </div>
         </div>
 

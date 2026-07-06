@@ -24,6 +24,7 @@
                 <i class="bi bi-car-front me-2 text-primary"></i>Dados do Veículo
             </div>
             <div class="card-body">
+                <div class="table-responsive">
                 <table class="table table-sm table-borderless">
                     <tr><td class="text-muted">Placa</td><td class="fw-semibold">{{ $veiculo->placa }}</td></tr>
                     <tr><td class="text-muted">Modelo</td><td>{{ $veiculo->modelo }}</td></tr>
@@ -58,6 +59,7 @@
                         </td>
                     </tr>
                 </table>
+                </div>
                 <div class="text-muted border-top pt-2 mt-2" style="font-size:.75rem">
                     <i class="bi bi-person-plus me-1"></i>Cadastrado por {{ $veiculo->criadoPor?->name ?? 'desconhecido' }}
                 </div>
@@ -71,6 +73,7 @@
                 <i class="bi bi-truck me-2 text-primary"></i>Histórico de Viagens
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -101,6 +104,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
             @if($viagens->hasPages())
             <div class="card-footer">{{ $viagens->links() }}</div>
@@ -120,6 +124,7 @@
                 </span>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
                         <tr>
@@ -184,6 +189,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
             <div class="card-footer bg-white">
                 <form action="{{ route('manutencoes.store', $veiculo) }}" method="POST">

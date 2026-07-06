@@ -149,6 +149,7 @@
             <i class="bi bi-person-badge me-2 text-primary"></i>Resumo por Motorista
         </div>
         <div class="card-body p-0">
+            <div class="table-responsive">
             <table class="table table-sm table-hover mb-0">
                 <thead class="table-light">
                     <tr>
@@ -178,6 +179,7 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
         </div>
         @if($porMotorista->hasPages())
         <div class="card-footer bg-white py-2">
@@ -246,6 +248,7 @@
         <span class="badge bg-secondary ms-2">{{ $totais['total_viagens'] }}</span>
     </div>
     <div class="card-body p-0">
+        <div class="table-responsive">
         <table class="table table-hover table-sm mb-0">
             <thead class="table-light">
                 <tr>
@@ -308,6 +311,7 @@
             </tfoot>
             @endif
         </table>
+        </div>
     </div>
 </div>
 
