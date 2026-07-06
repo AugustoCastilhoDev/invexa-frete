@@ -86,6 +86,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Tela de gestão de usuários (`/users`), restrita a admin e escopada à própria empresa
 - Autocadastro público desativado — usuários só são criados por um admin
 - Login bloqueado para usuário inativo
+- Rate limiting: 5 tentativas de login incorretas bloqueiam novas tentativas temporariamente (chave por e-mail/CPF + IP), aplicado tanto no login do painel quanto no do Portal do Motorista
+- Política mínima de senha (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa (`Password::defaults()`)
 - Proteções: ninguém desativa/rebaixa a si mesmo; sempre precisa sobrar um admin ativo
 - Autenticação em Dois Fatores (2FA) opcional via TOTP (Google Authenticator, Authy etc.), autogerenciável na tela de Perfil, com códigos de recuperação de uso único
 - Telas de login, recuperação de senha e desafio de 2FA com identidade visual própria (logo, cores da marca)

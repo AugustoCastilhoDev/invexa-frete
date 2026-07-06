@@ -133,6 +133,8 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Política de retenção de dados configurável (`config/lgpd.php`)
 - Comando `lgpd:anonimizar` que expurga dados pessoais de registros excluídos há mais tempo que o prazo configurado, preservando o histórico financeiro
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
+- Proteção contra força bruta: 5 tentativas de login incorretas bloqueiam novas tentativas temporariamente (por e-mail/CPF + IP), tanto no login do sistema quanto no do Portal do Motorista
+- Senha com política mínima (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa
 
 ### ✅ Qualidade
 - 260+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
