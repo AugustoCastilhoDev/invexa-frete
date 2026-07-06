@@ -22,8 +22,16 @@ use App\Http\Controllers\EmpresasController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
-});
+    if (auth('web')->check()) {
+        return redirect()->route('dashboard');
+    }
+
+    if (auth('motorista')->check()) {
+        return redirect()->route('portal.viagens.index');
+    }
+
+    return view('landing');
+})->name('landing');
 
 Route::middleware(['auth'])->group(function () {
 

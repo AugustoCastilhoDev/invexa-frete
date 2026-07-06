@@ -118,8 +118,14 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Isolamento total entre motoristas (um não acessa dado do outro) e entre o portal e o painel administrativo
 - Troca de senha pelo próprio motorista
 
+### Landing Page
+- Página institucional pública na raiz (`/`), servida a visitantes; usuário/motorista autenticado que acessa `/` é redirecionado direto para o dashboard/portal, sem ver a landing
+- Seções: hero com CTA, recursos do sistema, planos e preços (Starter/Pro/Business/Enterprise, com destaque no plano mais escolhido), e contato
+- Tabela de planos exibida com valores reais (mensal e anual), teto de veículos por plano e taxa de implantação — CTA "Falar com Vendas" leva ao WhatsApp com a mensagem já preenchida com o nome do plano
+- Sem cadastro self-service ainda: toda venda passa por contato manual (WhatsApp/e-mail); a empresa continua sendo criada pelo super admin na tela `/empresas` depois do primeiro contato
+
 ### Infraestrutura de qualidade
-- 275 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 278 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---

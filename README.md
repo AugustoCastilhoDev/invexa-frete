@@ -128,6 +128,10 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Motorista lança combustível/manutenção com foto do comprovante direto da viagem — fica pendente até aprovação de um operador
 - Isolamento total: um motorista não acessa dados de outro, nem o painel administrativo
 
+### 🌐 Landing Page
+- Página institucional pública na raiz (`/`) — hero, recursos, planos e preços, contato — visitante não autenticado vê a landing; quem já está logado (painel ou portal) é redirecionado direto para sua tela
+- Tabela de planos com valores reais (mensal e anual) e CTA "Falar com Vendas" via WhatsApp, já com o nome do plano preenchido na mensagem
+
 ### 🔒 Segurança & LGPD
 - Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, por serem documentos de identificação assinados)
 - Política de retenção de dados configurável (`config/lgpd.php`)
