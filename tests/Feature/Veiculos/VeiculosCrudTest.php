@@ -27,6 +27,49 @@ class VeiculosCrudTest extends TestCase
         $this->assertDatabaseHas('veiculos', ['placa' => 'ABC1D23']);
     }
 
+    public function test_cria_veiculo_com_chassi_e_validade_documento(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'              => 'ABC1D23',
+            'modelo'             => 'FH 540',
+            'tipo'               => 'carreta',
+            'status'             => 'ativo',
+            'chassi'             => '9BWZZZ377VT004251',
+            'validade_documento' => '2027-03-15',
+        ]);
+
+        $response->assertRedirect(route('veiculos.index'));
+        $this->assertDatabaseHas('veiculos', [
+            'placa'  => 'ABC1D23',
+            'chassi' => '9BWZZZ377VT004251',
+        ]);
+
+        $veiculo = Veiculo::where('placa', 'ABC1D23')->first();
+        $this->assertSame('2027-03-15', $veiculo->validade_documento->format('Y-m-d'));
+    }
+
+    public function test_atualiza_chassi_e_validade_documento_do_veiculo(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $veiculo = Veiculo::factory()->create();
+
+        $response = $this->put(route('veiculos.update', $veiculo), [
+            'placa'              => $veiculo->placa,
+            'modelo'             => $veiculo->modelo,
+            'tipo'               => $veiculo->tipo,
+            'status'             => $veiculo->status,
+            'chassi'             => '9BWZZZ377VT004251',
+            'validade_documento' => '2027-03-15',
+        ]);
+
+        $response->assertRedirect(route('veiculos.index'));
+        $veiculo->refresh();
+        $this->assertSame('9BWZZZ377VT004251', $veiculo->chassi);
+        $this->assertSame('2027-03-15', $veiculo->validade_documento->format('Y-m-d'));
+    }
+
     public function test_nao_permite_placa_duplicada(): void
     {
         $this->actingAs(User::factory()->create());

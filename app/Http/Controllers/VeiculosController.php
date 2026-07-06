@@ -40,6 +40,8 @@ class VeiculosController extends Controller
             'ano'          => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
             'tipo'         => 'required|in:truck,carreta,van,utilitario,outro',
             'renavam'      => 'nullable|string|max:20',
+            'chassi'       => 'nullable|string|max:30',
+            'validade_documento' => 'nullable|date',
             'capacidade_kg'=> 'nullable|numeric|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
         ]);
@@ -79,6 +81,8 @@ class VeiculosController extends Controller
             'ano'          => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
             'tipo'         => 'required|in:truck,carreta,van,utilitario,outro',
             'renavam'      => 'nullable|string|max:20',
+            'chassi'       => 'nullable|string|max:30',
+            'validade_documento' => 'nullable|date',
             'capacidade_kg'=> 'nullable|numeric|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
         ]);

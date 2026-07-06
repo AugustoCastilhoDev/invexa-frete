@@ -31,6 +31,9 @@
                     <tr><td class="text-muted">Ano</td><td>{{ $veiculo->ano ?? '-' }}</td></tr>
                     <tr><td class="text-muted">Tipo</td><td>{{ ucfirst($veiculo->tipo) }}</td></tr>
                     <tr><td class="text-muted">RENAVAM</td><td>{{ $veiculo->renavam ?? '-' }}</td></tr>
+                    <tr><td class="text-muted">Chassi</td><td>{{ $veiculo->chassi ?? '-' }}</td></tr>
+                    <tr><td class="text-muted">Validade do Documento</td>
+                        <td>{{ $veiculo->validade_documento?->format('d/m/Y') ?? '-' }}</td></tr>
                     <tr><td class="text-muted">Capacidade</td>
                         <td>{{ $veiculo->capacidade_kg
                             ? number_format($veiculo->capacidade_kg, 0, ',', '.').' kg'

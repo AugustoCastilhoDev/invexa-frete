@@ -20,8 +20,14 @@ class Veiculo extends Model
         'ano',
         'tipo',
         'renavam',
+        'chassi',
+        'validade_documento',
         'capacidade_kg',
         'status',
+    ];
+
+    protected $casts = [
+        'validade_documento' => 'date',
     ];
 
     // Um veículo tem muitas viagens

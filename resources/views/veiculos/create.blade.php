@@ -59,6 +59,16 @@
                            value="{{ old('renavam') }}">
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label fw-semibold">Chassi</label>
+                    <input type="text" name="chassi" class="form-control"
+                           value="{{ old('chassi') }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Validade do Documento (CRLV)</label>
+                    <input type="date" name="validade_documento" class="form-control"
+                           value="{{ old('validade_documento') }}">
+                </div>
+                <div class="col-md-4">
                     <label class="form-label fw-semibold">Capacidade (kg)</label>
                     <div class="input-group">
                         <input type="number" name="capacidade_kg" class="form-control"

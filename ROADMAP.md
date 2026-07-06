@@ -16,7 +16,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - CPF e CNH mascarados na interface (`123.***.***-01`), com botão para revelar o valor completo
 
 ### Veículos
-- Cadastro completo da frota (placa, modelo, marca, ano, tipo, RENAVAM, capacidade)
+- Cadastro completo da frota (placa, modelo, marca, ano, tipo, RENAVAM, chassi, validade do documento/CRLV, capacidade)
 - Controle de status (ativo, inativo, em manutenção)
 - Histórico de viagens por veículo
 - Busca por placa, modelo ou marca
@@ -115,7 +115,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Troca de senha pelo próprio motorista
 
 ### Infraestrutura de qualidade
-- 261 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 263 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
