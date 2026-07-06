@@ -7,10 +7,31 @@
         <h4 class="mb-0">Clientes</h4>
         <small class="text-muted">Gerencie os clientes cadastrados</small>
     </div>
-    <a href="{{ route('clientes.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Novo Cliente
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('clientes.importar') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-upload me-1"></i> Importar CSV
+        </a>
+        <a href="{{ route('clientes.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Novo Cliente
+        </a>
+    </div>
 </div>
+
+@if(session('importacao'))
+    @php $imp = session('importacao'); @endphp
+    <div class="alert alert-{{ empty($imp['erros']) ? 'success' : 'warning' }} mb-3">
+        <i class="bi bi-{{ empty($imp['erros']) ? 'check-circle' : 'exclamation-triangle' }} me-1"></i>
+        <strong>{{ $imp['importados'] }}</strong> cliente(s) importado(s) com sucesso.
+        @if(!empty($imp['erros']))
+            <strong>{{ count($imp['erros']) }}</strong> linha(s) com erro:
+            <ul class="mb-0 mt-2">
+                @foreach($imp['erros'] as $erro)
+                    <li>Linha {{ $erro['linha'] }}: {{ implode(' ', $erro['mensagens']) }}</li>
+                @endforeach
+            </ul>
+        @endif
+    </div>
+@endif
 
 {{-- Busca --}}
 <div class="card mb-4">

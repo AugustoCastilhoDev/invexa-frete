@@ -14,6 +14,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Histórico de viagens por motorista
 - Busca por nome, CPF ou telefone
 - CPF e CNH mascarados na interface (`123.***.***-01`), com botão para revelar o valor completo
+- **Importação em massa via CSV**: cadastra vários motoristas de uma vez a partir de uma planilha, com modelo para baixar; linhas com erro (CPF duplicado, data inválida etc.) não travam as demais — ficam listadas com o número da linha e o motivo, para corrigir e reenviar só o que faltou
 
 ### Veículos
 - Cadastro completo da frota (placa, modelo, marca, ano, tipo, RENAVAM, chassi, validade do documento/CRLV, capacidade)
@@ -21,6 +22,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Histórico de viagens por veículo
 - Busca por placa, modelo ou marca
 - Listagem destaca em vermelho, com ícone de atenção, veículos com validade do documento vencendo em até 30 dias (ou já vencida)
+- **Importação em massa via CSV**: mesmo mecanismo dos motoristas; respeita o limite de veículos do plano linha a linha (se estourar no meio do arquivo, as linhas restantes ficam marcadas como erro em vez de criar acima do contratado). O vínculo cavalo/carreta não é importado — fica para ajuste manual depois
 
 ### Manutenção de veículos
 - Registro de manutenção preventiva/corretiva, independente de viagem
@@ -34,6 +36,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Vinculação direta às viagens
 - Busca por nome, CNPJ/CPF, cidade ou telefone
 - CPF de cliente pessoa física mascarado (CNPJ não, pois não é dado pessoal)
+- **Importação em massa via CSV**: mesmo mecanismo dos motoristas/veículos, com os campos essenciais (tipo, nome, documento, contato, cidade/estado, tabela de frete); endereço detalhado fica para completar depois na edição
 
 ### Viagens
 - Abertura e acompanhamento completo de viagens
@@ -136,7 +139,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Verificado visualmente em viewport de celular (390px) antes e depois da correção
 
 ### Infraestrutura de qualidade
-- 294 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 310 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---

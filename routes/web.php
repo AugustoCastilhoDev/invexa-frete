@@ -92,6 +92,9 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         ->middleware('admin');
 
     // Motoristas
+    Route::get('motoristas/importar', [MotoristasController::class, 'importar'])->name('motoristas.importar');
+    Route::get('motoristas/importar/modelo', [MotoristasController::class, 'importarTemplate'])->name('motoristas.importar.modelo');
+    Route::post('motoristas/importar', [MotoristasController::class, 'importarStore'])->name('motoristas.importar.store');
     Route::resource('motoristas', MotoristasController::class)->except(['destroy']);
     Route::delete('motoristas/{motorista}', [MotoristasController::class, 'destroy'])
         ->middleware('admin')->name('motoristas.destroy');
@@ -102,6 +105,9 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         ->name('motoristas.portal.destroy');
 
     // Veículos
+    Route::get('veiculos/importar', [VeiculosController::class, 'importar'])->name('veiculos.importar');
+    Route::get('veiculos/importar/modelo', [VeiculosController::class, 'importarTemplate'])->name('veiculos.importar.modelo');
+    Route::post('veiculos/importar', [VeiculosController::class, 'importarStore'])->name('veiculos.importar.store');
     Route::resource('veiculos', VeiculosController::class)->except(['destroy']);
     Route::delete('veiculos/{veiculo}', [VeiculosController::class, 'destroy'])
         ->middleware('admin')->name('veiculos.destroy');
@@ -175,6 +181,9 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
     ->name('dashboard.grafico');
 
     // Clientes
+    Route::get('clientes/importar', [ClientesController::class, 'importar'])->name('clientes.importar');
+    Route::get('clientes/importar/modelo', [ClientesController::class, 'importarTemplate'])->name('clientes.importar.modelo');
+    Route::post('clientes/importar', [ClientesController::class, 'importarStore'])->name('clientes.importar.store');
     Route::resource('clientes', ClientesController::class)->except(['destroy']);
     Route::delete('clientes/{cliente}', [ClientesController::class, 'destroy'])
         ->middleware('admin')->name('clientes.destroy');

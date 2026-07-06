@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
+use App\Support\CsvImporter;
 use Illuminate\Http\Request;
 
 class ClientesController extends Controller
@@ -112,5 +113,59 @@ class ClientesController extends Controller
         $cliente->delete();
         return redirect()->route('clientes.index')
             ->with('success', 'Cliente removido com sucesso!');
+    }
+
+    public function importar()
+    {
+        return view('clientes.importar');
+    }
+
+    public function importarTemplate()
+    {
+        $csv = "tipo_pessoa;nome;razao_social;cpf_cnpj;email;telefone;celular;cidade;estado;tabela_frete;status\n"
+            . "juridica;Transportes Exemplo Ltda;Transportes Exemplo Ltda;12.345.678/0001-90;contato@exemplo.com;(11) 3333-4444;(11) 91234-5678;São Paulo;SP;1500;ativo\n";
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="modelo-clientes.csv"',
+        ]);
+    }
+
+    public function importarStore(Request $request)
+    {
+        $request->validate(['arquivo' => 'required|file|mimes:csv,txt']);
+
+        $resultado = CsvImporter::importar(
+            $request->file('arquivo'),
+            [
+                'tipo_pessoa' => 'tipo_pessoa',
+                'nome' => 'nome',
+                'razao_social' => 'razao_social',
+                'cpf_cnpj' => 'cpf_cnpj',
+                'email' => 'email',
+                'telefone' => 'telefone',
+                'celular' => 'celular',
+                'cidade' => 'cidade',
+                'estado' => 'estado',
+                'tabela_frete' => 'tabela_frete',
+                'status' => 'status',
+            ],
+            [
+                'tipo_pessoa' => 'required|in:fisica,juridica',
+                'nome' => 'required|string|max:255',
+                'razao_social' => 'nullable|string|max:255',
+                'cpf_cnpj' => 'required|string|max:20|unique:clientes',
+                'email' => 'nullable|email',
+                'telefone' => 'nullable|string|max:20',
+                'celular' => 'nullable|string|max:20',
+                'cidade' => 'nullable|string|max:255',
+                'estado' => 'nullable|string|max:2',
+                'tabela_frete' => 'nullable|numeric|min:0',
+                'status' => 'required|in:ativo,inativo',
+            ],
+            fn (array $dados) => Cliente::create($dados)
+        );
+
+        return redirect()->route('clientes.index')->with('importacao', $resultado);
     }
 }

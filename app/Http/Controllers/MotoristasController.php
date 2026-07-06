@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Motorista;
+use App\Support\CsvImporter;
 use Illuminate\Http\Request;
 
 class MotoristasController extends Controller
@@ -85,5 +86,55 @@ class MotoristasController extends Controller
         $motorista->delete();
         return redirect()->route('motoristas.index')
             ->with('success', 'Motorista removido com sucesso!');
+    }
+
+    public function importar()
+    {
+        return view('motoristas.importar');
+    }
+
+    public function importarTemplate()
+    {
+        $csv = "nome;cpf;cnh;categoria_cnh;validade_cnh;telefone;email;percentual_comissao;status\n"
+            . "João da Silva;123.456.789-00;12345678900;AB;31/12/2028;(11) 91234-5678;joao@email.com;10;ativo\n";
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="modelo-motoristas.csv"',
+        ]);
+    }
+
+    public function importarStore(Request $request)
+    {
+        $request->validate(['arquivo' => 'required|file|mimes:csv,txt']);
+
+        $resultado = CsvImporter::importar(
+            $request->file('arquivo'),
+            [
+                'nome' => 'nome',
+                'cpf' => 'cpf',
+                'cnh' => 'cnh',
+                'categoria_cnh' => 'categoria_cnh',
+                'validade_cnh' => 'validade_cnh',
+                'telefone' => 'telefone',
+                'email' => 'email',
+                'percentual_comissao' => 'percentual_comissao',
+                'status' => 'status',
+            ],
+            [
+                'nome' => 'required|string|max:255',
+                'cpf' => 'required|string|max:14|unique:motoristas',
+                'cnh' => 'nullable|string|max:20',
+                'categoria_cnh' => 'nullable|string|max:5',
+                'validade_cnh' => 'nullable|date',
+                'telefone' => 'nullable|string|max:20',
+                'email' => 'nullable|email',
+                'percentual_comissao' => 'required|numeric|min:0|max:100',
+                'status' => 'required|in:ativo,inativo',
+            ],
+            fn (array $dados) => Motorista::create($dados)
+        );
+
+        return redirect()->route('motoristas.index')->with('importacao', $resultado);
     }
 }

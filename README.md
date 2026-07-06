@@ -52,12 +52,14 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Histórico de viagens por motorista
 - Busca por nome, CPF ou telefone
 - CPF e CNH mascarados na tela (`123.***.***-01`), com opção de revelar o valor completo
+- Importação em massa via CSV, com modelo para baixar e relatório de linhas com erro
 
 ### 🚛 Veículos
 - Cadastro completo da frota (placa, modelo, marca, RENAVAM)
 - Controle de status (ativo, inativo, em manutenção)
 - Histórico de viagens por veículo
 - Busca por placa, modelo ou marca
+- Importação em massa via CSV, respeitando o limite de veículos do plano
 
 ### 🔧 Manutenção de Veículos
 - Registro de manutenção preventiva/corretiva, independente de viagem
@@ -72,6 +74,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Vinculação direta às viagens
 - Busca por nome, CNPJ/CPF, cidade ou telefone
 - CPF de cliente pessoa física mascarado (CNPJ não é dado pessoal, então fica visível)
+- Importação em massa via CSV
 
 ### 📊 Dashboard
 - Cards de resumo: viagens abertas, faturamento, lucro, frota
