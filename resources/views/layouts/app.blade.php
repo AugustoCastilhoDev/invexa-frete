@@ -178,6 +178,11 @@
             border-color: #6c757d;
             color: #fff;
         }
+        /* Cards de saldo (Acertos) com gradiente claro fixo — precisam de uma versão escura */
+        .card-saldo-pendente { background: linear-gradient(135deg,#fffbeb,#fef3c7); }
+        .card-saldo-pago { background: linear-gradient(135deg,#f0fdf4,#dcfce7); }
+        html[data-bs-theme="dark"] .card-saldo-pendente { background: linear-gradient(135deg,#3a2e10,#4d3d10); }
+        html[data-bs-theme="dark"] .card-saldo-pago { background: linear-gradient(135deg,#0f2e1c,#123c22); }
 
         .pagination { margin-bottom: 0; }
         .page-link { color: #f97316; padding: .25rem .6rem; font-size: .8rem; }

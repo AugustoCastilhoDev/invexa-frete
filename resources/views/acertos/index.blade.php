@@ -156,8 +156,7 @@
 
             {{-- Saldo a Pagar — viagens abertas --}}
             <div class="col-md-2">
-                <div class="card text-center border-start border-warning border-3"
-                    style="background:linear-gradient(135deg,#fffbeb,#fef3c7)">
+                <div class="card text-center border-start border-warning border-3 card-saldo-pendente">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
                             <i class="bi bi-clock-history text-warning" style="font-size:.8rem"></i>
@@ -176,8 +175,7 @@
 
             {{-- Total Pago — viagens encerradas --}}
             <div class="col-md-2">
-                <div class="card text-center border-start border-success border-3"
-                    style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)">
+                <div class="card text-center border-start border-success border-3 card-saldo-pago">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
                             <i class="bi bi-check-circle-fill text-success" style="font-size:.8rem"></i>
