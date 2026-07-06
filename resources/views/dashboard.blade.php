@@ -17,10 +17,10 @@
     </div>
 
     <div class="col-md-4 col-lg-2">
-        <div class="card h-100 border-start border-warning border-3">
+        <div class="card h-100 border-start border-3" style="border-color:#8b5cf6!important">
             <div class="card-body">
                 <div class="text-muted small mb-1">Aguard. Acerto</div>
-                <div class="fs-3 fw-bold text-warning">{{ $totalAguardandoAcerto }}</div>
+                <div class="fs-3 fw-bold" style="color:#8b5cf6">{{ $totalAguardandoAcerto }}</div>
                 <div class="text-muted" style="font-size:.75rem">a finalizar</div>
             </div>
         </div>

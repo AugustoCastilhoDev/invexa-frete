@@ -153,6 +153,32 @@
         .btn-primary:hover { background:#ea6c0a; border-color:#ea6c0a; }
         .table th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; }
 
+        /* Modo escuro: componentes que fixam bg-white perdem contraste com o corpo do card,
+           que o Bootstrap já escurece sozinho via data-bs-theme. */
+        html[data-bs-theme="dark"] .card-header.bg-white,
+        html[data-bs-theme="dark"] .card-footer.bg-white,
+        html[data-bs-theme="dark"] .input-group-text.bg-white {
+            background-color: var(--bs-tertiary-bg) !important;
+            color: var(--bs-body-color) !important;
+            border-color: var(--bs-border-color) !important;
+        }
+        /* table-light (cabeçalho das listagens) também é uma cor fixa, não reage ao tema */
+        html[data-bs-theme="dark"] .table-light {
+            --bs-table-bg: var(--bs-tertiary-bg);
+            --bs-table-color: var(--bs-body-color);
+            --bs-table-border-color: var(--bs-border-color);
+        }
+        /* btn-outline-dark (usado nos botões de "Exportar PDF") fica ilegível no escuro */
+        html[data-bs-theme="dark"] .btn-outline-dark {
+            color: #e9ecef;
+            border-color: #6c757d;
+        }
+        html[data-bs-theme="dark"] .btn-outline-dark:hover {
+            background-color: #495057;
+            border-color: #6c757d;
+            color: #fff;
+        }
+
         .pagination { margin-bottom: 0; }
         .page-link { color: #f97316; padding: .25rem .6rem; font-size: .8rem; }
         .page-item.active .page-link { background: #f97316; border-color: #f97316; }
