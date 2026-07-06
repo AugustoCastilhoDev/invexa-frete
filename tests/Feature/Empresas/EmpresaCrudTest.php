@@ -40,6 +40,19 @@ class EmpresaCrudTest extends TestCase
         $response->assertSee('Transportadora Teste');
     }
 
+    public function test_listagem_exibe_badge_de_atraso_para_empresa_inadimplente(): void
+    {
+        $this->actingAs(User::factory()->superAdmin()->create());
+        Empresa::factory()->create(['nome' => 'Transportadora Inadimplente', 'asaas_status' => 'PAYMENT_OVERDUE']);
+        Empresa::factory()->create(['nome' => 'Transportadora Em Dia', 'asaas_status' => 'PAYMENT_RECEIVED']);
+
+        $response = $this->get(route('empresas.index'));
+
+        $response->assertOk();
+        $response->assertSee('Atrasado');
+        $response->assertSee('Em dia');
+    }
+
     public function test_super_admin_pode_criar_empresa_com_admin_inicial(): void
     {
         $this->actingAs(User::factory()->superAdmin()->create());

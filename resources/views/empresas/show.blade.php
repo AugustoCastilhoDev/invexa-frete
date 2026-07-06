@@ -99,7 +99,7 @@
 @endif
 
 {{-- Cobrança --}}
-<div class="card mb-4">
+<div class="card mb-4" id="cobranca">
     <div class="card-header bg-white fw-semibold">
         <i class="bi bi-credit-card me-1"></i> Cobrança
     </div>
@@ -114,13 +114,12 @@
                 <div class="fw-semibold">{{ $empresa->ciclo_cobranca ? ucfirst($empresa->ciclo_cobranca) : '-' }}</div>
             </div>
             <div class="col-md-3 col-6">
+                @php($cobranca = $empresa->situacaoCobranca())
                 <div class="text-muted" style="font-size:.75rem">Status Asaas</div>
                 <div class="fw-semibold">
-                    @if($empresa->asaas_subscription_id)
-                        <span class="badge bg-info text-dark">{{ $empresa->asaas_status ?? '-' }}</span>
-                    @else
-                        <span class="badge bg-secondary">sem assinatura</span>
-                    @endif
+                    <span class="badge {{ $cobranca['classe'] }}">
+                        <i class="bi {{ $cobranca['icone'] }} me-1"></i>{{ $cobranca['label'] }}
+                    </span>
                 </div>
             </div>
             <div class="col-md-3 col-6">
@@ -128,6 +127,13 @@
                 <div class="fw-semibold">{{ $empresa->asaas_last_event_at?->format('d/m/Y H:i') ?? '-' }}</div>
             </div>
         </div>
+        @if($empresa->pagamentoEmAtraso())
+        <div class="alert alert-danger py-2 mt-3 mb-0">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Pagamento em atraso — o acesso <strong>não</strong> é bloqueado automaticamente.
+            Se quiser suspender esta empresa, use o botão de status na listagem de empresas.
+        </div>
+        @endif
         @if(! $empresa->asaas_subscription_id)
         <div class="border-top pt-3 mt-3">
             <div class="alert alert-warning py-2">

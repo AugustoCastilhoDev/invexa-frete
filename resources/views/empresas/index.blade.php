@@ -61,11 +61,13 @@
                     <th>CNPJ</th>
                     <th>Usuários</th>
                     <th>Status</th>
+                    <th>Cobrança</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($empresas as $empresa)
+                @php($cobranca = $empresa->situacaoCobranca())
                 <tr>
                     <td class="ps-4 fw-semibold">{{ $empresa->nome }}</td>
                     <td>{{ $empresa->cnpj ?? '-' }}</td>
@@ -74,6 +76,13 @@
                         <span class="badge {{ $empresa->status === 'ativo' ? 'bg-success' : 'bg-secondary' }}">
                             {{ ucfirst($empresa->status) }}
                         </span>
+                    </td>
+                    <td>
+                        <a href="{{ route('empresas.show', $empresa) }}#cobranca"
+                           class="btn btn-sm {{ $cobranca['classe'] }}"
+                           title="Ver detalhes de cobrança">
+                            <i class="bi {{ $cobranca['icone'] }} me-1"></i>{{ $cobranca['label'] }}
+                        </a>
                     </td>
                     <td class="text-end pe-4">
                         <a href="{{ route('empresas.show', $empresa) }}"
@@ -104,7 +113,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
+                    <td colspan="6" class="text-center text-muted py-4">
                         <i class="bi bi-buildings fs-3 d-block mb-2"></i>
                         {{ $busca ? 'Nenhuma empresa encontrada para "'.$busca.'".' : 'Nenhuma empresa cadastrada.' }}
                     </td>

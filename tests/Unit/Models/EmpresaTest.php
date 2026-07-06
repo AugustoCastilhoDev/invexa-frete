@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use App\Models\Empresa;
 use App\Models\Veiculo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class EmpresaTest extends TestCase
@@ -54,5 +55,35 @@ class EmpresaTest extends TestCase
 
         // Cavalo (1) + carreta avulsa sem vínculo (1) = 2, atinge o limite de 2.
         $this->assertTrue($empresa->limiteVeiculosAtingido());
+    }
+
+    public function test_pagamento_em_atraso_apenas_quando_status_e_payment_overdue(): void
+    {
+        $empresa = Empresa::factory()->create(['asaas_status' => 'PAYMENT_OVERDUE']);
+        $this->assertTrue($empresa->pagamentoEmAtraso());
+
+        $empresa->asaas_status = 'PAYMENT_RECEIVED';
+        $this->assertFalse($empresa->pagamentoEmAtraso());
+    }
+
+    #[DataProvider('situacoesCobranca')]
+    public function test_situacao_cobranca_traduz_o_status_bruto_do_asaas(?string $statusBruto, string $labelEsperado): void
+    {
+        $empresa = Empresa::factory()->create(['asaas_status' => $statusBruto]);
+
+        $this->assertSame($labelEsperado, $empresa->situacaoCobranca()['label']);
+    }
+
+    public static function situacoesCobranca(): array
+    {
+        return [
+            'sem assinatura' => [null, 'Sem assinatura'],
+            'em trial' => ['em_trial', 'Em trial'],
+            'pagamento recebido' => ['PAYMENT_RECEIVED', 'Em dia'],
+            'pagamento confirmado' => ['PAYMENT_CONFIRMED', 'Em dia'],
+            'pagamento em atraso' => ['PAYMENT_OVERDUE', 'Atrasado'],
+            'pagamento reembolsado' => ['PAYMENT_REFUNDED', 'Reembolsado'],
+            'status desconhecido' => ['ALGO_INESPERADO', 'Pendente'],
+        ];
     }
 }
