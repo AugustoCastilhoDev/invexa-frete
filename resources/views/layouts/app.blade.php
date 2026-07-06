@@ -4,18 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚛 {{ config('app.name') }} - @yield('title', 'Dashboard')</title>
+    <script>
+        // Aplica o tema salvo antes do CSS renderizar, evitando "flash" de tema errado
+        document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('tema') || 'light');
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
+        :root {
+            --if-body-bg: #f8f9fa;
+            --if-topbar-bg: #fff;
+            --if-topbar-border: #e9ecef;
+            --if-footer-bg: #fff;
+            --if-footer-border: #e9ecef;
+        }
+        html[data-bs-theme="dark"] {
+            --if-body-bg: #10131a;
+            --if-topbar-bg: #1a1d27;
+            --if-topbar-border: #2a2e3a;
+            --if-footer-bg: #1a1d27;
+            --if-footer-border: #2a2e3a;
+        }
+        body { background-color: var(--if-body-bg); }
         .sidebar {
-            min-height: 100vh;
+            height: 100vh;
             background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
             width: 250px;
             position: fixed;
             top: 0; left: 0;
             z-index: 100;
             padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
         }
         .sidebar .brand {
             color: #fff;
@@ -47,14 +68,72 @@
             letter-spacing: 1px;
             padding: 15px 20px 5px;
         }
+        .sidebar-datetime {
+            margin: 4px 20px 10px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            color: rgba(255,255,255,0.65);
+            font-size: .75rem;
+            line-height: 1.5;
+        }
+        .sidebar-datetime .sidebar-time {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .sidebar-user {
+            margin-top: auto;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 10px;
+        }
+        .sidebar-user-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            padding: 8px 10px;
+            text-align: left;
+            transition: background .2s;
+        }
+        .sidebar-user-btn:hover { background: rgba(255,255,255,0.08); }
+        .sidebar-user-avatar {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: rgba(249,115,22,0.2);
+            color: #f97316;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+        }
+        .sidebar-user-info { min-width: 0; flex: 1; }
+        .sidebar-user-name {
+            display: block;
+            color: #fff;
+            font-size: .85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar-user-hint {
+            display: block;
+            color: rgba(255,255,255,0.5);
+            font-size: .7rem;
+        }
         .main-content {
             margin-left: 250px;
             padding: 30px;
             min-height: 100vh;
         }
         .topbar {
-            background: #fff;
-            border-bottom: 1px solid #e9ecef;
+            background: var(--if-topbar-bg);
+            border-bottom: 1px solid var(--if-topbar-border);
             padding: 12px 30px;
             margin-left: 250px;
             position: sticky;
@@ -85,7 +164,7 @@
             padding: 8px 20px; font-size: .85rem;
         }
         .suporte-banner form { display: inline; }
-        body.modo-suporte .sidebar { top: 38px; min-height: calc(100vh - 38px); }
+        body.modo-suporte .sidebar { top: 38px; height: calc(100vh - 38px); }
         body.modo-suporte .topbar { top: 38px; }
         body.modo-suporte .main-content { padding-top: 68px; }
 
@@ -170,6 +249,11 @@
         </div>
     </div>
 </a>
+
+    <div class="sidebar-datetime" id="sidebarDateTime">
+        <span class="sidebar-time" id="sidebarClockTime">--:--</span>
+        <span id="sidebarClockDate">-</span>
+    </div>
 
     @if(auth()->user()?->isSuperAdmin())
     <div class="nav-section">Plataforma</div>
@@ -258,6 +342,19 @@
             </button>
         </form>
     </nav>
+
+    <div class="sidebar-user">
+        <button type="button" class="sidebar-user-btn" id="themeToggle" title="Alternar tema claro/escuro">
+            <span class="sidebar-user-avatar"><i class="bi bi-person-fill"></i></span>
+            <span class="sidebar-user-info">
+                <span class="sidebar-user-name">{{ Auth::user()?->name }}</span>
+                <span class="sidebar-user-hint">
+                    <i class="bi bi-moon-stars" id="themeToggleIcon"></i>
+                    <span id="themeToggleLabel">Modo escuro</span>
+                </span>
+            </span>
+        </button>
+    </div>
 </div>
 
 {{-- Topbar --}}
@@ -309,9 +406,6 @@
                 @endforelse
             </div>
         </div>
-
-        <i class="bi bi-person-circle text-muted"></i>
-        <span class="text-muted small">{{ Auth::user()?->name }}</span>
     </div>
 </div>
 
@@ -372,14 +466,52 @@
         overlay?.addEventListener('click', closeSidebar);
         close?.addEventListener('click', closeSidebar);
     })();
+
+    // Relógio/data ao vivo no sidebar
+    (function () {
+        const timeEl = document.getElementById('sidebarClockTime');
+        const dateEl = document.getElementById('sidebarClockDate');
+        if (!timeEl || !dateEl) return;
+
+        function atualizar() {
+            const agora = new Date();
+            timeEl.textContent = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            dateEl.textContent = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+        }
+
+        atualizar();
+        setInterval(atualizar, 1000);
+    })();
+
+    // Alternância de tema claro/escuro (Bootstrap color modes)
+    (function () {
+        const btn = document.getElementById('themeToggle');
+        const icon = document.getElementById('themeToggleIcon');
+        const label = document.getElementById('themeToggleLabel');
+        if (!btn) return;
+
+        function aplicar(tema) {
+            document.documentElement.setAttribute('data-bs-theme', tema);
+            icon.className = tema === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+            label.textContent = tema === 'dark' ? 'Modo claro' : 'Modo escuro';
+        }
+
+        aplicar(localStorage.getItem('tema') || 'light');
+
+        btn.addEventListener('click', function () {
+            const novoTema = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('tema', novoTema);
+            aplicar(novoTema);
+        });
+    })();
 </script>
 @stack('scripts')
 
 {{-- ── Footer ── --}}
 <footer style="
     margin-left:250px;
-    background:#fff;
-    border-top:1px solid #e9ecef;
+    background:var(--if-footer-bg);
+    border-top:1px solid var(--if-footer-border);
     padding:16px 30px;
     display:flex;
     justify-content:space-between;
