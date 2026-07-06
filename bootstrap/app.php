@@ -24,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('portal*')
             ? route('portal.login')
             : route('login'));
+
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/asaas',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

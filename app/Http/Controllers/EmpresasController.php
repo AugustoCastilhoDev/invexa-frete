@@ -9,6 +9,8 @@ use App\Models\Motorista;
 use App\Models\User;
 use App\Models\Veiculo;
 use App\Models\Viagem;
+use App\Services\Asaas\AsaasClient;
+use App\Services\Asaas\PlanoPricing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -38,12 +40,14 @@ class EmpresasController extends Controller
         return view('empresas.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AsaasClient $asaas)
     {
         $request->validate([
             'nome'                 => 'required|string|max:255',
             'cnpj'                 => 'nullable|string|max:20|unique:empresas,cnpj',
             'limite_veiculos'      => 'nullable|integer|min:1',
+            'plano'                => 'required|in:starter,pro,business,enterprise',
+            'ciclo_cobranca'       => 'required_unless:plano,enterprise|in:mensal,anual',
             'admin_name'           => 'required|string|max:255',
             'admin_email'          => 'required|email|unique:users,email',
             'admin_password'       => ['required', 'confirmed', Password::defaults()],
@@ -53,6 +57,8 @@ class EmpresasController extends Controller
             'nome'            => $request->nome,
             'cnpj'            => $request->cnpj,
             'limite_veiculos' => $request->limite_veiculos,
+            'plano'           => $request->plano,
+            'ciclo_cobranca'  => $request->plano === 'enterprise' ? null : $request->ciclo_cobranca,
             'status'          => 'ativo',
         ]);
 
@@ -67,8 +73,44 @@ class EmpresasController extends Controller
         $admin->email_verified_at = now();
         $admin->save();
 
+        if ($request->plano !== 'enterprise') {
+            $this->criarAssinaturaAsaas($asaas, $empresa, $admin, $request->plano, $request->ciclo_cobranca);
+        }
+
         return redirect()->route('empresas.index')
             ->with('success', 'Empresa cadastrada com sucesso! O administrador já pode fazer login.');
+    }
+
+    /**
+     * Cria o cliente e a assinatura recorrente no Asaas para o plano escolhido,
+     * com 14 dias de trial (primeira cobrança só depois desse prazo). Falhas
+     * aqui não impedem o cadastro da empresa — só ficam sem o vínculo de
+     * cobrança até serem resolvidas manualmente (ex.: chave da API ausente).
+     */
+    private function criarAssinaturaAsaas(AsaasClient $asaas, Empresa $empresa, User $admin, string $plano, string $ciclo): void
+    {
+        $customerId = $asaas->criarCliente([
+            'nome' => $empresa->nome,
+            'email' => $admin->email,
+            'cpf_cnpj' => $empresa->cnpj,
+        ]);
+
+        if (! $customerId) {
+            return;
+        }
+
+        $subscriptionId = $asaas->criarAssinatura($customerId, [
+            'valor' => PlanoPricing::valor($plano, $ciclo),
+            'ciclo' => $ciclo === 'anual' ? 'YEARLY' : 'MONTHLY',
+            'proxima_cobranca' => now()->addDays(14)->format('Y-m-d'),
+            'descricao' => "Invexa Frete — Plano " . ucfirst($plano),
+        ]);
+
+        $empresa->update([
+            'asaas_customer_id' => $customerId,
+            'asaas_subscription_id' => $subscriptionId,
+            'asaas_status' => $subscriptionId ? 'em_trial' : null,
+        ]);
     }
 
     public function show(Empresa $empresa)

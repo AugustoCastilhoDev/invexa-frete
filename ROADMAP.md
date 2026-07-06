@@ -80,6 +80,12 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Conjunto cavalo + carreta**: uma carreta pode ser vinculada a um cavalo mecânico (campo simples na tela de cadastro/edição); enquanto vinculada, conta como parte do mesmo conjunto no limite do plano (1 conjunto = 1 veículo cobrado); uma carreta avulsa, sem cavalo vinculado, volta a contar separadamente
 - Fix: login real do motorista (via sessão/cookie, diferente do `actingAs` usado nos testes) causava erro 500 por recursão infinita — resolver a empresa do guard `motorista` consultava o próprio model `Motorista`, escopado pela mesma empresa que ainda não tinha sido resolvida. Corrigido com uma trava de reentrância no `TenantContext`
 
+### Cobrança recorrente (Asaas)
+- Ao cadastrar uma empresa nova, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual); o limite de veículos é preenchido automaticamente pelo plano, mas continua editável para casos negociados à parte
+- Cria automaticamente o cliente e a assinatura recorrente no Asaas (sandbox ou produção, via `ASAAS_ENV`), com 14 dias de trial antes da primeira cobrança — plano Enterprise fica de fora (sempre negociado manualmente, sem assinatura automática)
+- Resiliente à ausência de credencial: sem `ASAAS_API_KEY` configurada (ou se a chamada à API falhar), o cadastro da empresa continua funcionando normalmente — só fica sem o vínculo de cobrança, visível na tela de detalhe da empresa com um aviso
+- Webhook (`POST /webhooks/asaas`, protegido por token) recebe os eventos de pagamento e só registra o status/data do último evento na empresa — a suspensão por inadimplência continua manual, decisão do super admin pela tela (não desativa sozinho)
+
 ### Usuários e permissões
 - Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa e vê tudo dela) e operador (acesso operacional do dia a dia)
 - **Escopo do operador**: acessa Viagens, Motoristas, Veículos, Clientes, Lançamentos, Descontos, Documentos, Manutenções e Acertos; fica de fora do DRE, Relatórios Financeiros e Despesas Gerais (dados estratégicos/administrativos) e não exclui nenhum registro (motorista, veículo, viagem, lançamento, desconto, documento, manutenção) nem a própria conta na tela "Meu Perfil" — só o admin apaga. Antes dessa mudança o operador tinha acesso igual ao admin em tudo, exceto gestão de usuários
@@ -130,7 +136,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Verificado visualmente em viewport de celular (390px) antes e depois da correção
 
 ### Infraestrutura de qualidade
-- 278 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 294 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ---
@@ -146,7 +152,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Fluxo de caixa**: complementar ao DRE (que é por competência); acompanharia entradas/saídas reais de caixa por data de pagamento — avaliado e não priorizado por ora, já que o DRE atual cobre bem a necessidade atual
 
 ### Longo prazo (apostas maiores, ligadas ao plano de vender para outras transportadoras)
-- **Billing/assinatura**: decidido cobrar por faixa de veículos (ex.: até 5 = plano X), com a assinatura recorrente gerada direto no Asaas (cobrança fixa, PIX/boleto/cartão) — sem integração automática por ora; o limite de veículos por plano já é aplicado no sistema (ver seção Multi-tenant), e a suspensão por inadimplência é manual (super admin desativa a empresa pela tela). Uma integração via webhook do Asaas para automatizar a suspensão fica para quando o volume de clientes justificar
+- **Suspensão automática por inadimplência**: hoje o webhook do Asaas só registra o status (ver seção Cobrança recorrente); automatizar a desativação da empresa fica para quando o volume de clientes justificar o risco de um falso positivo suspender alguém por engano
+- **Upgrade/downgrade de plano self-service**: hoje trocar de plano depois de criada a empresa é manual (ajustar `limite_veiculos` e a assinatura no Asaas direto); um fluxo pela própria tela do admin é um passo natural depois que houver clientes reais pedindo isso
 - **Integração com rastreamento veicular (GPS)** para KM automático em vez de digitação manual
 - **Validação fiscal automática (via API paga)**: o link de verificação manual na SEFAZ já foi implementado (ver seção Viagens); uma automação completa (status buscado e exibido sem o usuário sair do sistema) exigiria assinar um provedor como Danfe Rápida, Nuvem Fiscal ou Focus NFe — avaliado e não contratado ainda, pois o link manual já resolve a necessidade atual sem custo recorrente
 
@@ -157,8 +164,9 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Deploy em produção**: pausado por decisão do time (2026-07-01). Quando retomar, checklist mínimo:
   - Configurar `.env` de produção com `MAIL_MAILER=resend` + `RESEND_API_KEY` (já testado em dev)
   - Configurar `.env` de produção com `UPLOADS_DISK=r2` + credenciais R2 (já testado em dev)
+  - Configurar `.env` de produção com `ASAAS_API_KEY` (de produção, não sandbox) + `ASAAS_ENV=production` + `ASAAS_WEBHOOK_TOKEN`, e cadastrar a URL do webhook (`/webhooks/asaas`) no painel do Asaas
   - Confirmar cron do Laravel ativo (`* * * * * php artisan schedule:run`) para a anonimização mensal LGPD funcionar
-  - Rodar `php artisan migrate --force` (39 migrations pendentes de aplicar no ambiente de produção, incluindo a criação do usuário super admin — ver abaixo)
+  - Rodar `php artisan migrate --force` (43 migrations pendentes de aplicar no ambiente de produção, incluindo a criação do usuário super admin — ver abaixo)
   - Confirmar o e-mail do super admin da plataforma (`ac.castilho87@gmail.com`, hardcoded na migration de multi-tenant) antes de rodar em produção; o acesso é reivindicado via "esqueci minha senha" depois do primeiro `migrate`
   - Revisar `config/lgpd.php` / prazos de retenção com jurídico/contábil antes de confiar no expurgo automático
   - Confirmar que a extensão PHP `gd` está habilitada no servidor (necessária para o comprovante em PDF exibir a assinatura digital do motorista)

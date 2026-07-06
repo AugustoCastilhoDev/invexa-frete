@@ -19,7 +19,10 @@ use App\Http\Controllers\DreController;
 use App\Http\Controllers\MotoristaPortalAccessController;
 use App\Http\Controllers\NotificacoesController;
 use App\Http\Controllers\EmpresasController;
+use App\Http\Controllers\Webhooks\AsaasWebhookController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
+
+Route::post('webhooks/asaas', AsaasWebhookController::class)->name('webhooks.asaas');
 
 Route::get('/', function () {
     if (auth('web')->check()) {

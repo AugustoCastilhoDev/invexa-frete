@@ -6,6 +6,7 @@ use App\Models\Empresa;
 use App\Models\Motorista;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class EmpresaCrudTest extends TestCase
@@ -46,6 +47,8 @@ class EmpresaCrudTest extends TestCase
         $response = $this->post(route('empresas.store'), [
             'nome'                          => 'Transportadora Nova',
             'cnpj'                          => '11.222.333/0001-44',
+            'plano'                         => 'starter',
+            'ciclo_cobranca'                => 'mensal',
             'admin_name'                    => 'Admin da Nova',
             'admin_email'                   => 'admin@nova.com',
             'admin_password'                => 'senha12345',
@@ -108,6 +111,8 @@ class EmpresaCrudTest extends TestCase
         $this->post(route('empresas.store'), [
             'nome'                        => 'Transportadora Pequena',
             'limite_veiculos'             => 5,
+            'plano'                       => 'starter',
+            'ciclo_cobranca'              => 'mensal',
             'admin_name'                  => 'Admin Pequena',
             'admin_email'                 => 'admin@pequena.com',
             'admin_password'              => 'senha12345',
@@ -141,6 +146,116 @@ class EmpresaCrudTest extends TestCase
 
         $this->patch(route('empresas.toggle-status', $empresa));
         $this->assertEquals('ativo', $empresa->fresh()->status);
+    }
+
+    public function test_cadastro_de_empresa_sem_plano_e_rejeitado(): void
+    {
+        $this->actingAs(User::factory()->superAdmin()->create());
+
+        $response = $this->post(route('empresas.store'), [
+            'nome'                        => 'Transportadora Sem Plano',
+            'admin_name'                  => 'Admin Sem Plano',
+            'admin_email'                 => 'admin@semplano.com',
+            'admin_password'              => 'senha12345',
+            'admin_password_confirmation' => 'senha12345',
+        ]);
+
+        $response->assertSessionHasErrors('plano');
+    }
+
+    public function test_criacao_de_empresa_com_plano_cria_assinatura_no_asaas(): void
+    {
+        config(['services.asaas.api_key' => 'chave-de-teste']);
+        Http::fake([
+            '*/customers' => Http::response(['id' => 'cus_123'], 200),
+            '*/subscriptions' => Http::response(['id' => 'sub_456'], 200),
+        ]);
+
+        $this->actingAs(User::factory()->superAdmin()->create());
+
+        $this->post(route('empresas.store'), [
+            'nome'                        => 'Transportadora Asaas',
+            'plano'                       => 'pro',
+            'ciclo_cobranca'              => 'mensal',
+            'admin_name'                  => 'Admin Asaas',
+            'admin_email'                 => 'admin@asaas.com',
+            'admin_password'              => 'senha12345',
+            'admin_password_confirmation' => 'senha12345',
+        ]);
+
+        $empresa = Empresa::where('nome', 'Transportadora Asaas')->firstOrFail();
+        $this->assertSame('cus_123', $empresa->asaas_customer_id);
+        $this->assertSame('sub_456', $empresa->asaas_subscription_id);
+        $this->assertSame('em_trial', $empresa->asaas_status);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/subscriptions')
+                && $request['cycle'] === 'MONTHLY'
+                && $request['value'] === 1290.00;
+        });
+    }
+
+    public function test_plano_enterprise_nao_cria_assinatura_no_asaas(): void
+    {
+        config(['services.asaas.api_key' => 'chave-de-teste']);
+        Http::fake();
+
+        $this->actingAs(User::factory()->superAdmin()->create());
+
+        $this->post(route('empresas.store'), [
+            'nome'                        => 'Transportadora Enterprise',
+            'plano'                       => 'enterprise',
+            'admin_name'                  => 'Admin Enterprise',
+            'admin_email'                 => 'admin@enterprise.com',
+            'admin_password'              => 'senha12345',
+            'admin_password_confirmation' => 'senha12345',
+        ]);
+
+        $empresa = Empresa::where('nome', 'Transportadora Enterprise')->firstOrFail();
+        $this->assertNull($empresa->asaas_customer_id);
+        Http::assertNothingSent();
+    }
+
+    public function test_falha_na_api_do_asaas_nao_impede_cadastro_da_empresa(): void
+    {
+        config(['services.asaas.api_key' => 'chave-de-teste']);
+        Http::fake(['*/customers' => Http::response(['errors' => []], 400)]);
+
+        $this->actingAs(User::factory()->superAdmin()->create());
+
+        $response = $this->post(route('empresas.store'), [
+            'nome'                        => 'Transportadora Resiliente',
+            'plano'                       => 'starter',
+            'ciclo_cobranca'              => 'mensal',
+            'admin_name'                  => 'Admin Resiliente',
+            'admin_email'                 => 'admin@resiliente.com',
+            'admin_password'              => 'senha12345',
+            'admin_password_confirmation' => 'senha12345',
+        ]);
+
+        $response->assertRedirect(route('empresas.index'));
+        $empresa = Empresa::where('nome', 'Transportadora Resiliente')->firstOrFail();
+        $this->assertNull($empresa->asaas_customer_id);
+    }
+
+    public function test_sem_chave_da_api_configurada_cadastro_continua_funcionando(): void
+    {
+        config(['services.asaas.api_key' => null]);
+
+        $this->actingAs(User::factory()->superAdmin()->create());
+
+        $response = $this->post(route('empresas.store'), [
+            'nome'                        => 'Transportadora Sem Chave',
+            'plano'                       => 'starter',
+            'ciclo_cobranca'              => 'mensal',
+            'admin_name'                  => 'Admin Sem Chave',
+            'admin_email'                 => 'admin@semchave.com',
+            'admin_password'              => 'senha12345',
+            'admin_password_confirmation' => 'senha12345',
+        ]);
+
+        $response->assertRedirect(route('empresas.index'));
+        $this->assertDatabaseHas('empresas', ['nome' => 'Transportadora Sem Chave']);
     }
 
     public function test_admin_de_empresa_desativada_nao_consegue_logar(): void

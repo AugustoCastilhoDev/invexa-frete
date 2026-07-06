@@ -98,6 +98,45 @@
 </div>
 @endif
 
+{{-- Cobrança --}}
+<div class="card mb-4">
+    <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-credit-card me-1"></i> Cobrança
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3 col-6">
+                <div class="text-muted" style="font-size:.75rem">Plano</div>
+                <div class="fw-semibold">{{ $empresa->plano ? ucfirst($empresa->plano) : '-' }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-muted" style="font-size:.75rem">Ciclo</div>
+                <div class="fw-semibold">{{ $empresa->ciclo_cobranca ? ucfirst($empresa->ciclo_cobranca) : '-' }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-muted" style="font-size:.75rem">Status Asaas</div>
+                <div class="fw-semibold">
+                    @if($empresa->asaas_subscription_id)
+                        <span class="badge bg-info text-dark">{{ $empresa->asaas_status ?? '-' }}</span>
+                    @else
+                        <span class="badge bg-secondary">sem assinatura</span>
+                    @endif
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-muted" style="font-size:.75rem">Último evento</div>
+                <div class="fw-semibold">{{ $empresa->asaas_last_event_at?->format('d/m/Y H:i') ?? '-' }}</div>
+            </div>
+        </div>
+        @if($empresa->plano && $empresa->plano !== 'enterprise' && ! $empresa->asaas_subscription_id)
+        <div class="alert alert-warning py-2 mt-3 mb-0">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Nenhuma assinatura foi criada no Asaas para esta empresa — confira se <code>ASAAS_API_KEY</code> está configurada.
+        </div>
+        @endif
+    </div>
+</div>
+
 {{-- Usuários da empresa --}}
 <div class="card">
     <div class="card-header bg-white fw-semibold">

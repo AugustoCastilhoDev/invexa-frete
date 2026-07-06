@@ -15,6 +15,16 @@ class Empresa extends Model
         'cnpj',
         'status',
         'limite_veiculos',
+        'plano',
+        'ciclo_cobranca',
+        'asaas_customer_id',
+        'asaas_subscription_id',
+        'asaas_status',
+        'asaas_last_event_at',
+    ];
+
+    protected $casts = [
+        'asaas_last_event_at' => 'datetime',
     ];
 
     public function usuarios()

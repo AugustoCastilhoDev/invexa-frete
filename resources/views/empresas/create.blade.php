@@ -31,13 +31,45 @@
                     @error('cnpj')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
+                    <label class="form-label fw-semibold">Plano *</label>
+                    <select name="plano" id="plano" class="form-select @error('plano') is-invalid @enderror" required>
+                        <option value="">Selecione...</option>
+                        @foreach(\App\Services\Asaas\PlanoPricing::tabela() as $val => $dados)
+                            <option value="{{ $val }}"
+                                data-limite="{{ $dados['limite_veiculos'] }}"
+                                {{ old('plano') === $val ? 'selected' : '' }}>
+                                {{ ucfirst($val) }}
+                                @if($dados['mensal'])
+                                    — R$ {{ number_format($dados['mensal'], 2, ',', '.') }}/mês
+                                @else
+                                    — sob consulta
+                                @endif
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('plano')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6" id="wrapper-ciclo-cobranca">
+                    <label class="form-label fw-semibold">Ciclo de Cobrança *</label>
+                    <select name="ciclo_cobranca" class="form-select @error('ciclo_cobranca') is-invalid @enderror">
+                        <option value="mensal" {{ old('ciclo_cobranca', 'mensal') === 'mensal' ? 'selected' : '' }}>Mensal</option>
+                        <option value="anual" {{ old('ciclo_cobranca') === 'anual' ? 'selected' : '' }}>Anual (pague 10, leve 12)</option>
+                    </select>
+                    @error('ciclo_cobranca')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6">
                     <label class="form-label fw-semibold">Limite de Veículos</label>
-                    <input type="number" name="limite_veiculos" min="1"
+                    <input type="number" name="limite_veiculos" id="limite_veiculos" min="1"
                            class="form-control @error('limite_veiculos') is-invalid @enderror"
                            value="{{ old('limite_veiculos') }}" placeholder="Deixe em branco para ilimitado">
                     @error('limite_veiculos')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    <div class="form-text">De acordo com o plano contratado. Vazio = sem limite.</div>
+                    <div class="form-text">Preenchido automaticamente pelo plano — pode ajustar se for um limite negociado à parte.</div>
                 </div>
+            </div>
+
+            <div class="alert alert-info py-2 mb-4" id="aviso-asaas" style="display:none">
+                <i class="bi bi-info-circle me-1"></i>
+                Ao salvar, uma assinatura recorrente é criada automaticamente no Asaas, com 14 dias de trial antes da primeira cobrança.
             </div>
 
             <h6 class="fw-semibold mb-3">Administrador inicial</h6>
@@ -73,4 +105,28 @@
         </form>
     </div>
 </div>
+
+<script>
+    (function () {
+        const plano = document.getElementById('plano');
+        const limite = document.getElementById('limite_veiculos');
+        const wrapperCiclo = document.getElementById('wrapper-ciclo-cobranca');
+        const avisoAsaas = document.getElementById('aviso-asaas');
+
+        function atualizar() {
+            const selected = plano.options[plano.selectedIndex];
+            const isEnterprise = plano.value === 'enterprise';
+
+            if (plano.value && selected.dataset.limite) {
+                limite.value = selected.dataset.limite;
+            }
+
+            wrapperCiclo.style.display = isEnterprise ? 'none' : '';
+            avisoAsaas.style.display = plano.value && ! isEnterprise ? '' : 'none';
+        }
+
+        plano.addEventListener('change', atualizar);
+        atualizar();
+    })();
+</script>
 @endsection

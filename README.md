@@ -100,6 +100,12 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Limite de veículos por plano**: cada empresa pode ter um teto de veículos configurado pelo super admin (ex.: plano até 5 veículos); tentar cadastrar acima do limite é bloqueado com uma mensagem clara, e tanto o painel de suporte quanto a própria tela de Veículos do cliente mostram "X / Y veículos" cadastrados
 - E-mail, CPF, placa e CNPJ continuam únicos em todo o sistema — login por e-mail/CPF não precisa saber a qual empresa a conta pertence
 
+### 💳 Cobrança recorrente (Asaas)
+- Ao cadastrar a empresa, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual) — o sistema cria automaticamente o cliente e a assinatura recorrente no [Asaas](https://www.asaas.com/), com 14 dias de trial antes da primeira cobrança
+- Plano Enterprise fica de fora da automação (sempre negociado manualmente)
+- Sem `ASAAS_API_KEY` configurada, ou se a chamada à API falhar, o cadastro da empresa continua funcionando normalmente — só fica sem o vínculo de cobrança, sinalizado na tela de detalhe
+- Webhook (`/webhooks/asaas`, protegido por token) registra o status de cada evento de pagamento na empresa — suspensão por inadimplência continua sendo uma decisão manual do super admin
+
 ### 👥 Usuários & Permissões
 - Papéis: **super admin** (gerencia empresas clientes), **admin** (gerencia usuários da própria empresa e vê tudo dela) e **operador** (acesso operacional do dia a dia)
 - Operador acessa Viagens, Motoristas, Veículos, Clientes, Lançamentos, Descontos, Documentos, Manutenções e Acertos — mas **não** vê DRE, Relatórios Financeiros nem Despesas Gerais (informação estratégica/administrativa), **não** exclui registros e **não** exclui a própria conta (só o admin apaga)
@@ -159,6 +165,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | PDF | barryvdh/laravel-dompdf |
 | E-mail | Resend (resend/resend-php) |
 | Storage | Cloudflare R2 (league/flysystem-aws-s3-v3) |
+| Cobrança recorrente | Asaas (API REST + webhook) |
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
@@ -316,6 +323,11 @@ R2_ACCESS_KEY_ID=sua_access_key
 R2_SECRET_ACCESS_KEY=sua_secret_key
 R2_BUCKET=seu-bucket
 R2_ENDPOINT=https://SEU_ACCOUNT_ID.r2.cloudflarestorage.com
+
+# Cobrança recorrente (Asaas) — necessário para criar assinatura ao cadastrar uma empresa nova
+ASAAS_API_KEY=sua_chave_de_producao
+ASAAS_ENV=production
+ASAAS_WEBHOOK_TOKEN=um_token_que_voce_cadastra_tambem_no_painel_do_asaas
 ```
 
 ---
