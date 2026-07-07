@@ -247,6 +247,7 @@
         .chip-vale        { background:#fee2e2; color:#991b1b; }
         .chip-multa       { background:#fee2e2; color:#7f1d1d; }
         .chip-adiantamento{ background:#ede9fe; color:#5b21b6; }
+        .chip-bonificacao { background:#d1fae5; color:#065f46; }
     </style>
 </head>
 <body>
@@ -377,6 +378,7 @@
                             <th>Descrição</th>
                             <th>Data</th>
                             <th>KM</th>
+                            <th>Litros</th>
                             <th class="text-right">Valor</th>
                         </tr>
                     </thead>
@@ -387,15 +389,16 @@
                             <td>{{ $l->descricao }}</td>
                             <td>{{ $l->data_lancamento->format('d/m') }}</td>
                             <td>{{ $l->km_veiculo ? number_format($l->km_veiculo, 0, ',', '.') : '-' }}</td>
+                            <td>{{ $l->litros ? number_format($l->litros, 2, ',', '.') : '-' }}</td>
                             <td class="text-right">R$ {{ number_format($l->valor, 2, ',', '.') }}</td>
                         </tr>
                         @empty
-                        <tr class="empty-row"><td colspan="5">Sem lançamentos</td></tr>
+                        <tr class="empty-row"><td colspan="6">Sem lançamentos</td></tr>
                         @endforelse
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="4">Total Despesas</td>
+                            <td colspan="5">Total Despesas</td>
                             <td class="text-right">
                                 R$ {{ number_format($viagem->total_combustivel + $viagem->total_manutencao, 2, ',', '.') }}
                             </td>
@@ -405,7 +408,7 @@
             </td>
 
             <td class="col-half">
-                <div class="section-title">Descontos do Motorista</div>
+                <div class="section-title">Descontos e Bonificações do Motorista</div>
                 <table class="table-list">
                     <thead>
                         <tr>
@@ -421,7 +424,9 @@
                             <td><span class="chip chip-{{ $d->tipo }}">{{ ucfirst($d->tipo) }}</span></td>
                             <td>{{ $d->descricao }}</td>
                             <td>{{ $d->data_desconto->format('d/m') }}</td>
-                            <td class="text-right">R$ {{ number_format($d->valor, 2, ',', '.') }}</td>
+                            <td class="text-right" style="{{ $d->tipo === 'bonificacao' ? 'color:#065f46;font-weight:700' : '' }}">
+                                {{ $d->tipo === 'bonificacao' ? '+' : '' }} R$ {{ number_format($d->valor, 2, ',', '.') }}
+                            </td>
                         </tr>
                         @empty
                         <tr class="empty-row"><td colspan="4">Sem descontos</td></tr>
@@ -434,6 +439,14 @@
                                 R$ {{ number_format($viagem->total_descontos, 2, ',', '.') }}
                             </td>
                         </tr>
+                        @if($viagem->total_bonificacoes > 0)
+                        <tr>
+                            <td colspan="3" style="color:#065f46">Total Bonificações</td>
+                            <td class="text-right" style="color:#065f46">
+                                + R$ {{ number_format($viagem->total_bonificacoes, 2, ',', '.') }}
+                            </td>
+                        </tr>
+                        @endif
                     </tfoot>
                 </table>
             </td>
@@ -469,8 +482,10 @@
                 <td>(-) Total Manutenção</td>
                 <td class="resumo-deduct">R$ {{ number_format($viagem->total_manutencao, 2, ',', '.') }}</td>
                 <td></td>
-                <td></td>
-                <td></td>
+                <td>(+) Bonificações</td>
+                <td class="text-success-light" style="text-align:right;font-weight:600">
+                    R$ {{ number_format($viagem->total_bonificacoes, 2, ',', '.') }}
+                </td>
             </tr>
             <tr class="divider">
                 <td class="resumo-total">Lucro da Transportadora</td>

@@ -18,6 +18,7 @@ class Lancamento extends Model
         'descricao',
         'valor',
         'km_veiculo',
+        'litros',
         'data_lancamento',
         'comprovante',
         'observacao',
@@ -26,6 +27,7 @@ class Lancamento extends Model
     protected $casts = [
         'data_lancamento' => 'date',
         'valor'           => 'decimal:2',
+        'litros'          => 'decimal:2',
     ];
 
     // Lançamento pertence a uma viagem

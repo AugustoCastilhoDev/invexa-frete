@@ -161,12 +161,19 @@
             </div>
         </div>
 
-        {{-- Descontos --}}
+        {{-- Descontos e Bonificações --}}
         <div class="card mb-4 border-start border-danger border-3">
             <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-dash-circle me-2 text-danger"></i>Descontos</span>
-                <span class="text-danger fw-bold">
-                    R$ {{ number_format($viagem->total_descontos, 2, ',', '.') }}
+                <span><i class="bi bi-dash-circle me-2 text-danger"></i>Descontos e Bonificações</span>
+                <span>
+                    <span class="text-danger fw-bold">
+                        - R$ {{ number_format($viagem->total_descontos, 2, ',', '.') }}
+                    </span>
+                    @if($viagem->total_bonificacoes > 0)
+                    <span class="text-success fw-bold ms-2">
+                        + R$ {{ number_format($viagem->total_bonificacoes, 2, ',', '.') }}
+                    </span>
+                    @endif
                 </span>
             </div>
             <div class="card-body p-0">
@@ -183,9 +190,12 @@
                     </thead>
                     <tbody>
                         @forelse($viagem->descontos as $desconto)
+                        @php
+                            $ehBonificacao = $desconto->tipo === 'bonificacao';
+                        @endphp
                         <tr>
                             <td class="ps-3">
-                                <span class="badge bg-danger bg-opacity-10 text-danger">
+                                <span class="badge bg-{{ $ehBonificacao ? 'success' : 'danger' }} bg-opacity-10 text-{{ $ehBonificacao ? 'success' : 'danger' }}">
                                     {{ ucfirst($desconto->tipo) }}
                                 </span>
                             </td>
@@ -194,12 +204,14 @@
                                 <br><small class="text-muted">por {{ $desconto->criadoPor?->name ?? '—' }}</small>
                             </td>
                             <td>{{ $desconto->data_desconto->format('d/m/Y') }}</td>
-                            <td>R$ {{ number_format($desconto->valor, 2, ',', '.') }}</td>
+                            <td class="{{ $ehBonificacao ? 'text-success fw-semibold' : '' }}">
+                                {{ $ehBonificacao ? '+' : '' }} R$ {{ number_format($desconto->valor, 2, ',', '.') }}
+                            </td>
                             <td>
                                 @if($viagem->status !== 'encerrada' && auth()->user()?->isAdmin())
                                 <form action="{{ route('descontos.destroy', $desconto) }}"
                                       method="POST"
-                                      onsubmit="return confirm('Remover desconto?')">
+                                      onsubmit="return confirm('Remover lançamento?')">
                                     @csrf @method('DELETE')
                                     <button class="btn btn-sm btn-link text-danger p-0">
                                         <i class="bi bi-trash"></i>
@@ -210,7 +222,7 @@
                         </tr>
                         @empty
                         <tr><td colspan="5" class="text-center text-muted py-2 small">
-                            Nenhum desconto lançado.
+                            Nenhum desconto ou bonificação lançado.
                         </td></tr>
                         @endforelse
                     </tbody>
@@ -228,6 +240,7 @@
                                 <option value="vale">Vale</option>
                                 <option value="multa">Multa</option>
                                 <option value="adiantamento">Adiantamento</option>
+                                <option value="bonificacao">Bonificação (diária/prêmio)</option>
                                 <option value="outros">Outros</option>
                             </select>
                         </div>
@@ -467,6 +480,7 @@
                             <th>Descrição</th>
                             <th>Data</th>
                             <th>KM</th>
+                            <th>Litros</th>
                             <th>Valor</th>
                             <th>Status</th>
                             <th></th>
@@ -498,6 +512,7 @@
                             </td>
                             <td>{{ $lancamento->data_lancamento->format('d/m/Y') }}</td>
                             <td>{{ $lancamento->km_veiculo ? number_format($lancamento->km_veiculo, 0, ',', '.') : '-' }}</td>
+                            <td>{{ $lancamento->litros ? number_format($lancamento->litros, 2, ',', '.') : '-' }}</td>
                             <td>R$ {{ number_format($lancamento->valor, 2, ',', '.') }}</td>
                             <td>
                                 <span class="badge bg-{{ $lancamento->status_badge }}">
@@ -533,7 +548,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="7" class="text-center text-muted py-2 small">
+                        <tr><td colspan="8" class="text-center text-muted py-2 small">
                             Nenhum lançamento registrado.
                         </td></tr>
                         @endforelse
@@ -547,7 +562,7 @@
                       method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row g-2">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <select name="tipo" id="lancamento-tipo" class="form-select form-select-sm" required>
                                 <option value="">Tipo</option>
                                 <option value="combustivel">Combustível</option>
@@ -563,12 +578,16 @@
                             <input type="number" name="km_veiculo" class="form-control form-control-sm"
                                    placeholder="KM do veículo" min="0">
                         </div>
+                        <div class="col-md-2 d-none" id="lancamento-litros-wrapper">
+                            <input type="number" name="litros" class="form-control form-control-sm"
+                                   placeholder="Litros" step="0.01" min="0">
+                        </div>
                         <div class="col-md-2">
                             <input type="number" name="valor" class="form-control form-control-sm"
                                    placeholder="Valor" step="0.01" min="0" required>
                         </div>
                         <input type="hidden" name="data_lancamento" value="{{ date('Y-m-d') }}">
-                        <div class="col-md-2">
+                        <div class="col-md-1">
                             <button type="submit" class="btn btn-warning btn-sm w-100">
                                 <i class="bi bi-plus"></i>
                             </button>
@@ -584,10 +603,13 @@
         (function () {
             const tipo = document.getElementById('lancamento-tipo');
             const kmWrapper = document.getElementById('lancamento-km-wrapper');
-            if (!tipo || !kmWrapper) return;
+            const litrosWrapper = document.getElementById('lancamento-litros-wrapper');
+            if (!tipo || !kmWrapper || !litrosWrapper) return;
 
             tipo.addEventListener('change', function () {
-                kmWrapper.classList.toggle('d-none', tipo.value !== 'combustivel');
+                const ehCombustivel = tipo.value === 'combustivel';
+                kmWrapper.classList.toggle('d-none', !ehCombustivel);
+                litrosWrapper.classList.toggle('d-none', !ehCombustivel);
             });
         })();
         </script>
@@ -646,6 +668,14 @@
                             R$ {{ number_format($viagem->total_descontos, 2, ',', '.') }}
                         </td>
                     </tr>
+                    @if($viagem->total_bonificacoes > 0)
+                    <tr>
+                        <td>(+) Bonificações</td>
+                        <td class="text-end text-success">
+                            R$ {{ number_format($viagem->total_bonificacoes, 2, ',', '.') }}
+                        </td>
+                    </tr>
+                    @endif
                     <tr>
                         <td>(-) Adiantamento
                             @if($viagem->valor_adiantamento > 0 && !$viagem->adiantamento_descontavel)

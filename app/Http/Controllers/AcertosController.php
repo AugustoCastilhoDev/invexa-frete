@@ -74,7 +74,7 @@ class AcertosController extends Controller
 
             fputcsv($saida, [
                 'Viagem', 'Veículo', 'Cliente', 'Origem', 'Destino', 'Saída',
-                'Frete', 'Comissão', 'Descontos', 'Saldo', 'Status',
+                'Frete', 'Comissão', 'Descontos', 'Bonificação', 'Saldo', 'Status',
             ], ';');
 
             foreach ($viagens as $viagem) {
@@ -88,6 +88,7 @@ class AcertosController extends Controller
                     number_format($viagem->valor_frete, 2, ',', ''),
                     number_format($viagem->valor_motorista, 2, ',', ''),
                     number_format($viagem->total_descontos, 2, ',', ''),
+                    number_format($viagem->total_bonificacoes, 2, ',', ''),
                     number_format($viagem->saldo_motorista, 2, ',', ''),
                     ucfirst(str_replace('_', ' ', $viagem->status)),
                 ], ';');
@@ -108,15 +109,21 @@ class AcertosController extends Controller
 
     private function calcularTotais($viagens): array
     {
+        $totalKm     = $viagens->sum('km_rodados');
+        $totalLitros = $viagens->sum('total_litros');
+
         return [
             'total_viagens'      => $viagens->count(),
             'total_frete'        => $viagens->sum('valor_frete'),
             'total_comissao'     => $viagens->sum('valor_motorista'),
             'total_descontos'    => $viagens->sum('total_descontos'),
+            'total_bonificacoes' => $viagens->sum('total_bonificacoes'),
             'total_adiantamento' => $viagens->filter(fn($v) => $v->adiantamento_descontavel)
                                             ->sum('valor_adiantamento'),
             'total_saldo'        => $viagens->sum('saldo_motorista'),
-            'total_km'           => $viagens->sum('km_rodados'),
+            'total_km'           => $totalKm,
+            'total_litros'       => $totalLitros,
+            'media_combustivel'  => $totalLitros > 0 ? round($totalKm / $totalLitros, 2) : null,
             'por_status'         => $viagens->groupBy('status')->map->count(),
             'saldo_a_pagar'      => $viagens->whereNotIn('status', ['encerrada'])
                                             ->sum('saldo_motorista'),

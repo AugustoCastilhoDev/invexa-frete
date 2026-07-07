@@ -193,6 +193,47 @@
             </div>
         </div>
 
+        {{-- ── Bonificações e Média de Combustível ── --}}
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card text-center border-start border-success border-3">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                            <i class="bi bi-gift text-success" style="font-size:.8rem"></i>
+                            <span class="text-muted small">Bonificações do Período</span>
+                        </div>
+                        <div class="fw-bold text-success fs-5">
+                            + R$ {{ number_format($totais['total_bonificacoes'], 2, ',', '.') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-center border-start border-3" style="border-color:#3b82f6!important">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                            <i class="bi bi-fuel-pump text-primary" style="font-size:.8rem"></i>
+                            <span class="text-muted small">Média de Combustível</span>
+                        </div>
+                        @if($totais['media_combustivel'] !== null)
+                            <div class="fw-bold fs-5" style="color:#3b82f6">
+                                {{ number_format($totais['media_combustivel'], 2, ',', '.') }} km/L
+                            </div>
+                            <div class="text-muted" style="font-size:.7rem">
+                                {{ number_format($totais['total_km'], 0, ',', '.') }} km /
+                                {{ number_format($totais['total_litros'], 2, ',', '.') }} L abastecidos
+                            </div>
+                        @else
+                            <div class="fw-bold text-muted fs-6">—</div>
+                            <div class="text-muted" style="font-size:.7rem">
+                                Nenhum litro registrado nos lançamentos de combustível
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- ── Tabela de Viagens ── --}}
         <div class="card">
             <div class="card-header bg-white fw-semibold d-flex justify-content-between">

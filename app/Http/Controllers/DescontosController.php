@@ -11,7 +11,7 @@ class DescontosController extends Controller
     public function store(Request $request, Viagem $viagem)
     {
         $request->validate([
-            'tipo'          => 'required|in:vale,multa,adiantamento,outros',
+            'tipo'          => 'required|in:vale,multa,adiantamento,outros,bonificacao',
             'descricao'     => 'required|string|max:255',
             'valor'         => 'required|numeric|min:0',
             'data_desconto' => 'required|date',

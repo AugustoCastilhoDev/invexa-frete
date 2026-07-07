@@ -61,8 +61,10 @@ class Viagem extends Model
         'percentual_motorista',
         'valor_motorista',
         'total_combustivel',
+        'total_litros',
         'total_manutencao',
         'total_descontos',
+        'total_bonificacoes',
         'valor_adiantamento',
         'adiantamento_descontavel',
         'saldo_motorista',
@@ -78,8 +80,10 @@ class Viagem extends Model
         'percentual_motorista' => 'decimal:2',
         'valor_motorista'      => 'decimal:2',
         'total_combustivel'    => 'decimal:2',
+        'total_litros'         => 'decimal:2',
         'total_manutencao'     => 'decimal:2',
         'total_descontos'      => 'decimal:2',
+        'total_bonificacoes'   => 'decimal:2',
         'valor_adiantamento'   => 'decimal:2',
         'adiantamento_descontavel' => 'boolean',
         'saldo_motorista'      => 'decimal:2',
@@ -164,16 +168,27 @@ class Viagem extends Model
         return 0;
     }
 
+    // Tipos de desconto que reduzem o saldo do motorista (débitos).
+    // 'bonificacao' fica de fora: é um crédito, somado em vez de subtraído.
+    private const TIPOS_DESCONTO_DEBITO = ['vale', 'multa', 'adiantamento', 'outros'];
+
     // Recalcula todos os totais da viagem
     public function recalcularTotais(): void
 {
     $this->total_combustivel = $this->lancamentos()
         ->where('tipo', 'combustivel')->where('status', 'aprovado')->sum('valor');
 
+    $this->total_litros = $this->lancamentos()
+        ->where('tipo', 'combustivel')->where('status', 'aprovado')->sum('litros');
+
     $this->total_manutencao = $this->lancamentos()
         ->where('tipo', 'manutencao')->where('status', 'aprovado')->sum('valor');
 
-    $this->total_descontos = $this->descontos()->sum('valor');
+    $this->total_descontos = $this->descontos()
+        ->whereIn('tipo', self::TIPOS_DESCONTO_DEBITO)->sum('valor');
+
+    $this->total_bonificacoes = $this->descontos()
+        ->where('tipo', 'bonificacao')->sum('valor');
 
     $this->valor_motorista = round(
         ($this->valor_frete * $this->percentual_motorista) / 100, 2
@@ -187,7 +202,7 @@ class Viagem extends Model
         : 0;
 
     $this->saldo_motorista = round(
-        $this->valor_motorista - $this->total_descontos - $adiantamento, 2
+        $this->valor_motorista - $this->total_descontos + $this->total_bonificacoes - $adiantamento, 2
     );
 
     $this->lucro_transportadora = round(

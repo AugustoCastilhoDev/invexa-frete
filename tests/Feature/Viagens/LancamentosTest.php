@@ -49,6 +49,24 @@ class LancamentosTest extends TestCase
         $this->assertEquals(45230, Lancamento::firstOrFail()->km_veiculo);
     }
 
+    public function test_registra_litros_abastecidos_e_atualiza_total_da_viagem(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create();
+
+        $this->post(route('lancamentos.store', $viagem), [
+            'tipo'            => 'combustivel',
+            'descricao'       => 'Abastecimento',
+            'valor'           => 300,
+            'litros'          => 65.5,
+            'data_lancamento' => now()->format('Y-m-d'),
+        ]);
+
+        $this->assertEquals(65.5, Lancamento::firstOrFail()->litros);
+        $this->assertEquals(65.5, $viagem->fresh()->total_litros);
+    }
+
     public function test_km_do_veiculo_e_opcional(): void
     {
         $this->actingAs(User::factory()->create());

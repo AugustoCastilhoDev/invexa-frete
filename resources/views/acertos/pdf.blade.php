@@ -19,8 +19,9 @@
         .motorista-box h3 { font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:4px; }
         .motorista-meta { display:flex; gap:20px; font-size:9px; color:#6c757d; }
 
-        .cards { display:flex; gap:8px; margin-bottom:16px; }
-        .card  { flex:1; border:1px solid #e9ecef; border-radius:6px;
+        {{-- Tabela em vez de flexbox: o Dompdf não renderiza display:flex de forma confiável. --}}
+        .cards { width:100%; border-collapse:separate; border-spacing:4px 0; margin-bottom:16px; }
+        .card  { border:1px solid #e9ecef; border-radius:6px;
                  padding:8px; text-align:center; }
         .card .label { font-size:8px; color:#6c757d; text-transform:uppercase; margin-bottom:3px; }
         .card .value { font-size:11px; font-weight:700; }
@@ -101,34 +102,56 @@
     </div>
 
     {{-- Cards --}}
-    <div class="cards">
-    <div class="card">
-        <div class="label">Viagens</div>
-        <div class="value blue">{{ $totais['total_viagens'] }}</div>
-    </div>
-    <div class="card">
-        <div class="label">Total Frete</div>
-        <div class="value orange">R$ {{ number_format($totais['total_frete'], 2, ',', '.') }}</div>
-    </div>
-    <div class="card">
-        <div class="label">Comissão</div>
-        <div class="value yellow">R$ {{ number_format($totais['total_comissao'], 2, ',', '.') }}</div>
-    </div>
-    <div class="card">
-        <div class="label">Descontos</div>
-        <div class="value red">R$ {{ number_format($totais['total_descontos'], 2, ',', '.') }}</div>
-    </div>
-    <div class="card">
-        <div class="label">⏳ Saldo a Pagar</div>
-        <div class="value yellow">R$ {{ number_format($totais['saldo_a_pagar'], 2, ',', '.') }}</div>
-        <div style="font-size:7px;color:#6c757d">{{ $totais['viagens_abertas'] }} viagem(ns) abertas</div>
-    </div>
-    <div class="card">
-        <div class="label">✅ Total Pago</div>
-        <div class="value green">R$ {{ number_format($totais['saldo_pago'], 2, ',', '.') }}</div>
-        <div style="font-size:7px;color:#6c757d">{{ $totais['viagens_encerradas'] }} viagem(ns) encerradas</div>
-    </div>
-</div>
+    <table class="cards">
+        <tr>
+            <td class="card">
+                <div class="label">Viagens</div>
+                <div class="value blue">{{ $totais['total_viagens'] }}</div>
+            </td>
+            <td class="card">
+                <div class="label">Total Frete</div>
+                <div class="value orange">R$ {{ number_format($totais['total_frete'], 2, ',', '.') }}</div>
+            </td>
+            <td class="card">
+                <div class="label">Comissão</div>
+                <div class="value yellow">R$ {{ number_format($totais['total_comissao'], 2, ',', '.') }}</div>
+            </td>
+            <td class="card">
+                <div class="label">Descontos</div>
+                <div class="value red">R$ {{ number_format($totais['total_descontos'], 2, ',', '.') }}</div>
+            </td>
+            <td class="card">
+                <div class="label">⏳ Saldo a Pagar</div>
+                <div class="value yellow">R$ {{ number_format($totais['saldo_a_pagar'], 2, ',', '.') }}</div>
+                <div style="font-size:7px;color:#6c757d">{{ $totais['viagens_abertas'] }} viagem(ns) abertas</div>
+            </td>
+            <td class="card">
+                <div class="label">✅ Total Pago</div>
+                <div class="value green">R$ {{ number_format($totais['saldo_pago'], 2, ',', '.') }}</div>
+                <div style="font-size:7px;color:#6c757d">{{ $totais['viagens_encerradas'] }} viagem(ns) encerradas</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="cards">
+        <tr>
+            <td class="card">
+                <div class="label">🎁 Bonificações do Período</div>
+                <div class="value green">+ R$ {{ number_format($totais['total_bonificacoes'], 2, ',', '.') }}</div>
+            </td>
+            <td class="card">
+                <div class="label">⛽ Média de Combustível</div>
+                @if($totais['media_combustivel'] !== null)
+                    <div class="value blue">{{ number_format($totais['media_combustivel'], 2, ',', '.') }} km/L</div>
+                    <div style="font-size:7px;color:#6c757d">
+                        {{ number_format($totais['total_km'], 0, ',', '.') }} km / {{ number_format($totais['total_litros'], 2, ',', '.') }} L
+                    </div>
+                @else
+                    <div class="value text-muted">—</div>
+                @endif
+            </td>
+        </tr>
+    </table>
 
     {{-- Tabela de Viagens --}}
     <div class="section-title">Detalhamento das Viagens</div>
