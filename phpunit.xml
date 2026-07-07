@@ -30,6 +30,9 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="UPLOADS_DISK" value="public"/>
+        <env name="ASAAS_API_KEY" value=""/>
+        <env name="ASAAS_ENV" value="sandbox"/>
+        <env name="ASAAS_WEBHOOK_TOKEN" value=""/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

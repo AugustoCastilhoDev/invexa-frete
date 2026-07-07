@@ -145,12 +145,13 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, por serem documentos de identificação assinados)
 - Política de retenção de dados configurável (`config/lgpd.php`)
 - Comando `lgpd:anonimizar` que expurga dados pessoais de registros excluídos há mais tempo que o prazo configurado, preservando o histórico financeiro
+- **Log de acesso à aplicação** (Marco Civil da Internet, Art. 15): todo login (painel e Portal do Motorista) grava IP e data/hora; comando `lgpd:expurgar-logs-acesso` apaga os registros com mais de 12 meses
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
 - Proteção contra força bruta: 5 tentativas de login incorretas bloqueiam novas tentativas temporariamente (por e-mail/CPF + IP), tanto no login do sistema quanto no do Portal do Motorista
 - Senha com política mínima (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa
 
 ### ✅ Qualidade
-- 260+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant e anonimização de dados
+- 330+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados e log de acesso
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -172,7 +173,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (260+ testes) |
+| Testes | PHPUnit (330+ testes) |
 | CI | GitHub Actions |
 
 ---
@@ -338,7 +339,8 @@ ASAAS_WEBHOOK_TOKEN=um_token_que_voce_cadastra_tambem_no_painel_do_asaas
 ## 📁 Estrutura de Pastas
 app/
 ├── Console/Commands/
-│   └── AnonimizarDadosExpirados.php   # comando lgpd:anonimizar
+│   ├── AnonimizarDadosExpirados.php   # comando lgpd:anonimizar
+│   └── ExpurgarLogsAcesso.php         # comando lgpd:expurgar-logs-acesso
 ├── Http/Controllers/
 │   ├── AcertosController.php
 │   ├── ClientesController.php
@@ -371,6 +373,8 @@ app/
 │   └── EnsureUserIsNotSuperAdmin.php   # super admin não acessa telas operacionais (são por empresa)
 ├── Support/
 │   └── TenantContext.php               # resolve a empresa do usuário/motorista autenticado no momento
+├── Listeners/
+│   └── LogAcessoListener.php          # grava IP/data-hora a cada login (Marco Civil, Art. 15)
 ├── Models/
 │   ├── Concerns/
 │   │   ├── BelongsToEmpresa.php       # escopo global + preenchimento automático de empresa_id
@@ -383,6 +387,7 @@ app/
 │   ├── Documento.php
 │   ├── Empresa.php                    # tenant — empresa cliente da plataforma
 │   ├── Lancamento.php
+│   ├── LogAcesso.php                  # registro de login (IP, data/hora) para conformidade LGPD
 │   ├── Manutencao.php
 │   ├── Motorista.php                  # Authenticatable — guard próprio do Portal
 │   ├── User.php

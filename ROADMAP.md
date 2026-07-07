@@ -113,7 +113,9 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, pois são documentos de identificação assinados)
 - Política de retenção configurável (`config/lgpd.php`, padrão 5 anos) sem precisar mexer em código
 - Comando `lgpd:anonimizar` (com `--dry-run`) que apaga dados pessoais de motoristas, clientes pessoa física e usuários excluídos há mais tempo que o prazo, preservando o registro para não quebrar o histórico financeiro
-- Agendado mensalmente (requer cron do Laravel ativo no servidor de produção)
+- **Log de acesso à aplicação** (`logs_acesso`), exigido pelo Marco Civil da Internet (Art. 15): todo login (painel e Portal do Motorista) grava automaticamente IP, data/hora e o guard usado, via listener no evento `Illuminate\Auth\Events\Login` — cobre login normal, 2FA e o modo suporte do super admin
+- Comando `lgpd:expurgar-logs-acesso` (com `--dry-run`) apaga logs de acesso com mais de 12 meses (`config('lgpd.retencao_meses.logs_acesso')`)
+- Ambos agendados mensalmente (requer cron do Laravel ativo no servidor de produção)
 
 ### Armazenamento
 - Comprovantes de lançamento e documentos fiscais anexados às viagens são enviados para **Cloudflare R2** (compatível com S3) em produção, via disco configurável (`UPLOADS_DISK`)
@@ -140,7 +142,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Verificado visualmente em viewport de celular (390px) antes e depois da correção
 
 ### Infraestrutura de qualidade
-- 314 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 332 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ### Deploy em produção
@@ -148,7 +150,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - SSL via Certbot/Let's Encrypt, com renovação automática configurada
 - Banco de dados MySQL dedicado (`invexafrete`, usuário próprio) — não compartilha dados com o outro projeto na mesma VPS
 - `.env` de produção configurado: Resend (e-mail transacional), Cloudflare R2 (armazenamento de arquivos), Asaas em modo produção (chave real + webhook cadastrado e validado)
-- Cron do Laravel ativo (`* * * * * php artisan schedule:run`) para a anonimização mensal LGPD
+- Cron do Laravel ativo (`* * * * * php artisan schedule:run`) para as tarefas mensais de LGPD (anonimização + expurgo de logs de acesso)
 - Super admin da plataforma (`ac.castilho87@gmail.com`) com acesso reivindicado via "esqueci minha senha" após o primeiro `migrate --force`
 
 ---

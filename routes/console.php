@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 // Política de retenção LGPD: expurga dados pessoais de registros excluídos
 // há mais tempo do que o previsto em config/lgpd.php.
 Schedule::command('lgpd:anonimizar')->monthly();
+
+// Marco Civil da Internet (Art. 15): apaga logs de acesso à aplicação mais
+// antigos que o prazo mínimo de retenção previsto em config/lgpd.php.
+Schedule::command('lgpd:expurgar-logs-acesso')->monthly();

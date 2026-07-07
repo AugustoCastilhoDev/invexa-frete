@@ -21,4 +21,20 @@ return [
         'usuarios'   => (int) env('LGPD_RETENCAO_USUARIOS_ANOS', 5),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Retenção de logs de acesso (Marco Civil da Internet, Art. 15)
+    |--------------------------------------------------------------------------
+    |
+    | Prazo mínimo, em meses, que os registros de acesso à aplicação (login
+    | de usuários e motoristas: IP, data/hora) ficam guardados antes do
+    | comando `lgpd:expurgar-logs-acesso` poder apagá-los. Padrão legal: 12
+    | meses.
+    |
+    */
+
+    'retencao_meses' => [
+        'logs_acesso' => (int) env('LGPD_RETENCAO_LOGS_ACESSO_MESES', 12),
+    ],
+
 ];
