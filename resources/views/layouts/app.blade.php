@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚛 {{ config('app.name') }} - @yield('title', 'Dashboard')</title>
+    <title>{{ config('app.name') }} - @yield('title', 'Dashboard')</title>
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <script>
