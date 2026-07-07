@@ -466,6 +466,7 @@
                             <th class="ps-3">Tipo</th>
                             <th>Descrição</th>
                             <th>Data</th>
+                            <th>KM</th>
                             <th>Valor</th>
                             <th>Status</th>
                             <th></th>
@@ -496,6 +497,7 @@
                                 @endif
                             </td>
                             <td>{{ $lancamento->data_lancamento->format('d/m/Y') }}</td>
+                            <td>{{ $lancamento->km_veiculo ? number_format($lancamento->km_veiculo, 0, ',', '.') : '-' }}</td>
                             <td>R$ {{ number_format($lancamento->valor, 2, ',', '.') }}</td>
                             <td>
                                 <span class="badge bg-{{ $lancamento->status_badge }}">
@@ -531,7 +533,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="6" class="text-center text-muted py-2 small">
+                        <tr><td colspan="7" class="text-center text-muted py-2 small">
                             Nenhum lançamento registrado.
                         </td></tr>
                         @endforelse
@@ -545,24 +547,28 @@
                       method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row g-2">
-                        <div class="col-md-4">
-                            <select name="tipo" class="form-select form-select-sm" required>
+                        <div class="col-md-3">
+                            <select name="tipo" id="lancamento-tipo" class="form-select form-select-sm" required>
                                 <option value="">Tipo</option>
                                 <option value="combustivel">Combustível</option>
                                 <option value="manutencao">Manutenção</option>
                                 <option value="outros">Outros</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="text" name="descricao" class="form-control form-control-sm"
                                    placeholder="Descrição" required>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2 d-none" id="lancamento-km-wrapper">
+                            <input type="number" name="km_veiculo" class="form-control form-control-sm"
+                                   placeholder="KM do veículo" min="0">
+                        </div>
+                        <div class="col-md-2">
                             <input type="number" name="valor" class="form-control form-control-sm"
                                    placeholder="Valor" step="0.01" min="0" required>
                         </div>
                         <input type="hidden" name="data_lancamento" value="{{ date('Y-m-d') }}">
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             <button type="submit" class="btn btn-warning btn-sm w-100">
                                 <i class="bi bi-plus"></i>
                             </button>
@@ -572,6 +578,20 @@
             </div>
             @endif
         </div>
+
+        @push('scripts')
+        <script>
+        (function () {
+            const tipo = document.getElementById('lancamento-tipo');
+            const kmWrapper = document.getElementById('lancamento-km-wrapper');
+            if (!tipo || !kmWrapper) return;
+
+            tipo.addEventListener('change', function () {
+                kmWrapper.classList.toggle('d-none', tipo.value !== 'combustivel');
+            });
+        })();
+        </script>
+        @endpush
 
         {{-- Resumo Financeiro --}}
         <div class="card border-0 mb-4" style="background: linear-gradient(135deg,#1a1a2e,#16213e)">

@@ -17,6 +17,7 @@ class Lancamento extends Model
         'tipo',
         'descricao',
         'valor',
+        'km_veiculo',
         'data_lancamento',
         'comprovante',
         'observacao',

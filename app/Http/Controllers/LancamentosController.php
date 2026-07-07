@@ -14,6 +14,7 @@ class LancamentosController extends Controller
             'tipo'             => 'required|in:combustivel,manutencao,outros',
             'descricao'        => 'required|string|max:255',
             'valor'            => 'required|numeric|min:0',
+            'km_veiculo'       => 'nullable|integer|min:0',
             'data_lancamento'  => 'required|date',
             'observacao'       => 'nullable|string',
             'comprovante'      => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',

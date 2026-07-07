@@ -32,6 +32,57 @@ class LancamentosTest extends TestCase
         $this->assertEquals(750, $viagem->lucro_transportadora);
     }
 
+    public function test_registra_km_do_veiculo_no_lancamento_de_combustivel(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create();
+
+        $this->post(route('lancamentos.store', $viagem), [
+            'tipo'            => 'combustivel',
+            'descricao'       => 'Abastecimento',
+            'valor'           => 150,
+            'km_veiculo'      => 45230,
+            'data_lancamento' => now()->format('Y-m-d'),
+        ]);
+
+        $this->assertEquals(45230, Lancamento::firstOrFail()->km_veiculo);
+    }
+
+    public function test_km_do_veiculo_e_opcional(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create();
+
+        $response = $this->post(route('lancamentos.store', $viagem), [
+            'tipo'            => 'manutencao',
+            'descricao'       => 'Troca de óleo',
+            'valor'           => 200,
+            'data_lancamento' => now()->format('Y-m-d'),
+        ]);
+
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertNull(Lancamento::firstOrFail()->km_veiculo);
+    }
+
+    public function test_km_do_veiculo_nao_pode_ser_negativo(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create();
+
+        $response = $this->post(route('lancamentos.store', $viagem), [
+            'tipo'            => 'combustivel',
+            'descricao'       => 'Abastecimento',
+            'valor'           => 150,
+            'km_veiculo'      => -10,
+            'data_lancamento' => now()->format('Y-m-d'),
+        ]);
+
+        $response->assertSessionHasErrors('km_veiculo');
+    }
+
     public function test_store_exige_tipo_valido(): void
     {
         $this->actingAs(User::factory()->create());

@@ -376,6 +376,7 @@
                             <th>Tipo</th>
                             <th>Descrição</th>
                             <th>Data</th>
+                            <th>KM</th>
                             <th class="text-right">Valor</th>
                         </tr>
                     </thead>
@@ -385,15 +386,16 @@
                             <td><span class="chip chip-{{ $l->tipo }}">{{ ucfirst($l->tipo) }}</span></td>
                             <td>{{ $l->descricao }}</td>
                             <td>{{ $l->data_lancamento->format('d/m') }}</td>
+                            <td>{{ $l->km_veiculo ? number_format($l->km_veiculo, 0, ',', '.') : '-' }}</td>
                             <td class="text-right">R$ {{ number_format($l->valor, 2, ',', '.') }}</td>
                         </tr>
                         @empty
-                        <tr class="empty-row"><td colspan="4">Sem lançamentos</td></tr>
+                        <tr class="empty-row"><td colspan="5">Sem lançamentos</td></tr>
                         @endforelse
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3">Total Despesas</td>
+                            <td colspan="4">Total Despesas</td>
                             <td class="text-right">
                                 R$ {{ number_format($viagem->total_combustivel + $viagem->total_manutencao, 2, ',', '.') }}
                             </td>
