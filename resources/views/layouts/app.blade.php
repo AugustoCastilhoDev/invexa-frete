@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚛 {{ config('app.name') }} - @yield('title', 'Dashboard')</title>
+    <link rel="icon" href="/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <script>
         // Aplica o tema salvo antes do CSS renderizar, evitando "flash" de tema errado
         document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('tema') || 'light');

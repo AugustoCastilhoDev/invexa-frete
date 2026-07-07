@@ -6,6 +6,8 @@
     <meta name="description" content="Sistema de gestão de viagens para transportadoras: motoristas, veículos, financeiro, DRE e portal do motorista em uma única plataforma.">
 
     <title>Invexa Frete — Gestão completa para transportadoras</title>
+    <link rel="icon" href="/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
