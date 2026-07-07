@@ -217,12 +217,21 @@
             color: #adb5bd;
         }
 
-        /* ── Layout de duas colunas ── */
+        /* ── Layout de duas colunas ──
+           Usa <table> em vez de flexbox: o Dompdf (gerador do PDF) não
+           renderiza display:flex de forma confiável, o que fazia as colunas
+           ficarem empilhadas em vez de lado a lado. */
         .two-col {
-            display: flex;
-            gap: 16px;
+            width: 100%;
+            border-collapse: collapse;
         }
-        .col-half { width: 50%; }
+        .two-col > tbody > tr > td.col-half {
+            width: 50%;
+            vertical-align: top;
+            padding: 0;
+        }
+        .two-col > tbody > tr > td.col-half:first-child { padding-right: 8px; }
+        .two-col > tbody > tr > td.col-half:last-child { padding-left: 8px; }
 
         /* ── Chip de tipo ── */
         .chip {
@@ -262,54 +271,56 @@
     </div>
 
     {{-- ── MOTORISTA E VEÍCULO ── --}}
-    <div class="two-col section">
-        <div class="col-half">
-            <div class="section-title">Motorista</div>
-            <table class="data-grid">
-                <tr>
-                    <td class="label">Nome</td>
-                    <td class="value">{{ $viagem->motorista->nome }}</td>
-                </tr>
-                <tr>
-                    <td class="label">CPF</td>
-                    <td class="value">{{ $viagem->motorista->cpf }}</td>
-                </tr>
-                <tr>
-                    <td class="label">CNH</td>
-                    <td class="value">{{ $viagem->motorista->cnh ?? '-' }}
-                        {{ $viagem->motorista->categoria_cnh ? '('.$viagem->motorista->categoria_cnh.')' : '' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="label">Comissão</td>
-                    <td class="value">{{ number_format($viagem->percentual_motorista, 2, ',', '.') }}%</td>
-                </tr>
-            </table>
-        </div>
-        <div class="col-half">
-            <div class="section-title">Veículo</div>
-            <table class="data-grid">
-                <tr>
-                    <td class="label">Placa</td>
-                    <td class="value">{{ $viagem->veiculo->placa }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Modelo</td>
-                    <td class="value">{{ $viagem->veiculo->modelo }}
-                        {{ $viagem->veiculo->marca ? '/ '.$viagem->veiculo->marca : '' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="label">Tipo</td>
-                    <td class="value">{{ ucfirst($viagem->veiculo->tipo) }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Ano</td>
-                    <td class="value">{{ $viagem->veiculo->ano ?? '-' }}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
+    <table class="two-col section">
+        <tr>
+            <td class="col-half">
+                <div class="section-title">Motorista</div>
+                <table class="data-grid">
+                    <tr>
+                        <td class="label">Nome</td>
+                        <td class="value">{{ $viagem->motorista->nome }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">CPF</td>
+                        <td class="value">{{ $viagem->motorista->cpf }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">CNH</td>
+                        <td class="value">{{ $viagem->motorista->cnh ?? '-' }}
+                            {{ $viagem->motorista->categoria_cnh ? '('.$viagem->motorista->categoria_cnh.')' : '' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">Comissão</td>
+                        <td class="value">{{ number_format($viagem->percentual_motorista, 2, ',', '.') }}%</td>
+                    </tr>
+                </table>
+            </td>
+            <td class="col-half">
+                <div class="section-title">Veículo</div>
+                <table class="data-grid">
+                    <tr>
+                        <td class="label">Placa</td>
+                        <td class="value">{{ $viagem->veiculo->placa }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Modelo</td>
+                        <td class="value">{{ $viagem->veiculo->modelo }}
+                            {{ $viagem->veiculo->marca ? '/ '.$viagem->veiculo->marca : '' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">Tipo</td>
+                        <td class="value">{{ ucfirst($viagem->veiculo->tipo) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Ano</td>
+                        <td class="value">{{ $viagem->veiculo->ano ?? '-' }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 
     {{-- ── DADOS DA VIAGEM ── --}}
     <div class="section">
@@ -355,75 +366,77 @@
     </div>
 
     {{-- ── LANÇAMENTOS ── --}}
-    <div class="two-col section">
-        <div class="col-half">
-            <div class="section-title">Lançamentos de Despesas</div>
-            <table class="table-list">
-                <thead>
-                    <tr>
-                        <th>Tipo</th>
-                        <th>Descrição</th>
-                        <th>Data</th>
-                        <th class="text-right">Valor</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($viagem->lancamentos as $l)
-                    <tr>
-                        <td><span class="chip chip-{{ $l->tipo }}">{{ ucfirst($l->tipo) }}</span></td>
-                        <td>{{ $l->descricao }}</td>
-                        <td>{{ $l->data_lancamento->format('d/m') }}</td>
-                        <td class="text-right">R$ {{ number_format($l->valor, 2, ',', '.') }}</td>
-                    </tr>
-                    @empty
-                    <tr class="empty-row"><td colspan="4">Sem lançamentos</td></tr>
-                    @endforelse
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Total Despesas</td>
-                        <td class="text-right">
-                            R$ {{ number_format($viagem->total_combustivel + $viagem->total_manutencao, 2, ',', '.') }}
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
+    <table class="two-col section">
+        <tr>
+            <td class="col-half">
+                <div class="section-title">Lançamentos de Despesas</div>
+                <table class="table-list">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Data</th>
+                            <th class="text-right">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($viagem->lancamentos as $l)
+                        <tr>
+                            <td><span class="chip chip-{{ $l->tipo }}">{{ ucfirst($l->tipo) }}</span></td>
+                            <td>{{ $l->descricao }}</td>
+                            <td>{{ $l->data_lancamento->format('d/m') }}</td>
+                            <td class="text-right">R$ {{ number_format($l->valor, 2, ',', '.') }}</td>
+                        </tr>
+                        @empty
+                        <tr class="empty-row"><td colspan="4">Sem lançamentos</td></tr>
+                        @endforelse
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3">Total Despesas</td>
+                            <td class="text-right">
+                                R$ {{ number_format($viagem->total_combustivel + $viagem->total_manutencao, 2, ',', '.') }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </td>
 
-        <div class="col-half">
-            <div class="section-title">Descontos do Motorista</div>
-            <table class="table-list">
-                <thead>
-                    <tr>
-                        <th>Tipo</th>
-                        <th>Descrição</th>
-                        <th>Data</th>
-                        <th class="text-right">Valor</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($viagem->descontos as $d)
-                    <tr>
-                        <td><span class="chip chip-{{ $d->tipo }}">{{ ucfirst($d->tipo) }}</span></td>
-                        <td>{{ $d->descricao }}</td>
-                        <td>{{ $d->data_desconto->format('d/m') }}</td>
-                        <td class="text-right">R$ {{ number_format($d->valor, 2, ',', '.') }}</td>
-                    </tr>
-                    @empty
-                    <tr class="empty-row"><td colspan="4">Sem descontos</td></tr>
-                    @endforelse
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Total Descontos</td>
-                        <td class="text-right">
-                            R$ {{ number_format($viagem->total_descontos, 2, ',', '.') }}
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
+            <td class="col-half">
+                <div class="section-title">Descontos do Motorista</div>
+                <table class="table-list">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Data</th>
+                            <th class="text-right">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($viagem->descontos as $d)
+                        <tr>
+                            <td><span class="chip chip-{{ $d->tipo }}">{{ ucfirst($d->tipo) }}</span></td>
+                            <td>{{ $d->descricao }}</td>
+                            <td>{{ $d->data_desconto->format('d/m') }}</td>
+                            <td class="text-right">R$ {{ number_format($d->valor, 2, ',', '.') }}</td>
+                        </tr>
+                        @empty
+                        <tr class="empty-row"><td colspan="4">Sem descontos</td></tr>
+                        @endforelse
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3">Total Descontos</td>
+                            <td class="text-right">
+                                R$ {{ number_format($viagem->total_descontos, 2, ',', '.') }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </td>
+        </tr>
+    </table>
 
     {{-- ── RESUMO FINANCEIRO ── --}}
     <div class="resumo-box">
