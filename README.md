@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/AugustoCastilhoDev/invexa-frete/main/public/favicon.ico" width="80" alt="Invexa Frete">
+  <img src="https://raw.githubusercontent.com/AugustoCastilhoDev/invexa-frete/main/public/favicon.png" width="80" alt="Invexa Frete">
 </p>
 
 <h1 align="center">🚛 Invexa Frete</h1>
@@ -108,6 +108,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Plano Enterprise fica de fora da automação (sempre negociado manualmente)
 - Sem `ASAAS_API_KEY` configurada, ou se a chamada à API falhar, o cadastro da empresa continua funcionando normalmente — só fica sem o vínculo de cobrança, sinalizado na tela de detalhe
 - Webhook (`/webhooks/asaas`, protegido por token) registra o status de cada evento de pagamento na empresa — suspensão por inadimplência continua sendo uma decisão manual do super admin
+- Badge de situação de cobrança (Em dia / Atrasado / Em trial / Sem assinatura / Reembolsado) na listagem de empresas, clicável, levando direto à seção de Cobrança de cada uma
 
 ### 👥 Usuários & Permissões
 - Papéis: **super admin** (gerencia empresas clientes), **admin** (gerencia usuários da própria empresa e vê tudo dela) e **operador** (acesso operacional do dia a dia)
@@ -140,6 +141,11 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 ### 🌐 Landing Page
 - Página institucional pública na raiz (`/`) — hero, recursos, planos e preços, contato — visitante não autenticado vê a landing; quem já está logado (painel ou portal) é redirecionado direto para sua tela
 - Tabela de planos com valores reais (mensal e anual) e CTA "Falar com Vendas" via WhatsApp, já com o nome do plano preenchido na mensagem
+
+### 🌓 Painel responsivo e personalizável
+- Modo claro/escuro (alternância pelo card de usuário no sidebar), preferência salva no navegador
+- Relógio/data ao vivo no sidebar
+- Sidebar off-canvas e tabelas com rolagem horizontal em telas de celular (abaixo de 992px)
 
 ### 🔒 Segurança & LGPD
 - Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, por serem documentos de identificação assinados)

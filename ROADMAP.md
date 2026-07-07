@@ -89,6 +89,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Resiliente à ausência de credencial: sem `ASAAS_API_KEY` configurada (ou se a chamada à API falhar), o cadastro da empresa continua funcionando normalmente — só fica sem o vínculo de cobrança, visível na tela de detalhe da empresa com um aviso
 - Webhook (`POST /webhooks/asaas`, protegido por token) recebe os eventos de pagamento e só registra o status/data do último evento na empresa — a suspensão por inadimplência continua manual, decisão do super admin pela tela (não desativa sozinho)
 - **Criar assinatura retroativamente**: empresa sem vínculo de cobrança (criada antes dessa feature, Enterprise que virou plano padrão, ou falha na chamada original) mostra um formulário na própria tela de detalhe para escolher/reescolher plano e ciclo e tentar de novo, sem precisar recriar a empresa
+- **Indicador de situação de cobrança**: badge colorido na listagem de empresas (Em dia / Atrasado / Em trial / Sem assinatura / Reembolsado), traduzindo o status bruto do evento do Asaas para algo legível; clicável, leva direto à seção de Cobrança da empresa, onde um alerta reforça que o atraso não bloqueia o acesso sozinho
 
 ### Usuários e permissões
 - Papéis: super admin (gerencia empresas clientes da plataforma), admin (gerencia usuários da própria empresa e vê tudo dela) e operador (acesso operacional do dia a dia)
@@ -140,6 +141,12 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Sidebar em off-canvas abaixo de 992px: escondida por padrão, abre com o botão de menu no topbar, fecha pelo X dentro dela ou tocando fora (overlay escurecido) — antes disso a sidebar de 250px fixos ocupava boa parte da tela em qualquer celular, deixando o conteúdo espremido e quebrado
 - Todas as tabelas do painel (viagens, veículos, motoristas, financeiro, DRE, etc.) envolvidas em `table-responsive`: em telas estreitas, a tabela rola horizontalmente dentro do próprio card, sem estourar a largura da página
 - Verificado visualmente em viewport de celular (390px) antes e depois da correção
+
+### Modo escuro e personalização do painel
+- Alternância entre tema claro/escuro pelo card de usuário no rodapé do sidebar (Bootstrap 5.3 color modes via `data-bs-theme`), preferência salva em `localStorage` e aplicada antes do primeiro paint (sem "flash" de tema errado ao recarregar)
+- Relógio/data ao vivo no sidebar, abaixo da logo, atualizado a cada segundo
+- Componentes que usavam cores fixas (`bg-white`, `table-light`, `btn-outline-dark`, gradientes inline) e não reagiam ao tema escuro foram corrigidos com overrides globais, conforme encontrados — cabeçalhos de card, cabeçalhos de tabela, botões de exportar PDF e os cards de saldo em Acertos
+- Favicon próprio (caminhão sobre o gradiente laranja da marca) em todas as telas — o `favicon.ico` do scaffold original estava vazio (0 bytes)
 
 ### Infraestrutura de qualidade
 - 332 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
