@@ -2,7 +2,7 @@
 
 Documento vivo com o que já está pronto e o que está planejado. Atualize conforme o backlog evoluir.
 
-**Status atual**: em desenvolvimento local. Deploy em produção está pausado por decisão do time — retomar quando decidido (ver seção "Em espera").
+**Status atual**: em produção em [invexafrete.com.br](https://invexafrete.com.br) desde 2026-07-07 (VPS Hostinger, deploy manual via SSH/Nginx — ver seção "Infraestrutura de qualidade").
 
 ---
 
@@ -143,12 +143,21 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - 314 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
+### Deploy em produção
+- Domínio próprio [invexafrete.com.br](https://invexafrete.com.br) (registro.br) apontando via registro A para a mesma VPS Hostinger (Ubuntu 22.04) que já hospeda outro projeto — sites isolados por virtual host próprio no Nginx (cada um com seu bloco `server`, sem interferir um no outro)
+- SSL via Certbot/Let's Encrypt, com renovação automática configurada
+- Banco de dados MySQL dedicado (`invexafrete`, usuário próprio) — não compartilha dados com o outro projeto na mesma VPS
+- `.env` de produção configurado: Resend (e-mail transacional), Cloudflare R2 (armazenamento de arquivos), Asaas em modo produção (chave real + webhook cadastrado e validado)
+- Cron do Laravel ativo (`* * * * * php artisan schedule:run`) para a anonimização mensal LGPD
+- Super admin da plataforma (`ac.castilho87@gmail.com`) com acesso reivindicado via "esqueci minha senha" após o primeiro `migrate --force`
+
 ---
 
 ## 🔜 Próximas implementações sugeridas
 
 ### Curto prazo
 - **WhatsApp**: arquitetura de notificação já pronta para receber um novo canal; falta só a conta em um provedor (Twilio, Z-API, Meta Cloud API) para integrar de verdade
+- **Revisar prazos de retenção da LGPD** (`config/lgpd.php`) com jurídico/contábil, agora que o expurgo automático mensal já roda de verdade em produção (cron ativo)
 
 ### Médio prazo
 - **API REST** para um futuro app nativo do motorista (o Portal do Motorista via navegador já cobre o uso do dia a dia pelo celular; API só valeria a pena se um app nativo entrar em pauta)
@@ -165,14 +174,4 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 ## 🧊 Em espera
 
-- **Deploy em produção**: pausado por decisão do time (2026-07-01). Quando retomar, checklist mínimo:
-  - Configurar `.env` de produção com `MAIL_MAILER=resend` + `RESEND_API_KEY` (já testado em dev)
-  - Configurar `.env` de produção com `UPLOADS_DISK=r2` + credenciais R2 (já testado em dev)
-  - Configurar `.env` de produção com `ASAAS_API_KEY` (de produção, não sandbox) + `ASAAS_ENV=production` + `ASAAS_WEBHOOK_TOKEN`
-  - Cadastrar o webhook no painel do Asaas (Configurações → Integrações → Webhooks): URL `https://SEU-DOMINIO/webhooks/asaas`, eventos `PAYMENT_RECEIVED`, `PAYMENT_CONFIRMED`, `PAYMENT_OVERDUE`, `PAYMENT_REFUNDED`, e o mesmo token definido em `ASAAS_WEBHOOK_TOKEN` no campo de autenticação do webhook. O Asaas não tem catálogo de planos — os 4 planos (Starter/Pro/Business/Enterprise) já estão definidos em `App\Services\Asaas\PlanoPricing`, aplicados por assinatura na hora da criação; não há nada de plano pra configurar no lado do Asaas
-  - Confirmar cron do Laravel ativo (`* * * * * php artisan schedule:run`) para a anonimização mensal LGPD funcionar
-  - Rodar `php artisan migrate --force` (43 migrations pendentes de aplicar no ambiente de produção, incluindo a criação do usuário super admin — ver abaixo)
-  - Confirmar o e-mail do super admin da plataforma (`ac.castilho87@gmail.com`, hardcoded na migration de multi-tenant) antes de rodar em produção; o acesso é reivindicado via "esqueci minha senha" depois do primeiro `migrate`
-  - Revisar `config/lgpd.php` / prazos de retenção com jurídico/contábil antes de confiar no expurgo automático
-  - Confirmar que a extensão PHP `gd` está habilitada no servidor (necessária para o comprovante em PDF exibir a assinatura digital do motorista)
 - **WhatsApp**: aguardando decisão de provedor

@@ -268,7 +268,7 @@ $admin->save();
 
 ## 🚀 Deploy em Produção (VPS)
 
-> ⚠️ Deploy em produção está pausado por decisão do time no momento. Quando for retomado, veja o checklist completo em [ROADMAP.md](ROADMAP.md), seção "Em espera".
+> ✅ Em produção desde 2026-07-07 em [invexafrete.com.br](https://invexafrete.com.br) (VPS Hostinger, Nginx + PHP-FPM 8.3 + MySQL, deploy manual via SSH). O passo a passo abaixo é o guia genérico usado nesse deploy — veja [ROADMAP.md](ROADMAP.md), seção "Deploy em produção", para o resumo do que está configurado.
 
 ```bash
 # No servidor, dentro da pasta do projeto
