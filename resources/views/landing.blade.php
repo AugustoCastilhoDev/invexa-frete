@@ -63,6 +63,33 @@
             background: linear-gradient(135deg, rgba(249,115,22,.12), rgba(234,88,12,.12));
             color: #ea580c;
         }
+
+        .invexa-mockup-frame {
+            border: 1px solid #e9ecef;
+            box-shadow: 0 30px 60px -20px rgba(22, 33, 62, .3);
+        }
+        .invexa-mockup-navitem {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 14px; border-radius: 8px;
+            color: rgba(255,255,255,.55); font-size: .82rem;
+        }
+        .invexa-mockup-navitem.is-active {
+            background: rgba(249,115,22,.15); color: #fff; font-weight: 600;
+        }
+        .invexa-mockup-kpi {
+            border: 1px solid #eef0f3; border-radius: 12px; padding: 14px 16px;
+        }
+        .invexa-mockup-donut {
+            width: 108px; height: 108px; border-radius: 50%;
+            background: conic-gradient(#3b82f6 0 18%, #f59e0b 18% 44%, #8b5cf6 44% 58%, #10b981 58% 100%);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .invexa-mockup-donut span {
+            width: 62px; height: 62px; border-radius: 50%; background: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .68rem; font-weight: 700; color: #16213e; text-align: center;
+        }
     </style>
 </head>
 <body class="text-gray-900 antialiased" style="background:#f8f9fa">
@@ -135,6 +162,117 @@
                 <i class="bi bi-shield-lock me-1"></i>Dados isolados por empresa
                 <span class="mx-2">·</span>
                 <i class="bi bi-file-earmark-lock me-1"></i>Conformidade com a LGPD
+            </p>
+        </div>
+    </section>
+
+    {{-- ── Demonstração (mockup ilustrativo do painel) ── --}}
+    <section style="padding:0 24px 80px">
+        <div class="mx-auto" style="max-width:980px">
+            <div class="text-center" style="max-width:620px; margin:0 auto 28px">
+                <h2 class="font-extrabold" style="font-size:1.6rem; color:#16213e">Veja como é por dentro</h2>
+                <p class="text-muted" style="margin-top:8px">
+                    Um painel simples, com o que a operação usa todo dia: viagens, status e financeiro num só lugar.
+                </p>
+            </div>
+
+            <div class="invexa-mockup-frame rounded-4 bg-white overflow-hidden">
+                {{-- barra de navegador --}}
+                <div class="d-flex align-items-center" style="gap:8px; padding:10px 16px; background:#eef0f3; border-bottom:1px solid #e2e5e9">
+                    <span style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+                    <span style="width:10px;height:10px;border-radius:50%;background:#febc2e;display:inline-block"></span>
+                    <span style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block"></span>
+                    <span class="mx-auto d-none d-sm-inline-block text-muted" style="font-size:.72rem; background:#fff; border:1px solid #e2e5e9; border-radius:6px; padding:3px 14px">
+                        <i class="bi bi-lock-fill me-1" style="font-size:.65rem"></i>app.invexafrete.com.br/dashboard
+                    </span>
+                </div>
+
+                <div class="d-flex" style="min-height:420px">
+                    {{-- sidebar --}}
+                    <div class="d-none d-md-flex flex-column" style="width:190px; flex-shrink:0; background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%); padding:18px 12px">
+                        <div class="d-flex align-items-center gap-2" style="padding:0 6px 18px">
+                            <div class="invexa-logo-badge rounded-2 d-flex align-items-center justify-content-center" style="width:26px;height:26px;flex-shrink:0">
+                                <i class="bi bi-truck-front-fill text-white" style="font-size:.7rem"></i>
+                            </div>
+                            <span class="text-white fw-bold" style="font-size:.85rem">Invexa Frete</span>
+                        </div>
+                        <div class="invexa-mockup-navitem is-active"><i class="bi bi-speedometer2"></i>Dashboard</div>
+                        <div class="invexa-mockup-navitem"><i class="bi bi-truck"></i>Viagens</div>
+                        <div class="invexa-mockup-navitem"><i class="bi bi-person-badge"></i>Motoristas</div>
+                        <div class="invexa-mockup-navitem"><i class="bi bi-car-front"></i>Veículos</div>
+                        <div class="invexa-mockup-navitem"><i class="bi bi-cash-coin"></i>Financeiro</div>
+                        <div class="invexa-mockup-navitem"><i class="bi bi-phone"></i>Portal do Motorista</div>
+                    </div>
+
+                    {{-- conteúdo --}}
+                    <div style="flex:1; padding:22px 24px; background:#fbfbfc; min-width:0">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap:8px; margin-bottom:16px">
+                            <span class="fw-bold" style="font-size:1.05rem; color:#16213e">Dashboard</span>
+                            <span class="text-muted" style="font-size:.75rem">Julho de 2026</span>
+                        </div>
+
+                        {{-- KPIs --}}
+                        <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:20px">
+                            <div class="invexa-mockup-kpi">
+                                <div class="text-muted" style="font-size:.7rem">Abertas</div>
+                                <div class="fw-bold" style="font-size:1.3rem; color:#3b82f6">8</div>
+                            </div>
+                            <div class="invexa-mockup-kpi">
+                                <div class="text-muted" style="font-size:.7rem">Em andamento</div>
+                                <div class="fw-bold" style="font-size:1.3rem; color:#f59e0b">14</div>
+                            </div>
+                            <div class="invexa-mockup-kpi">
+                                <div class="text-muted" style="font-size:.7rem">Aguard. acerto</div>
+                                <div class="fw-bold" style="font-size:1.3rem; color:#8b5cf6">5</div>
+                            </div>
+                            <div class="invexa-mockup-kpi">
+                                <div class="text-muted" style="font-size:.7rem">Encerradas no mês</div>
+                                <div class="fw-bold" style="font-size:1.3rem; color:#10b981">42</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap" style="gap:18px">
+                            {{-- tabela --}}
+                            <div style="flex:1 1 320px; min-width:0">
+                                <div class="text-muted fw-semibold" style="font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; margin-bottom:8px">Últimas viagens</div>
+                                <div class="rounded-3" style="border:1px solid #eef0f3; overflow:hidden">
+                                    @php
+                                        $viagensDemo = [
+                                            ['motorista' => 'Carlos Silva', 'rota' => 'BH → SP', 'status' => 'Em andamento', 'cor' => '#f59e0b'],
+                                            ['motorista' => 'João Pereira', 'rota' => 'RJ → SP', 'status' => 'Aguard. acerto', 'cor' => '#8b5cf6'],
+                                            ['motorista' => 'Marcos Souza', 'rota' => 'Curitiba → Joinville', 'status' => 'Encerrada', 'cor' => '#10b981'],
+                                            ['motorista' => 'Roberto Lima', 'rota' => 'Uberlândia → Goiânia', 'status' => 'Aberta', 'cor' => '#3b82f6'],
+                                        ];
+                                    @endphp
+                                    @foreach($viagensDemo as $i => $v)
+                                    <div class="d-flex align-items-center justify-content-between" style="padding:10px 12px; {{ $i > 0 ? 'border-top:1px solid #f1f3f5' : '' }}">
+                                        <div style="min-width:0">
+                                            <div class="fw-semibold text-truncate" style="font-size:.8rem; color:#16213e">{{ $v['motorista'] }}</div>
+                                            <div class="text-muted text-truncate" style="font-size:.72rem">{{ $v['rota'] }}</div>
+                                        </div>
+                                        <span class="badge rounded-pill text-white flex-shrink-0" style="background:{{ $v['cor'] }}; font-size:.65rem; margin-left:8px">{{ $v['status'] }}</span>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            {{-- donut --}}
+                            <div class="d-flex align-items-center" style="gap:16px; flex:0 1 auto">
+                                <div class="invexa-mockup-donut"><span>69<br>viagens</span></div>
+                                <div style="font-size:.72rem; color:#495057">
+                                    <div class="d-flex align-items-center" style="gap:6px; padding:2px 0"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block"></span>Abertas</div>
+                                    <div class="d-flex align-items-center" style="gap:6px; padding:2px 0"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block"></span>Em andamento</div>
+                                    <div class="d-flex align-items-center" style="gap:6px; padding:2px 0"><span style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;display:inline-block"></span>Aguard. acerto</div>
+                                    <div class="d-flex align-items-center" style="gap:6px; padding:2px 0"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>Encerradas</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-muted" style="font-size:.72rem; margin-top:10px">
+                * Imagens meramente ilustrativas — dados fictícios de demonstração, não representam clientes reais.
             </p>
         </div>
     </section>
