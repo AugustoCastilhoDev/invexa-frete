@@ -591,19 +591,19 @@
                     </tr>
                     <tr>
                         <td>(-) Comissão Motorista</td>
-                        <td class="text-end text-warning">
+                        <td class="text-end" style="color:#f97316">
                             R$ {{ number_format($viagem->valor_motorista, 2, ',', '.') }}
                         </td>
                     </tr>
                     <tr>
                         <td>(-) Combustível</td>
-                        <td class="text-end text-warning">
+                        <td class="text-end" style="color:#f97316">
                             R$ {{ number_format($viagem->total_combustivel, 2, ',', '.') }}
                         </td>
                     </tr>
                     <tr>
                         <td>(-) Manutenção</td>
-                        <td class="text-end text-warning">
+                        <td class="text-end" style="color:#f97316">
                             R$ {{ number_format($viagem->total_manutencao, 2, ',', '.') }}
                         </td>
                     </tr>
