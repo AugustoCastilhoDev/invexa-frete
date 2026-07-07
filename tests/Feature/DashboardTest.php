@@ -83,6 +83,20 @@ class DashboardTest extends TestCase
         $response->assertSee('Motorista CNH Vencendo');
     }
 
+    public function test_dashboard_conta_cavalo_e_carreta_vinculada_como_um_unico_veiculo(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $cavalo = Veiculo::factory()->create(['tipo' => 'truck']);
+        Veiculo::factory()->vinculadaA($cavalo)->create();
+        Veiculo::factory()->create(); // veículo avulso, conta normalmente
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertViewHas('totalVeiculosAtivos', 2);
+    }
+
     public function test_dashboard_lista_veiculo_em_manutencao(): void
     {
         $this->actingAs(User::factory()->create());

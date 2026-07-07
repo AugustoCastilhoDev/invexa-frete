@@ -34,7 +34,7 @@ class DashboardController extends Controller
             ->sum('lucro_transportadora');
 
         $totalMotoristasAtivos = Motorista::where('status', 'ativo')->count();
-        $totalVeiculosAtivos   = Veiculo::where('status', 'ativo')->count();
+        $totalVeiculosAtivos   = Veiculo::contamParaLimite()->where('status', 'ativo')->count();
         $totalAguardandoAcerto = Viagem::where('status', 'aguardando_acerto')->count();
 
         // ── Últimas viagens abertas ──
