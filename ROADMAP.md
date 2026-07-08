@@ -112,7 +112,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Tela de gestão de usuários (`/users`), restrita a admin e escopada à própria empresa
 - Autocadastro público desativado — usuários só são criados por um admin
 - Login bloqueado para usuário inativo
-- Rate limiting: 5 tentativas de login incorretas bloqueiam novas tentativas temporariamente (chave por e-mail/CPF + IP), aplicado tanto no login do painel quanto no do Portal do Motorista
+- Rate limiting: 5 tentativas incorretas bloqueiam novas tentativas temporariamente, aplicado no login do painel e no do Portal do Motorista (chave por e-mail/CPF + IP) e também no desafio de código 2FA (chave por usuário) — Fix: o desafio de 2FA não tinha nenhum limite de tentativas; como o código é de só 6 dígitos, isso permitia força-bruta contra a segunda camada de autenticação
 - Política mínima de senha (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa (`Password::defaults()`)
 - Proteções: ninguém desativa/rebaixa a si mesmo; sempre precisa sobrar um admin ativo
 - Autenticação em Dois Fatores (2FA) opcional via TOTP (Google Authenticator, Authy etc.), autogerenciável na tela de Perfil, com códigos de recuperação de uso único
@@ -132,6 +132,15 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Log de acesso à aplicação** (`logs_acesso`), exigido pelo Marco Civil da Internet (Art. 15): todo login (painel e Portal do Motorista) grava automaticamente IP, data/hora e o guard usado, via listener no evento `Illuminate\Auth\Events\Login` — cobre login normal, 2FA e o modo suporte do super admin
 - Comando `lgpd:expurgar-logs-acesso` (com `--dry-run`) apaga logs de acesso com mais de 12 meses (`config('lgpd.retencao_meses.logs_acesso')`)
 - Ambos agendados mensalmente (requer cron do Laravel ativo no servidor de produção)
+- **Termos de Uso** (`/termos-de-uso`) e **Política de Privacidade** (`/politica-de-privacidade`) públicos, linkados no rodapé de todas as telas (landing, painel, portal e telas de login) — texto de referência, recomendável revisão jurídica antes do primeiro cliente pagante
+
+### Backup
+- Backup diário automatizado do banco de dados (+ uploads locais, se o disco não for R2) via `spatie/laravel-backup`, agendado no scheduler do Laravel (`routes/console.php`, 01h30–02h10)
+- Arquivo criptografado (`BACKUP_ARCHIVE_PASSWORD`) e verificado após a geração antes de considerar o backup válido
+- Duas cópias: uma local no VPS (restore rápido) e outra na Cloudflare R2 (fora do servidor — sobrevive a uma falha total do VPS), reaproveitando o mesmo disco S3-compatível já usado pelos uploads
+- Limpeza automática de backups antigos (`backup:clean`) e monitoramento diário (`backup:monitor`) que dispara e-mail de alerta se o backup mais recente ficar velho demais ou a suíte de arquivos ficar grande demais
+- Deliberadamente não inclui o código-fonte da aplicação no backup (já versionado no git) nem o `.env` — reduz tamanho e superfície de risco caso o destino do backup seja comprometido
+- **Pré-requisito de deploy**: o binário `mysqldump` precisa estar disponível no VPS (não testável neste ambiente de desenvolvimento Windows) — verificar com `which mysqldump` antes de confiar no primeiro backup em produção
 
 ### Armazenamento
 - Comprovantes de lançamento e documentos fiscais anexados às viagens são enviados para **Cloudflare R2** (compatível com S3) em produção, via disco configurável (`UPLOADS_DISK`)
@@ -168,7 +177,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Favicon próprio (caminhão sobre o gradiente laranja da marca) em todas as telas — o `favicon.ico` do scaffold original estava vazio (0 bytes)
 
 ### Infraestrutura de qualidade
-- 366 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete e o portal do motorista
+- 370 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ### Deploy em produção

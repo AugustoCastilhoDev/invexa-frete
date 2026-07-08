@@ -37,6 +37,9 @@ Route::get('/', function () {
     return view('landing');
 })->name('landing');
 
+Route::view('/termos-de-uso', 'legal.termos')->name('legal.termos');
+Route::view('/politica-de-privacidade', 'legal.privacidade')->name('legal.privacidade');
+
 Route::middleware(['auth'])->group(function () {
 
     // Perfil do usuário

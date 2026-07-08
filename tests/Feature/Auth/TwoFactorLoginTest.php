@@ -96,6 +96,24 @@ class TwoFactorLoginTest extends TestCase
         $this->assertNotContains('ABCDE-12345', $user->fresh()->two_factor_recovery_codes);
     }
 
+    public function test_apos_5_codigos_invalidos_o_desafio_fica_bloqueado_temporariamente(): void
+    {
+        [$user, $secret] = $this->criarUsuarioCom2fa();
+
+        $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post(route('two-factor.login'), ['code' => '000000']);
+        }
+
+        // 6ª tentativa: mesmo com o código correto, deve continuar bloqueado
+        $codigo = (new Google2FA())->getCurrentOtp($secret);
+        $response = $this->post(route('two-factor.login'), ['code' => $codigo]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('code');
+    }
+
     public function test_codigo_de_recuperacao_ja_usado_nao_funciona_de_novo(): void
     {
         [$user] = $this->criarUsuarioCom2fa();

@@ -83,6 +83,10 @@
 
 <footer class="text-center text-muted small py-3" style="border-top:1px solid #e9ecef">
     Invexa Frete &copy; {{ date('Y') }} — Portal do Motorista
+    ·
+    <a href="{{ route('legal.termos') }}" class="text-muted">Termos de Uso</a>
+    ·
+    <a href="{{ route('legal.privacidade') }}" class="text-muted">Política de Privacidade</a>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

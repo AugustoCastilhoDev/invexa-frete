@@ -14,7 +14,8 @@
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.35",
         "pragmarx/google2fa-laravel": "^3.0",
-        "resend/resend-php": "^1.4"
+        "resend/resend-php": "^1.4",
+        "spatie/laravel-backup": "^10.3"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

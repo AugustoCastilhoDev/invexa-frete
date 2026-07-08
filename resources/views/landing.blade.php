@@ -750,6 +750,10 @@
 
             <div style="font-size:.75rem; color:#adb5bd">
                 <i class="bi bi-truck-front me-1"></i>Invexa Frete &copy; {{ date('Y') }}
+                ·
+                <a href="{{ route('legal.termos') }}" style="color:#adb5bd; text-decoration:none">Termos de Uso</a>
+                ·
+                <a href="{{ route('legal.privacidade') }}" style="color:#adb5bd; text-decoration:none">Política de Privacidade</a>
             </div>
 
             <div style="font-size:.8rem; color:#6c757d">

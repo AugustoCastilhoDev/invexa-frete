@@ -50,7 +50,11 @@
                 {{ $slot }}
             </div>
 
-            <p class="text-white/30 text-xs mt-6">&copy; {{ date('Y') }} Invexa Frete</p>
+            <p class="text-white/30 text-xs mt-6">
+                &copy; {{ date('Y') }} Invexa Frete ·
+                <a href="{{ route('legal.termos') }}" class="text-white/30 no-underline">Termos</a> ·
+                <a href="{{ route('legal.privacidade') }}" class="text-white/30 no-underline">Privacidade</a>
+            </p>
             <p class="text-xs mt-1">
                 <span class="text-white/30">Desenvolvido por</span>
                 <a href="https://www.instagram.com/castilho_digital/" target="_blank" rel="noopener noreferrer"

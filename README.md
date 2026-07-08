@@ -159,11 +159,13 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Comando `lgpd:anonimizar` que expurga dados pessoais de registros excluídos há mais tempo que o prazo configurado, preservando o histórico financeiro
 - **Log de acesso à aplicação** (Marco Civil da Internet, Art. 15): todo login (painel e Portal do Motorista) grava IP e data/hora; comando `lgpd:expurgar-logs-acesso` apaga os registros com mais de 12 meses
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
-- Proteção contra força bruta: 5 tentativas de login incorretas bloqueiam novas tentativas temporariamente (por e-mail/CPF + IP), tanto no login do sistema quanto no do Portal do Motorista
+- Proteção contra força bruta: 5 tentativas incorretas bloqueiam novas tentativas temporariamente (por e-mail/CPF + IP) no login do sistema, no do Portal do Motorista e também no desafio de código 2FA (por usuário)
 - Senha com política mínima (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa
+- **Backup automatizado** diário do banco de dados (+ uploads locais), criptografado, com cópia local e outra fora do servidor (Cloudflare R2); limpeza de backups antigos e monitoramento com alerta por e-mail se algo ficar velho ou quebrado (`spatie/laravel-backup`, ver `config/backup.php`)
+- **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 366+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados e log de acesso
+- 370+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados e log de acesso
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -185,7 +187,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (366+ testes) |
+| Testes | PHPUnit (370+ testes) |
 | CI | GitHub Actions |
 
 ---
@@ -299,10 +301,18 @@ chown -R www-data:www-data storage bootstrap/cache
 
 ### Cron do Laravel (obrigatório)
 
-A anonimização mensal de dados pessoais (LGPD) depende do agendador do Laravel. Adicione ao crontab do servidor:
+A anonimização mensal de dados pessoais (LGPD) e o **backup diário automatizado** dependem do agendador do
+Laravel. Adicione ao crontab do servidor (se já estiver configurado, nenhuma ação extra é necessária — o backup
+usa o mesmo agendador):
 
 ```
 * * * * * cd /caminho/do/projeto && php artisan schedule:run >> /dev/null 2>&1
+```
+
+O backup do banco de dados depende do binário `mysqldump` estar disponível no servidor. Confirme com:
+
+```
+which mysqldump
 ```
 
 ### Variáveis de ambiente para produção
@@ -344,6 +354,10 @@ R2_ENDPOINT=https://SEU_ACCOUNT_ID.r2.cloudflarestorage.com
 ASAAS_API_KEY=sua_chave_de_producao
 ASAAS_ENV=production
 ASAAS_WEBHOOK_TOKEN=um_token_que_voce_cadastra_tambem_no_painel_do_asaas
+
+# Backup automático — sem a senha, o backup roda sem criptografia (não recomendado)
+BACKUP_ARCHIVE_PASSWORD=uma_senha_forte_so_para_os_backups
+BACKUP_NOTIFICATION_EMAIL=contato@invexa-app.com.br
 ```
 
 ---
