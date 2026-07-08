@@ -163,6 +163,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Demonstração interativa** ("Veja como é por dentro"): abas clicáveis (Dashboard, Viagens, Acerto, Portal do Motorista) com mockups em HTML/CSS puro — sidebar, KPIs, tabelas e o mockup do Portal em formato de celular —, reaproveitando as cores/badges reais do sistema; usada no lugar de screenshots porque ainda não há dados reais de cliente suficientes para uma demo autêntica
 - Acesso direto ao Portal do Motorista no cabeçalho, ao lado de "Entrar" e "Falar com Vendas" (rótulo curto "Portal" no mobile, pra não espremer o botão de CTA)
 - Tabela de planos exibida com valores reais (mensal e anual), teto de veículos por plano e taxa de implantação — CTA "Falar com Vendas" leva ao WhatsApp com a mensagem já preenchida com o nome do plano
+- Grade de recursos atualizada de 6 para 8 cards com a Programação de Frota e o Controle de Recebimento (as duas únicas novidades do dia com apelo comercial direto — 2FA, páginas legais e backup entraram como reforço de confiança, não como cards de recurso)
+- Selo "Backup diário automático" adicionado à linha de confiança do hero, ao lado de teste grátis, isolamento por empresa e LGPD
 - Sem cadastro self-service ainda: toda venda passa por contato manual (WhatsApp/e-mail); a empresa continua sendo criada pelo super admin na tela `/empresas` depois do primeiro contato
 
 ### Responsividade mobile do painel

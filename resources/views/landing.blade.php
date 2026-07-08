@@ -195,6 +195,8 @@
                 <i class="bi bi-shield-lock me-1"></i>Dados isolados por empresa
                 <span class="mx-2">·</span>
                 <i class="bi bi-file-earmark-lock me-1"></i>Conformidade com a LGPD
+                <span class="mx-2">·</span>
+                <i class="bi bi-cloud-check me-1"></i>Backup diário automático
             </p>
         </div>
     </section>
@@ -583,6 +585,8 @@
                         ['icon' => 'bi-phone', 'titulo' => 'Portal do Motorista', 'texto' => 'O motorista acompanha as próprias viagens e lança combustível/manutenção com foto, direto do celular, sem instalar app.'],
                         ['icon' => 'bi-file-earmark-check', 'titulo' => 'Documentos Fiscais', 'texto' => 'CT-e, MDF-e e NF-e com verificação de autenticidade direto no portal oficial da SEFAZ pela chave de acesso.'],
                         ['icon' => 'bi-car-front', 'titulo' => 'Frota Completa', 'texto' => 'Veículos, manutenção preventiva/corretiva e conjunto cavalo + carreta contando como uma única unidade no plano.'],
+                        ['icon' => 'bi-signpost-2', 'titulo' => 'Programação de Frota', 'texto' => 'Planeje o motorista, veículo e cliente da próxima viagem antes de encerrar a atual — sem deixar veículo parado entre um frete e outro.'],
+                        ['icon' => 'bi-cash-coin', 'titulo' => 'Controle de Recebimento', 'texto' => 'Confirme o recebimento do frete do cliente com um clique, acompanhe pendências e exporte o relatório de contas a receber.'],
                     ];
                 @endphp
 
