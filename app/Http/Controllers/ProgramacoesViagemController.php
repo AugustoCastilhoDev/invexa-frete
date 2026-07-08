@@ -36,7 +36,11 @@ class ProgramacoesViagemController extends Controller
         $veiculosComProgramacaoPendente = ProgramacaoViagem::where('status', 'pendente')->pluck('veiculo_id');
 
         $totalPendentes = ProgramacaoViagem::where('status', 'pendente')->count();
-        $totalVeiculosSemProgramacao = Veiculo::where('status', 'ativo')
+
+        // Carreta vinculada a um cavalo não conta separadamente: ela sempre viaja
+        // junto do cavalo, então só o cavalo precisa da própria programação.
+        $totalVeiculosSemProgramacao = Veiculo::contamParaLimite()
+            ->where('status', 'ativo')
             ->whereNotIn('id', $veiculosComProgramacaoPendente)
             ->count();
 

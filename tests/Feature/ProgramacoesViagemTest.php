@@ -75,6 +75,20 @@ class ProgramacoesViagemTest extends TestCase
         $response->assertStatus(400);
     }
 
+    public function test_veiculos_sem_programacao_nao_conta_carreta_ja_coberta_pelo_cavalo(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $cavalo  = Veiculo::factory()->create();
+        $carreta = Veiculo::factory()->vinculadaA($cavalo)->create();
+        ProgramacaoViagem::factory()->create(['veiculo_id' => $cavalo->id]);
+
+        $response = $this->get(route('programacoes.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('totalVeiculosSemProgramacao', 0);
+    }
+
     public function test_index_lista_apenas_pendentes_por_padrao(): void
     {
         $this->actingAs(User::factory()->create());
