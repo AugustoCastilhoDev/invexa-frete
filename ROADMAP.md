@@ -51,6 +51,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 - Avanço de status direto na tela da viagem (Aberta → Em Andamento → Aguardando Acerto), sem precisar abrir a edição; não permite pular etapas, evitando reabrir uma viagem já encerrada por engano
 - **Assinatura digital do motorista**: captura a assinatura por canvas na tela da viagem (aguardando acerto ou encerrada), sem depender de app externo; a assinatura sai embutida no comprovante em PDF, com data/hora do momento em que foi coletada
+- **Controle de recebimento do frete** (contas a receber do cliente): na listagem de todas as viagens, botão de um clique para confirmar/desfazer o recebimento do frete, com data registrada automaticamente; filtro por recebido/pendente e exportação em CSV (com as mesmas colunas do relatório + status e data de recebimento)
 
 ### Programação de Frota
 - Tela dedicada (`/programacoes`) para planejar o motorista/veículo/cliente da próxima viagem antes de encerrar a atual — pedido comum de transportadoras de cavalo/carreta para não deixar veículo parado entre viagens
@@ -59,6 +60,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Cards de controle de frota: programações pendentes e veículos ativos sem próxima viagem definida
 - Validação de conflito: não permite duas programações pendentes para o mesmo motorista ou veículo
 - Confirmação é sempre manual — encerrar a viagem atual não abre a próxima automaticamente; o botão "Confirmar" leva ao formulário normal de nova viagem, já pré-preenchido, e ao salvar marca a programação como confirmada e vinculada à viagem criada
+- Valor do frete opcional na programação (útil quando já negociado), pré-preenchido no formulário de nova viagem ao confirmar
 
 ### Financeiro / Acertos
 - Acertos por Motorista com histórico individual
@@ -165,7 +167,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Favicon próprio (caminhão sobre o gradiente laranja da marca) em todas as telas — o `favicon.ico` do scaffold original estava vazio (0 bytes)
 
 ### Infraestrutura de qualidade
-- 354 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota e o portal do motorista
+- 361 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ### Deploy em produção

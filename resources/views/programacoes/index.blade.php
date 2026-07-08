@@ -96,6 +96,7 @@
                     <th>Cliente</th>
                     <th>Origem / Destino</th>
                     <th>Data Prevista</th>
+                    <th>Frete</th>
                     <th>Status</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
@@ -109,6 +110,7 @@
                     <td>{{ $programacao->cliente->nome ?? '-' }}</td>
                     <td>{{ $programacao->origem }} → {{ $programacao->destino }}</td>
                     <td>{{ $programacao->data_prevista->format('d/m/Y') }}</td>
+                    <td>{{ $programacao->valor_frete !== null ? 'R$ ' . number_format($programacao->valor_frete, 2, ',', '.') : '-' }}</td>
                     <td>
                         @if($programacao->status === 'pendente')
                             <span class="badge bg-warning-subtle text-warning">Pendente</span>
@@ -125,6 +127,7 @@
                                     'cliente_id'     => $programacao->cliente_id,
                                     'origem'         => $programacao->origem,
                                     'destino'        => $programacao->destino,
+                                    'valor_frete'    => $programacao->valor_frete,
                                 ]) }}"
                                class="btn btn-sm btn-success" title="Confirmar e Abrir Viagem">
                                 <i class="bi bi-check-circle me-1"></i> Confirmar
@@ -151,7 +154,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-5">
+                    <td colspan="9" class="text-center text-muted py-5">
                         <i class="bi bi-signpost-2 fs-3 d-block mb-2"></i>
                         Nenhuma programação encontrada.
                     </td>

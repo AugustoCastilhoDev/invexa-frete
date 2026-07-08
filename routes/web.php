@@ -124,6 +124,7 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         ->middleware('admin')->name('manutencoes.destroy');
 
     // Viagens
+    Route::get('viagens/csv', [ViagensController::class, 'csv'])->name('viagens.csv');
     Route::resource('viagens', ViagensController::class)->except(['destroy'])->parameters([
     'viagens' => 'viagem']);
     Route::delete('viagens/{viagem}', [ViagensController::class, 'destroy'])
@@ -134,6 +135,9 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
 
     Route::patch('viagens/{viagem}/encerrar', [ViagensController::class, 'encerrar'])
         ->name('viagens.encerrar');
+
+    Route::patch('viagens/{viagem}/recebimento', [ViagensController::class, 'marcarRecebimento'])
+        ->name('viagens.recebimento');
 
     Route::patch('viagens/{viagem}/assinatura', [ViagensController::class, 'assinar'])
         ->name('viagens.assinar');

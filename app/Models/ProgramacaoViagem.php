@@ -22,12 +22,14 @@ class ProgramacaoViagem extends Model
         'viagem_origem_id',
         'origem',
         'destino',
+        'valor_frete',
         'data_prevista',
         'observacoes',
     ];
 
     protected $casts = [
         'data_prevista' => 'date',
+        'valor_frete'   => 'decimal:2',
     ];
 
     public function motorista()

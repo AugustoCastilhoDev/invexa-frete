@@ -130,6 +130,46 @@ class ProgramacoesViagemTest extends TestCase
         $response->assertForbidden();
     }
 
+    public function test_cadastra_programacao_com_valor_de_frete_opcional(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $motorista = Motorista::factory()->create();
+        $veiculo   = Veiculo::factory()->create();
+
+        $response = $this->post(route('programacoes.store'), [
+            'motorista_id'  => $motorista->id,
+            'veiculo_id'    => $veiculo->id,
+            'origem'        => 'São Paulo',
+            'destino'       => 'Curitiba',
+            'valor_frete'   => 3500,
+            'data_prevista' => now()->addDays(2)->format('Y-m-d'),
+        ]);
+
+        $response->assertRedirect(route('programacoes.index'));
+        $this->assertDatabaseHas('programacoes_viagem', [
+            'motorista_id' => $motorista->id,
+            'veiculo_id'   => $veiculo->id,
+            'valor_frete'  => 3500,
+        ]);
+    }
+
+    public function test_cadastra_programacao_sem_valor_de_frete(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->post(route('programacoes.store'), [
+            'motorista_id'  => Motorista::factory()->create()->id,
+            'veiculo_id'    => Veiculo::factory()->create()->id,
+            'origem'        => 'São Paulo',
+            'destino'       => 'Curitiba',
+            'data_prevista' => now()->addDays(2)->format('Y-m-d'),
+        ]);
+
+        $response->assertRedirect(route('programacoes.index'));
+        $this->assertNull(ProgramacaoViagem::firstOrFail()->valor_frete);
+    }
+
     public function test_confirmar_programacao_cria_viagem_e_marca_como_confirmada(): void
     {
         $this->actingAs(User::factory()->create());

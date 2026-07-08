@@ -131,6 +131,7 @@ class ProgramacoesViagemController extends Controller
             'cliente_id'       => 'nullable|exists:clientes,id',
             'origem'           => 'required|string|max:255',
             'destino'          => 'required|string|max:255',
+            'valor_frete'      => 'nullable|numeric|min:0',
             'data_prevista'    => 'required|date',
             'observacoes'      => 'nullable|string',
             'viagem_origem_id' => 'nullable|exists:viagens,id',

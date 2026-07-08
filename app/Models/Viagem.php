@@ -89,6 +89,8 @@ class Viagem extends Model
         'saldo_motorista'      => 'decimal:2',
         'lucro_transportadora' => 'decimal:2',
         'assinatura_motorista_em' => 'datetime',
+        'frete_recebido'          => 'boolean',
+        'data_recebimento_frete'  => 'date',
     ];
 
     // Viagem pertence a um motorista

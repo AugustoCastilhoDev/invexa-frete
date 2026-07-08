@@ -108,7 +108,7 @@
                         <span class="input-group-text">R$</span>
                         <input type="number" name="valor_frete" id="valor_frete"
                                class="form-control @error('valor_frete') is-invalid @enderror"
-                               value="{{ old('valor_frete', '0.00') }}"
+                               value="{{ old('valor_frete', request('valor_frete', '0.00')) }}"
                                step="0.01" min="0" required>
                     </div>
                     @error('valor_frete')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -189,6 +189,9 @@
 
     document.getElementById('valor_frete').addEventListener('input', calcularMotorista);
     document.getElementById('percentual_motorista').addEventListener('input', calcularMotorista);
+
+    // Ao vir de uma programação já com motorista/frete preenchidos, calcula a prévia de cara
+    calcularMotorista();
 </script>
 @endpush
 @endsection

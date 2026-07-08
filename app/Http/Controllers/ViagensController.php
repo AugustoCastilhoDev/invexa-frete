@@ -12,6 +12,7 @@ use App\Http\Controllers\Concerns\GeraComprovanteAcerto;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ViagensController extends Controller
 {
@@ -19,36 +20,7 @@ class ViagensController extends Controller
 
     public function index()
 {
-    $status     = request('status', 'todas');
-    $motorista  = request('motorista_id');
-    $veiculo    = request('veiculo_id');
-    $dataInicio = request('data_inicio');
-    $dataFim    = request('data_fim');
-
-    $query = Viagem::with(['motorista', 'veiculo'])
-        ->orderByDesc('created_at');
-
-    if ($status !== 'todas') {
-        $query->where('status', $status);
-    }
-
-    if ($motorista) {
-        $query->where('motorista_id', $motorista);
-    }
-
-    if ($veiculo) {
-        $query->where('veiculo_id', $veiculo);
-    }
-
-    if ($dataInicio) {
-        $query->whereDate('data_saida', '>=', $dataInicio);
-    }
-
-    if ($dataFim) {
-        $query->whereDate('data_saida', '<=', $dataFim);
-    }
-
-    $viagens    = $query->paginate(15)->withQueryString();
+    $viagens    = $this->viagensFiltradas()->paginate(15)->withQueryString();
     $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
     $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
 
@@ -58,6 +30,93 @@ class ViagensController extends Controller
         'veiculos'
     ));
 }
+
+    public function csv(): StreamedResponse
+    {
+        $viagens = $this->viagensFiltradas()->get();
+
+        return response()->streamDownload(function () use ($viagens) {
+            $saida = fopen('php://output', 'w');
+            fwrite($saida, "\xEF\xBB\xBF");
+
+            fputcsv($saida, [
+                'Viagem', 'Motorista', 'Veículo', 'Cliente', 'Origem', 'Destino', 'Saída',
+                'Frete', 'Status', 'Frete Recebido', 'Data Recebimento',
+            ], ';');
+
+            foreach ($viagens as $viagem) {
+                fputcsv($saida, [
+                    $viagem->id,
+                    $viagem->motorista->nome,
+                    $viagem->veiculo->placa,
+                    $viagem->cliente->nome ?? '-',
+                    $viagem->origem,
+                    $viagem->destino,
+                    $viagem->data_saida->format('d/m/Y'),
+                    number_format($viagem->valor_frete, 2, ',', ''),
+                    ucfirst(str_replace('_', ' ', $viagem->status)),
+                    $viagem->frete_recebido ? 'Sim' : 'Não',
+                    $viagem->data_recebimento_frete?->format('d/m/Y') ?? '-',
+                ], ';');
+            }
+
+            fclose($saida);
+        }, 'viagens-' . now()->format('Y-m-d') . '.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    private function viagensFiltradas()
+    {
+        $status       = request('status', 'todas');
+        $motorista    = request('motorista_id');
+        $veiculo      = request('veiculo_id');
+        $dataInicio   = request('data_inicio');
+        $dataFim      = request('data_fim');
+        $recebimento  = request('recebimento', 'todos');
+
+        $query = Viagem::with(['motorista', 'veiculo', 'cliente'])
+            ->orderByDesc('created_at');
+
+        if ($status !== 'todas') {
+            $query->where('status', $status);
+        }
+
+        if ($motorista) {
+            $query->where('motorista_id', $motorista);
+        }
+
+        if ($veiculo) {
+            $query->where('veiculo_id', $veiculo);
+        }
+
+        if ($dataInicio) {
+            $query->whereDate('data_saida', '>=', $dataInicio);
+        }
+
+        if ($dataFim) {
+            $query->whereDate('data_saida', '<=', $dataFim);
+        }
+
+        if ($recebimento === 'recebido') {
+            $query->where('frete_recebido', true);
+        } elseif ($recebimento === 'pendente') {
+            $query->where('frete_recebido', false);
+        }
+
+        return $query;
+    }
+
+    public function marcarRecebimento(Viagem $viagem)
+    {
+        $viagem->forceFill($viagem->frete_recebido
+            ? ['frete_recebido' => false, 'data_recebimento_frete' => null]
+            : ['frete_recebido' => true, 'data_recebimento_frete' => now()]
+        )->save();
+
+        return redirect()->back()
+            ->with('success', $viagem->frete_recebido
+                ? 'Recebimento do frete confirmado!'
+                : 'Recebimento do frete desfeito.');
+    }
 
     public function create(Request $request)
 {

@@ -76,6 +76,17 @@
                            value="{{ old('data_prevista', $programacao->data_prevista->format('Y-m-d')) }}" required>
                     @error('data_prevista')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Valor do Frete</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" name="valor_frete"
+                               class="form-control @error('valor_frete') is-invalid @enderror"
+                               value="{{ old('valor_frete', $programacao->valor_frete) }}" step="0.01" min="0">
+                        @error('valor_frete')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <small class="text-muted">Opcional — preencha se já estiver negociado</small>
+                </div>
             </div>
 
             <div class="mb-3">

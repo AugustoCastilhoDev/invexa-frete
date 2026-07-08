@@ -7,9 +7,14 @@
         <h4 class="mb-0">Viagens</h4>
         <small class="text-muted">Gerencie todas as viagens</small>
     </div>
-    <a href="{{ route('viagens.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Nova Viagem
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('viagens.csv', request()->query()) }}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar CSV
+        </a>
+        <a href="{{ route('viagens.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Nova Viagem
+        </a>
+    </div>
 </div>
 
 {{-- ── Filtros ── --}}
@@ -72,6 +77,16 @@
                            value="{{ request('data_fim') }}">
                 </div>
 
+                {{-- Recebimento do Frete --}}
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold small">Recebimento</label>
+                    <select name="recebimento" class="form-select form-select-sm">
+                        <option value="todos"    {{ request('recebimento', 'todos') === 'todos'    ? 'selected' : '' }}>Todos</option>
+                        <option value="recebido" {{ request('recebimento') === 'recebido'           ? 'selected' : '' }}>Recebido</option>
+                        <option value="pendente" {{ request('recebimento') === 'pendente'           ? 'selected' : '' }}>Pendente</option>
+                    </select>
+                </div>
+
                 {{-- Botões --}}
                 <div class="col-md-1 d-flex gap-1">
                     <button type="submit" class="btn btn-primary btn-sm w-100">
@@ -95,6 +110,7 @@
         request('veiculo_id'),
         request('data_inicio'),
         request('data_fim'),
+        request('recebimento', 'todos') !== 'todos' ? request('recebimento') : null,
     ]);
 @endphp
 
@@ -125,6 +141,7 @@
                     <th>Saída</th>
                     <th>Frete</th>
                     <th>Status</th>
+                    <th>Recebimento</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
             </thead>
@@ -142,6 +159,21 @@
                         <span class="badge badge-status-{{ $viagem->status }}">
                             {{ ucfirst(str_replace('_', ' ', $viagem->status)) }}
                         </span>
+                    </td>
+                    <td>
+                        <form action="{{ route('viagens.recebimento', $viagem) }}" method="POST" class="d-inline"
+                              onsubmit="return confirm('{{ $viagem->frete_recebido ? 'Desfazer confirmação de recebimento?' : 'Confirmar recebimento do frete?' }}')">
+                            @csrf @method('PATCH')
+                            @if($viagem->frete_recebido)
+                            <button class="btn btn-sm btn-success" title="Recebido em {{ $viagem->data_recebimento_frete?->format('d/m/Y') ?? '-' }} — clique para desfazer">
+                                <i class="bi bi-check-circle-fill me-1"></i> Recebido
+                            </button>
+                            @else
+                            <button class="btn btn-sm btn-outline-warning" title="Clique para confirmar o recebimento">
+                                <i class="bi bi-clock-history me-1"></i> Pendente
+                            </button>
+                            @endif
+                        </form>
                     </td>
                     <td class="text-end pe-4">
                         <a href="{{ route('viagens.show', $viagem) }}"
@@ -168,7 +200,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-5">
+                    <td colspan="9" class="text-center text-muted py-5">
                         <i class="bi bi-truck fs-3 d-block mb-2"></i>
                         Nenhuma viagem encontrada com os filtros selecionados.
                     </td>
