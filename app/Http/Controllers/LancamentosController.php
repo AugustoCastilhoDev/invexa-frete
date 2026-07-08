@@ -18,7 +18,7 @@ class LancamentosController extends Controller
             'litros'           => 'nullable|numeric|min:0',
             'data_lancamento'  => 'required|date',
             'observacao'       => 'nullable|string',
-            'comprovante'      => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'comprovante'      => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         $data = $request->all();

@@ -22,7 +22,7 @@ class PortalLancamentosController extends Controller
             'km_veiculo'      => 'nullable|integer|min:0',
             'litros'          => 'nullable|numeric|min:0',
             'data_lancamento' => 'required|date',
-            'comprovante'     => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'comprovante'     => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         $lancamento = new Lancamento($request->only(['tipo', 'descricao', 'valor', 'km_veiculo', 'litros', 'data_lancamento']));
