@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Viagem;
 use App\Models\Motorista;
+use App\Models\ProgramacaoViagem;
 use App\Models\Veiculo;
 use Illuminate\Http\Request;
 use App\Models\Cliente;
@@ -58,12 +59,19 @@ class ViagensController extends Controller
     ));
 }
 
-    public function create()
+    public function create(Request $request)
 {
     $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
     $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
     $clientes   = Cliente::where('status', 'ativo')->orderBy('nome')->get();
-    return view('viagens.create', compact('motoristas', 'veiculos', 'clientes'));
+
+    $programacao = null;
+    if ($request->filled('programacao_id')) {
+        $programacao = ProgramacaoViagem::where('status', 'pendente')
+            ->find($request->input('programacao_id'));
+    }
+
+    return view('viagens.create', compact('motoristas', 'veiculos', 'clientes', 'programacao'));
 }
 
     public function store(Request $request)
@@ -97,6 +105,13 @@ class ViagensController extends Controller
         // que o saldo já nasça respeitando adiantamento_descontavel.
         $viagem->recalcularTotais();
 
+        if ($request->filled('programacao_id')) {
+            ProgramacaoViagem::where('status', 'pendente')
+                ->find($request->input('programacao_id'))
+                ?->forceFill(['status' => 'confirmada', 'viagem_id' => $viagem->id])
+                ->save();
+        }
+
         return redirect()->route('viagens.show', $viagem)
             ->with('success', 'Viagem aberta com sucesso!');
     }
@@ -108,7 +123,12 @@ class ViagensController extends Controller
             'criadoPor', 'atualizadoPor',
             'lancamentos.criadoPor', 'descontos.criadoPor', 'documentos.criadoPor',
         ]);
-        return view('viagens.show', compact('viagem'));
+
+        $programacaoPendente = ProgramacaoViagem::where('status', 'pendente')
+            ->where('veiculo_id', $viagem->veiculo_id)
+            ->first();
+
+        return view('viagens.show', compact('viagem', 'programacaoPendente'));
     }
 
     public function edit(Viagem $viagem)

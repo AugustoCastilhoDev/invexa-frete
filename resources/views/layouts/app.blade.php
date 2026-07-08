@@ -307,6 +307,10 @@
         href="{{ route('viagens.index') }}">
             <i class="bi bi-truck"></i> Viagens
         </a>
+        <a class="nav-link {{ request()->routeIs('programacoes.*') ? 'active' : '' }}"
+        href="{{ route('programacoes.index') }}">
+            <i class="bi bi-signpost-2"></i> Programação de Frota
+        </a>
     </nav>
 
     <div class="nav-section">Relatórios</div>

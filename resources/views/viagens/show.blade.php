@@ -46,6 +46,19 @@
                 </button>
             </form>
             @endif
+
+            @if(in_array($viagem->status, ['em_andamento', 'aguardando_acerto']))
+                @if($programacaoPendente)
+                <a href="{{ route('programacoes.edit', $programacaoPendente) }}" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-signpost-2 me-1"></i> Próxima Viagem Já Programada
+                </a>
+                @else
+                <a href="{{ route('programacoes.create', ['motorista_id' => $viagem->motorista_id, 'veiculo_id' => $viagem->veiculo_id, 'viagem_origem_id' => $viagem->id]) }}"
+                   class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-signpost-2 me-1"></i> Programar Próxima Viagem
+                </a>
+                @endif
+            @endif
         @endif
         <a href="{{ route('viagens.index') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left me-1"></i> Voltar

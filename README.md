@@ -46,6 +46,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 - Avanço de status direto na tela da viagem, sem precisar abrir a edição; não permite pular etapas
 - Assinatura digital do motorista (captura por canvas na tela da viagem), embutida no comprovante em PDF com data/hora
+- **Programação de Frota**: planeje o motorista/veículo/cliente da próxima viagem antes de encerrar a atual, numa tela dedicada com visão de quais veículos já têm plano definido e quais estão livres; a confirmação abre a viagem de verdade a partir dos dados programados, sem duplicar cadastro
 
 ### 👤 Motoristas
 - Cadastro completo (CPF, CNH, categoria, validade)
@@ -161,7 +162,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Senha com política mínima (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa
 
 ### ✅ Qualidade
-- 345+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados e log de acesso
+- 354+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados e log de acesso
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -183,7 +184,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (345+ testes) |
+| Testes | PHPUnit (354+ testes) |
 | CI | GitHub Actions |
 
 ---
@@ -365,6 +366,7 @@ app/
 │   ├── MotoristaPortalAccessController.php  # admin libera/revoga acesso do motorista ao portal
 │   ├── MotoristasController.php
 │   ├── NotificacoesController.php
+│   ├── ProgramacoesViagemController.php # programação de frota (próxima viagem planejada)
 │   ├── RelatorioController.php
 │   ├── UsersController.php
 │   ├── VeiculosController.php

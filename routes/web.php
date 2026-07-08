@@ -12,6 +12,7 @@ use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\AcertosController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProgramacoesViagemController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\ManutencoesController;
 use App\Http\Controllers\DespesasGeraisController;
@@ -139,6 +140,13 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
 
     Route::get('viagens/{viagem}/imprimir', [ViagensController::class, 'imprimir'])
     ->name('viagens.imprimir');
+
+    // Programação de Frota (próxima viagem planejada)
+    Route::resource('programacoes', ProgramacoesViagemController::class)
+        ->except(['destroy', 'show'])
+        ->parameters(['programacoes' => 'programacao']);
+    Route::delete('programacoes/{programacao}', [ProgramacoesViagemController::class, 'destroy'])
+        ->middleware('admin')->name('programacoes.destroy');
 
     // Lançamentos (aninhados na viagem)
     Route::post('viagens/{viagem}/lancamentos', [LancamentosController::class, 'store'])

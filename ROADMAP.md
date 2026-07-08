@@ -52,6 +52,14 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Avanço de status direto na tela da viagem (Aberta → Em Andamento → Aguardando Acerto), sem precisar abrir a edição; não permite pular etapas, evitando reabrir uma viagem já encerrada por engano
 - **Assinatura digital do motorista**: captura a assinatura por canvas na tela da viagem (aguardando acerto ou encerrada), sem depender de app externo; a assinatura sai embutida no comprovante em PDF, com data/hora do momento em que foi coletada
 
+### Programação de Frota
+- Tela dedicada (`/programacoes`) para planejar o motorista/veículo/cliente da próxima viagem antes de encerrar a atual — pedido comum de transportadoras de cavalo/carreta para não deixar veículo parado entre viagens
+- Modelo `ProgramacaoViagem` deliberadamente desacoplado da máquina de status de `Viagem` (não entra em recálculo financeiro, notificações nem contagens de frota) — evita risco de uma viagem "programada" sem dados reais poluir esses cálculos
+- Atalho "Programar Próxima Viagem" na própria tela da viagem (`em_andamento`/`aguardando_acerto`), pré-preenchendo motorista/veículo
+- Cards de controle de frota: programações pendentes e veículos ativos sem próxima viagem definida
+- Validação de conflito: não permite duas programações pendentes para o mesmo motorista ou veículo
+- Confirmação é sempre manual — encerrar a viagem atual não abre a próxima automaticamente; o botão "Confirmar" leva ao formulário normal de nova viagem, já pré-preenchido, e ao salvar marca a programação como confirmada e vinculada à viagem criada
+
 ### Financeiro / Acertos
 - Acertos por Motorista com histórico individual
 - **Média de combustível (km/L) do período**: soma do KM rodado e dos litros abastecidos em todas as viagens do filtro (motorista + período), exibida como card na tela, no PDF e como colunas extras no CSV
@@ -157,7 +165,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Favicon próprio (caminhão sobre o gradiente laranja da marca) em todas as telas — o `favicon.ico` do scaffold original estava vazio (0 bytes)
 
 ### Infraestrutura de qualidade
-- 345 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 354 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ### Deploy em produção

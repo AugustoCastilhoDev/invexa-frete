@@ -16,6 +16,14 @@
     <div class="card-body p-4">
         <form action="{{ route('viagens.store') }}" method="POST">
             @csrf
+            <input type="hidden" name="programacao_id" value="{{ request('programacao_id') }}">
+
+            @if($programacao)
+            <div class="alert alert-info py-2 small mb-4">
+                <i class="bi bi-signpost-2 me-1"></i>
+                Abrindo a partir da programação #{{ $programacao->id }} — ao salvar, ela será marcada como confirmada.
+            </div>
+            @endif
 
             <h6 class="fw-bold text-uppercase text-muted mb-3" style="font-size:.75rem;letter-spacing:1px">
                 <i class="bi bi-person-badge me-1"></i> Motorista e Veículo
@@ -29,7 +37,7 @@
                         @foreach($motoristas as $motorista)
                             <option value="{{ $motorista->id }}"
                                     data-comissao="{{ $motorista->percentual_comissao }}"
-                                    {{ old('motorista_id') == $motorista->id ? 'selected' : '' }}>
+                                    {{ old('motorista_id', request('motorista_id')) == $motorista->id ? 'selected' : '' }}>
                                 {{ $motorista->nome }}
                             </option>
                         @endforeach
@@ -43,7 +51,7 @@
                         <option value="">Selecione o veículo</option>
                         @foreach($veiculos as $veiculo)
                             <option value="{{ $veiculo->id }}"
-                                {{ old('veiculo_id') == $veiculo->id ? 'selected' : '' }}>
+                                {{ old('veiculo_id', request('veiculo_id')) == $veiculo->id ? 'selected' : '' }}>
                                 {{ $veiculo->placa }} — {{ $veiculo->modelo }}
                             </option>
                         @endforeach
@@ -59,12 +67,12 @@
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Origem *</label>
                     <input type="text" name="origem" class="form-control"
-                           value="{{ old('origem') }}" required>
+                           value="{{ old('origem', request('origem')) }}" required>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Destino *</label>
                     <input type="text" name="destino" class="form-control"
-                           value="{{ old('destino') }}" required>
+                           value="{{ old('destino', request('destino')) }}" required>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Cliente</label>
@@ -72,7 +80,7 @@
                         <option value="">Selecione o cliente</option>
                         @foreach($clientes as $cliente)
                             <option value="{{ $cliente->id }}"
-                                {{ old('cliente_id') == $cliente->id ? 'selected' : '' }}>
+                                {{ old('cliente_id', request('cliente_id')) == $cliente->id ? 'selected' : '' }}>
                                 {{ $cliente->nome }}
                             </option>
                         @endforeach
