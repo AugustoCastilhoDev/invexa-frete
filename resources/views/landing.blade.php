@@ -143,12 +143,17 @@
                 <a href="#contato" class="text-white/70 no-underline">Contato</a>
             </nav>
 
-            <div class="flex items-center gap-3">
-                <a href="{{ route('login') }}" class="text-white/80 no-underline" style="font-size:.9rem">Entrar</a>
+            <div class="flex items-center" style="gap:10px">
+                <a href="{{ route('portal.login') }}" class="d-flex align-items-center text-white/80 no-underline" style="gap:4px; font-size:.8rem">
+                    <i class="bi bi-phone"></i>
+                    <span class="d-none d-sm-inline">Portal do Motorista</span>
+                    <span class="d-sm-none">Portal</span>
+                </a>
+                <a href="{{ route('login') }}" class="text-white/80 no-underline" style="font-size:.85rem">Entrar</a>
                 <a href="https://wa.me/5532999669302?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20Invexa%20Frete"
                    target="_blank" rel="noopener noreferrer"
-                   class="invexa-btn-primary text-white no-underline rounded-full font-semibold"
-                   style="padding:9px 20px; font-size:.85rem">
+                   class="invexa-btn-primary text-white no-underline rounded-full font-semibold text-nowrap"
+                   style="padding:9px 16px; font-size:.8rem">
                     Falar com Vendas
                 </a>
             </div>
