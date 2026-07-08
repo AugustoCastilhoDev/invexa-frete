@@ -164,6 +164,13 @@
             color: var(--bs-body-color) !important;
             border-color: var(--bs-border-color) !important;
         }
+        /* Campos readonly com bg-light (ex: prévia de valor calculado) também fixam cor
+           clara, mas herdam o texto claro do tema escuro — ficando ilegíveis */
+        html[data-bs-theme="dark"] .form-control.bg-light {
+            background-color: var(--bs-tertiary-bg) !important;
+            color: var(--bs-body-color) !important;
+            border-color: var(--bs-border-color) !important;
+        }
         /* table-light (cabeçalho das listagens) também é uma cor fixa, não reage ao tema */
         html[data-bs-theme="dark"] .table-light {
             --bs-table-bg: var(--bs-tertiary-bg);
