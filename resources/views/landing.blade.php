@@ -201,6 +201,27 @@
         </div>
     </section>
 
+    {{-- ── Vídeo de demonstração ── --}}
+    <section style="padding:0 24px 80px">
+        <div class="mx-auto" style="max-width:820px">
+            <div class="text-center" style="max-width:620px; margin:0 auto 28px">
+                <h2 class="font-extrabold" style="font-size:1.6rem; color:#16213e">Veja o sistema em ação</h2>
+                <p class="text-muted" style="margin-top:8px">
+                    Um passeio rápido pelas principais telas do Invexa Frete.
+                </p>
+            </div>
+
+            <div class="invexa-mockup-frame rounded-4 bg-white" style="padding:10px">
+                <div class="ratio ratio-16x9 rounded-3 overflow-hidden">
+                    <iframe src="https://www.youtube-nocookie.com/embed/hcDeWR4BTeM"
+                            title="Demonstração do Invexa Frete"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen loading="lazy" style="border:0"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- ── Demonstração (mockups ilustrativos do painel) ── --}}
     <section style="padding:0 24px 80px">
         <div class="mx-auto" style="max-width:980px">
