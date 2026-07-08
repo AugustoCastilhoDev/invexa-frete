@@ -70,9 +70,8 @@ aplicável. Alterações relevantes serão comunicadas aos Clientes pelos canais
 da Plataforma após a atualização implica concordância com os novos Termos.</p>
 
 <h2>12. Legislação Aplicável e Foro</h2>
-<p>Estes Termos são regidos pela legislação brasileira. Fica eleito o foro da comarca do domicílio da Castilho
-Soluções Digitais para dirimir eventuais controvérsias, com renúncia a qualquer outro, por mais privilegiado que
-seja.</p>
+<p>Estes Termos são regidos pela legislação brasileira. Fica eleito o foro da comarca de Leopoldina, Estado de Minas
+Gerais, para dirimir eventuais controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.</p>
 
 <h2>13. Contato</h2>
 <p>Dúvidas sobre estes Termos de Uso podem ser encaminhadas para
