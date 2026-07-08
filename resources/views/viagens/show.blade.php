@@ -141,6 +141,14 @@
                         <td>{{ $viagem->km_final ?? '-' }}</td></tr>
                     <tr><td class="text-muted">KM Rodados</td>
                         <td>{{ $viagem->km_rodados > 0 ? number_format($viagem->km_rodados, 0, ',', '.').' km' : '-' }}</td></tr>
+                    @if($viagem->media_combustivel !== null)
+                    <tr><td class="text-muted">Média de Combustível</td>
+                        <td>
+                            <span class="fw-semibold" style="color:#3b82f6">{{ number_format($viagem->media_combustivel, 2, ',', '.') }} km/L</span>
+                            <span class="text-muted small">({{ number_format($viagem->total_litros, 2, ',', '.') }} L abastecidos)</span>
+                        </td>
+                    </tr>
+                    @endif
                     <tr>
                         <td class="text-muted">Adiantamento</td>
                         <td>

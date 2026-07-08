@@ -168,6 +168,16 @@ class Viagem extends Model
         return 0;
     }
 
+    // Acessor: média de combustível da viagem (km/L), null se não houver litros abastecidos
+    public function getMediaCombustivelAttribute(): ?float
+    {
+        if (! $this->total_litros || $this->total_litros <= 0) {
+            return null;
+        }
+
+        return round($this->km_rodados / $this->total_litros, 2);
+    }
+
     // Tipos de desconto que reduzem o saldo do motorista (débitos).
     // 'bonificacao' fica de fora: é um crédito, somado em vez de subtraído.
     private const TIPOS_DESCONTO_DEBITO = ['vale', 'multa', 'adiantamento', 'outros'];

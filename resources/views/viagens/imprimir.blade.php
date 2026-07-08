@@ -354,7 +354,12 @@
             @if($viagem->km_rodados > 0)
             <tr>
                 <td class="label">KM Rodados</td>
-                <td class="value" colspan="3">{{ number_format($viagem->km_rodados, 0, ',', '.') }} km</td>
+                <td class="value" colspan="3">
+                    {{ number_format($viagem->km_rodados, 0, ',', '.') }} km
+                    @if($viagem->media_combustivel !== null)
+                        — Média: {{ number_format($viagem->media_combustivel, 2, ',', '.') }} km/L ({{ number_format($viagem->total_litros, 2, ',', '.') }} L)
+                    @endif
+                </td>
             </tr>
             @endif
             @if($viagem->observacoes)

@@ -19,11 +19,13 @@ class PortalLancamentosController extends Controller
             'tipo'            => 'required|in:combustivel,manutencao,outros',
             'descricao'       => 'required|string|max:255',
             'valor'           => 'required|numeric|min:0',
+            'km_veiculo'      => 'nullable|integer|min:0',
+            'litros'          => 'nullable|numeric|min:0',
             'data_lancamento' => 'required|date',
             'comprovante'     => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        $lancamento = new Lancamento($request->only(['tipo', 'descricao', 'valor', 'data_lancamento']));
+        $lancamento = new Lancamento($request->only(['tipo', 'descricao', 'valor', 'km_veiculo', 'litros', 'data_lancamento']));
         $lancamento->viagem_id = $viagem->id;
         $lancamento->status = 'pendente';
         $lancamento->comprovante = $request->file('comprovante')

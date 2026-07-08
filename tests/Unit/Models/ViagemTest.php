@@ -148,6 +148,27 @@ class ViagemTest extends TestCase
         $this->assertEquals(0, $viagem->km_rodados);
     }
 
+    public function test_media_combustivel_calcula_km_por_litro(): void
+    {
+        $viagem = Viagem::factory()->create([
+            'km_inicial' => 1000,
+            'km_final'   => 1500,
+        ]);
+        Lancamento::factory()->combustivel()->create(['viagem_id' => $viagem->id, 'litros' => 50]);
+
+        $this->assertEquals(10.0, $viagem->fresh()->media_combustivel);
+    }
+
+    public function test_media_combustivel_e_nula_sem_litros_registrados(): void
+    {
+        $viagem = Viagem::factory()->create([
+            'km_inicial' => 1000,
+            'km_final'   => 1500,
+        ]);
+
+        $this->assertNull($viagem->media_combustivel);
+    }
+
     public function test_excluir_lancamento_recalcula_totais_da_viagem(): void
     {
         $viagem = Viagem::factory()->create();

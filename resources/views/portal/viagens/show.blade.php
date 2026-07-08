@@ -138,7 +138,7 @@
                     @csrf
                     <div class="row g-2">
                         <div class="col-sm-4">
-                            <select name="tipo" class="form-select form-select-sm" required>
+                            <select name="tipo" id="lancamento-tipo" class="form-select form-select-sm" required>
                                 <option value="">Tipo</option>
                                 <option value="combustivel">Combustível</option>
                                 <option value="manutencao">Manutenção</option>
@@ -150,6 +150,12 @@
                         </div>
                         <div class="col-sm-3">
                             <input type="number" name="valor" class="form-control form-control-sm" placeholder="Valor" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-6 d-none" id="lancamento-km-wrapper">
+                            <input type="number" name="km_veiculo" class="form-control form-control-sm" placeholder="KM do veículo" min="0">
+                        </div>
+                        <div class="col-6 d-none" id="lancamento-litros-wrapper">
+                            <input type="number" name="litros" class="form-control form-control-sm" placeholder="Litros abastecidos" step="0.01" min="0">
                         </div>
                         <input type="hidden" name="data_lancamento" value="{{ date('Y-m-d') }}">
                         <div class="col-9">
@@ -168,6 +174,23 @@
             </div>
             @endif
         </div>
+
+        @push('scripts')
+        <script>
+        (function () {
+            const tipo = document.getElementById('lancamento-tipo');
+            const kmWrapper = document.getElementById('lancamento-km-wrapper');
+            const litrosWrapper = document.getElementById('lancamento-litros-wrapper');
+            if (!tipo || !kmWrapper || !litrosWrapper) return;
+
+            tipo.addEventListener('change', function () {
+                const ehCombustivel = tipo.value === 'combustivel';
+                kmWrapper.classList.toggle('d-none', !ehCombustivel);
+                litrosWrapper.classList.toggle('d-none', !ehCombustivel);
+            });
+        })();
+        </script>
+        @endpush
 
         <div class="card mb-4">
             <div class="card-header bg-white fw-semibold">

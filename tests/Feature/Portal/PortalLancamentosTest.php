@@ -39,6 +39,29 @@ class PortalLancamentosTest extends TestCase
         $this->assertEquals(0, $viagem->fresh()->total_combustivel);
     }
 
+    public function test_motorista_pode_informar_km_e_litros_no_abastecimento(): void
+    {
+        Storage::fake('public');
+        $motorista = Motorista::factory()->comAcessoPortal()->create();
+        $viagem = Viagem::factory()->create(['motorista_id' => $motorista->id, 'status' => 'em_andamento']);
+
+        $response = $this->actingAs($motorista, 'motorista')->post(route('portal.lancamentos.store', $viagem), [
+            'tipo'            => 'combustivel',
+            'descricao'       => 'Abastecimento na BR-116',
+            'valor'           => 250,
+            'km_veiculo'      => 45230,
+            'litros'          => 60.5,
+            'data_lancamento' => now()->format('Y-m-d'),
+            'comprovante'     => UploadedFile::fake()->create('recibo.jpg', 100),
+        ]);
+
+        $response->assertRedirect(route('portal.viagens.show', $viagem));
+
+        $lancamento = Lancamento::firstOrFail();
+        $this->assertEquals(45230, $lancamento->km_veiculo);
+        $this->assertEquals(60.5, $lancamento->litros);
+    }
+
     public function test_comprovante_e_obrigatorio(): void
     {
         Storage::fake('public');
