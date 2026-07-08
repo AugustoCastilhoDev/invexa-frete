@@ -50,6 +50,50 @@ class RelatorioTest extends TestCase
         });
     }
 
+    public function test_filtro_padrao_inclui_viagem_com_frete_recebido_mesmo_sem_encerrar(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $dataDentro = Carbon::now()->startOfMonth()->addDays(2)->format('Y-m-d');
+
+        $recebida = Viagem::factory()->create([
+            'status'         => 'em_andamento',
+            'data_saida'     => $dataDentro,
+            'valor_frete'    => 900,
+            'frete_recebido' => true,
+        ]);
+
+        // aberta e sem recebimento confirmado: não deve entrar no padrão
+        Viagem::factory()->create([
+            'status'     => 'aberta',
+            'data_saida' => $dataDentro,
+        ]);
+
+        $response = $this->get(route('relatorios.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('totais', function ($totais) use ($recebida) {
+            return $totais['total_viagens'] === 1
+                && (float) $totais['frete'] === (float) $recebida->valor_frete;
+        });
+    }
+
+    public function test_filtro_padrao_nao_duplica_viagem_encerrada_e_com_frete_recebido(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        Viagem::factory()->encerrada()->create([
+            'data_saida'     => Carbon::now()->startOfMonth()->addDays(2)->format('Y-m-d'),
+            'valor_frete'    => 900,
+            'frete_recebido' => true,
+        ]);
+
+        $response = $this->get(route('relatorios.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('totais', fn ($totais) => $totais['total_viagens'] === 1);
+    }
+
     public function test_pdf_gera_documento_do_relatorio(): void
     {
         $this->actingAs(User::factory()->admin()->create());

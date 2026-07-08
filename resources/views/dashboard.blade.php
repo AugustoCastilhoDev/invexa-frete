@@ -43,7 +43,7 @@
                 <div class="fs-5 fw-bold" style="color:#f97316">
                     R$ {{ number_format($faturamentoMes, 2, ',', '.') }}
                 </div>
-                <div class="text-muted" style="font-size:.75rem">fretes encerrados</div>
+                <div class="text-muted" style="font-size:.75rem">encerrados ou com frete recebido</div>
             </div>
         </div>
     </div>

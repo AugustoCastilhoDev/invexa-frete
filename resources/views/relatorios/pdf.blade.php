@@ -61,7 +61,7 @@
             <h2>Relatório Financeiro</h2>
             <div>Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }}
                  a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}</div>
-            <div>Status: {{ ucfirst(str_replace('_', ' ', $statusSel)) }}</div>
+            <div>Status: {{ $statusSel === 'reconhecido' ? 'Faturamento Reconhecido (encerradas ou com frete recebido)' : ucfirst(str_replace('_', ' ', $statusSel)) }}</div>
             <div>Emitido em {{ now()->format('d/m/Y H:i') }}</div>
         </div>
     </div>

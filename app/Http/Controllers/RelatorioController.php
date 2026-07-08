@@ -81,7 +81,7 @@ class RelatorioController extends Controller
             fputcsv($saida, [
                 'Viagem', 'Motorista', 'Veículo', 'Origem', 'Destino', 'Saída',
                 'Frete', 'Combustível', 'Manutenção', 'Comissão Motorista',
-                'Descontos', 'Lucro Transportadora', 'Status',
+                'Descontos', 'Lucro Transportadora', 'Status', 'Frete Recebido',
             ], ';');
 
             foreach ($viagens as $viagem) {
@@ -99,6 +99,7 @@ class RelatorioController extends Controller
                     number_format($viagem->total_descontos, 2, ',', ''),
                     number_format($viagem->lucro_transportadora, 2, ',', ''),
                     ucfirst(str_replace('_', ' ', $viagem->status)),
+                    $viagem->frete_recebido ? 'Sim' : 'Não',
                 ], ';');
             }
 
@@ -112,7 +113,7 @@ class RelatorioController extends Controller
         $dataFim      = $request->input('data_fim', Carbon::now()->endOfMonth()->format('Y-m-d'));
         $motoristaSel = $request->input('motorista_id');
         $veiculoSel   = $request->input('veiculo_id');
-        $statusSel    = $request->input('status', 'encerrada');
+        $statusSel    = $request->input('status', 'reconhecido');
 
         $query = Viagem::with(['motorista', 'veiculo'])
             ->whereBetween('data_saida', [$dataInicio, $dataFim])
@@ -127,7 +128,13 @@ class RelatorioController extends Controller
             $query->where('veiculo_id', $veiculoSel);
         }
 
-        if ($statusSel !== 'todos') {
+        if ($statusSel === 'reconhecido') {
+            // Encerradas, ou com frete já recebido mesmo que o acerto não
+            // tenha fechado ainda — cada viagem entra uma única vez.
+            $query->where(function ($q) {
+                $q->where('status', 'encerrada')->orWhere('frete_recebido', true);
+            });
+        } elseif ($statusSel !== 'todos') {
             $query->where('status', $statusSel);
         }
 

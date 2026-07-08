@@ -61,12 +61,16 @@
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Status</label>
                     <select name="status" class="form-select form-select-sm">
+                        <option value="reconhecido"      {{ $statusSel === 'reconhecido'       ? 'selected' : '' }}>Faturamento Reconhecido</option>
                         <option value="todos"            {{ $statusSel === 'todos'             ? 'selected' : '' }}>Todos</option>
                         <option value="encerrada"        {{ $statusSel === 'encerrada'         ? 'selected' : '' }}>Encerradas</option>
                         <option value="aberta"           {{ $statusSel === 'aberta'            ? 'selected' : '' }}>Abertas</option>
                         <option value="em_andamento"     {{ $statusSel === 'em_andamento'      ? 'selected' : '' }}>Em Andamento</option>
                         <option value="aguardando_acerto"{{ $statusSel === 'aguardando_acerto' ? 'selected' : '' }}>Aguard. Acerto</option>
                     </select>
+                    @if($statusSel === 'reconhecido')
+                        <small class="text-muted">Encerradas ou com frete já recebido</small>
+                    @endif
                 </div>
                 <div class="col-md-1">
                     <button type="submit" class="btn btn-primary btn-sm w-100">

@@ -35,6 +35,45 @@ class DashboardTest extends TestCase
         $response->assertViewHas('totalViagensAbertas', 1);
     }
 
+    public function test_faturamento_do_mes_inclui_frete_recebido_mesmo_sem_a_viagem_encerrar(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Viagem::factory()->create([
+            'status'                 => 'em_andamento',
+            'valor_frete'            => 1000,
+            'lucro_transportadora'   => 800,
+            'frete_recebido'         => true,
+            'data_recebimento_frete' => now(),
+        ]);
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertViewHas('faturamentoMes', fn ($v) => (float) $v === 1000.0);
+        $response->assertViewHas('lucroMes', fn ($v) => (float) $v === 800.0);
+    }
+
+    public function test_faturamento_do_mes_nao_duplica_viagem_encerrada_e_com_frete_recebido(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Viagem::factory()->create([
+            'status'                 => 'encerrada',
+            'valor_frete'            => 1000,
+            'lucro_transportadora'   => 800,
+            'updated_at'             => now(),
+            'frete_recebido'         => true,
+            'data_recebimento_frete' => now(),
+        ]);
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertViewHas('faturamentoMes', fn ($v) => (float) $v === 1000.0);
+        $response->assertViewHas('lucroMes', fn ($v) => (float) $v === 800.0);
+    }
+
     public function test_grafico_retorna_json_com_labels_e_totais(): void
     {
         $this->actingAs(User::factory()->create());
