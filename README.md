@@ -37,9 +37,10 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Abertura e acompanhamento completo de viagens
 - Status: Aberta → Em Andamento → Aguardando Acerto → Encerrada
 - Lançamento de combustível, manutenção e outros gastos, com aprovação: lançamentos feitos pelo motorista pelo Portal ficam pendentes até um operador aprovar
+- Lançamentos de combustível registram KM do veículo e litros abastecidos, usados para calcular a **média de combustível (km/L)** da viagem
 - Controle de KM inicial e final
 - Adiantamento ao motorista (com opção de desconto ou não)
-- Descontos (vale, multa, outros)
+- Descontos (vale, multa, adiantamento, outros) e **Bonificação** (diária, prêmio — soma ao saldo do motorista em vez de subtrair)
 - Documentos fiscais (CT-e, MDF-e, NF-e), com botão para verificar a autenticidade direto no portal público oficial da SEFAZ pela chave de acesso — gratuito, sem certificado digital (MDF-e pede login gov.br do próprio usuário, os demais só captcha); documento sem chave mostra um aviso, e a chave pode ser adicionada/editada depois sem precisar excluir e relançar
 - Impressão de comprovante de acerto em PDF
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
@@ -90,6 +91,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Composição de despesas em gráfico
 - Exportação em PDF (landscape) e CSV
 - Acertos por Motorista com histórico individual
+- Média de combustível (km/L) do período, a partir do total de KM rodado e litros abastecidos
 - Separação de saldo a pagar vs total já pago
 - **DRE simplificado** por período (Receita → Custos Diretos → Resultado Bruto → Despesas Operacionais → Resultado Líquido), considerando apenas viagens encerradas, com exportação em PDF
 - **Despesas Gerais**: cadastro de custos administrativos (aluguel, salários, contas, seguro etc.) que alimentam o DRE
@@ -135,11 +137,13 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Login próprio do motorista (CPF + senha), separado da autenticação de usuários do sistema
 - Acesso liberado pelo admin na tela de edição do motorista, que define a senha inicial
 - Motorista vê só as próprias viagens/acertos e baixa o comprovante em PDF (com a assinatura digital, se já coletada)
-- Motorista lança combustível/manutenção com foto do comprovante direto da viagem — fica pendente até aprovação de um operador
+- Motorista lança combustível/manutenção com foto do comprovante direto da viagem, informando também KM do veículo e litros abastecidos quando for combustível — fica pendente até aprovação de um operador
 - Isolamento total: um motorista não acessa dados de outro, nem o painel administrativo
 
 ### 🌐 Landing Page
 - Página institucional pública na raiz (`/`) — hero, recursos, planos e preços, contato — visitante não autenticado vê a landing; quem já está logado (painel ou portal) é redirecionado direto para sua tela
+- Demonstração interativa em abas (Dashboard, Viagens, Acerto, Portal do Motorista): mockups ilustrativos em HTML/CSS com os dados e cores reais do sistema, sem depender de screenshots ou de dados de clientes
+- Acesso direto ao Portal do Motorista e ao login do painel no cabeçalho, ao lado do CTA "Falar com Vendas"
 - Tabela de planos com valores reais (mensal e anual) e CTA "Falar com Vendas" via WhatsApp, já com o nome do plano preenchido na mensagem
 
 ### 🌓 Painel responsivo e personalizável
@@ -157,7 +161,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Senha com política mínima (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa
 
 ### ✅ Qualidade
-- 330+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados e log de acesso
+- 345+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados e log de acesso
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -179,7 +183,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Internacionalização | laravel-lang/common (pt_BR) |
 | Gráficos | Chart.js |
 | CEP | ViaCEP API |
-| Testes | PHPUnit (330+ testes) |
+| Testes | PHPUnit (345+ testes) |
 | CI | GitHub Actions |
 
 ---

@@ -42,17 +42,20 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Abertura e acompanhamento completo de viagens
 - Status: Aberta → Em Andamento → Aguardando Acerto → Encerrada
 - Lançamento de combustível, manutenção e outros gastos, com aprovação: lançamentos feitos pelo próprio motorista (no Portal) ficam pendentes e só entram nos totais da viagem depois que um operador aprova
+- **KM do veículo e litros abastecidos** nos lançamentos de combustível (admin e Portal do Motorista), campos exibidos só quando o tipo é "Combustível"; alimentam a **média de combustível (km/L)** da viagem, exibida ao lado do KM Rodados na tela e no PDF
 - Controle de KM inicial e final
 - Adiantamento ao motorista (com opção de desconto ou não) — cálculo correto desde a abertura da viagem
-- Descontos (vale, multa, outros)
+- Descontos (vale, multa, adiantamento, outros) e **Bonificação** (diária, prêmio): mesma seção "Descontos e Bonificações", mas soma ao saldo do motorista em vez de subtrair — linha em verde com "+", distinta dos tipos de débito
 - Documentos fiscais (CT-e, MDF-e, NF-e), com botão para verificar autenticidade direto no portal público oficial da SEFAZ (chave de acesso), sem custo e sem certificado digital — CT-e/NF-e é só chave + captcha; MDF-e exige login gov.br do próprio usuário, por não ter consulta pública simples equivalente
-- Impressão de comprovante de acerto em PDF
+- Impressão de comprovante de acerto em PDF — Fix: o layout de duas colunas (Motorista/Veículo, Lançamentos/Descontos) usava `display:flex`, que o Dompdf não renderiza de forma confiável, ficando tudo empilhado em vez de lado a lado; trocado por layout em `<table>`, a mesma técnica já usada com sucesso no bloco Resumo Financeiro. O mesmo fix foi replicado no PDF de Acertos por Motorista
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 - Avanço de status direto na tela da viagem (Aberta → Em Andamento → Aguardando Acerto), sem precisar abrir a edição; não permite pular etapas, evitando reabrir uma viagem já encerrada por engano
 - **Assinatura digital do motorista**: captura a assinatura por canvas na tela da viagem (aguardando acerto ou encerrada), sem depender de app externo; a assinatura sai embutida no comprovante em PDF, com data/hora do momento em que foi coletada
 
 ### Financeiro / Acertos
 - Acertos por Motorista com histórico individual
+- **Média de combustível (km/L) do período**: soma do KM rodado e dos litros abastecidos em todas as viagens do filtro (motorista + período), exibida como card na tela, no PDF e como colunas extras no CSV
+- Bonificações do período somadas à parte, sem entrar no total de "Descontos" (que continua só com os tipos de débito)
 - Separação de saldo a pagar vs total já pago
 - Exportação em PDF e CSV
 
@@ -82,6 +85,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Limite de veículos por plano**: campo configurável por empresa (nulo = sem limite) que bloqueia o cadastro de um novo veículo ao atingir o teto contratado — pensado para o modelo de cobrança por faixa de frota (ex.: até 5 veículos = plano X). A própria tela de Veículos do cliente mostra "X / Y" e avisa quando o limite é atingido, sem precisar entrar em contato para descobrir
 - **Conjunto cavalo + carreta**: uma carreta pode ser vinculada a um cavalo mecânico (campo simples na tela de cadastro/edição); enquanto vinculada, conta como parte do mesmo conjunto no limite do plano (1 conjunto = 1 veículo cobrado); uma carreta avulsa, sem cavalo vinculado, volta a contar separadamente
 - Fix: login real do motorista (via sessão/cookie, diferente do `actingAs` usado nos testes) causava erro 500 por recursão infinita — resolver a empresa do guard `motorista` consultava o próprio model `Motorista`, escopado pela mesma empresa que ainda não tinha sido resolvida. Corrigido com uma trava de reentrância no `TenantContext`
+- Fix: o card "Frota / Motoristas" do Dashboard contava um conjunto cavalo + carreta vinculada como 2 veículos, divergindo do "X / Y" da tela de Veículos (que já aplicava a regra de contar como 1). Corrigido aplicando o mesmo scope `contamParaLimite()` no Dashboard
 
 ### Cobrança recorrente (Asaas)
 - Ao cadastrar uma empresa nova, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual); o limite de veículos é preenchido automaticamente pelo plano, mas continua editável para casos negociados à parte
@@ -128,12 +132,16 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Acesso concedido pelo admin na tela de edição do motorista, que define a senha inicial — sem autocadastro
 - Motorista vê só as próprias viagens e acertos, com detalhe somente leitura e download do comprovante em PDF (mesmo arquivo gerado para o admin, com a assinatura digital se já coletada)
 - Motorista pode lançar combustível/manutenção direto da viagem, anexando foto do comprovante — fica pendente até um operador aprovar ou rejeitar; só entra nos totais depois de aprovado
+- Lançamento de combustível no Portal também tem os campos de KM do veículo e litros abastecidos (mesmo mecanismo do admin), essencial pra média de combustível ter dados reais já que é o canal mais usado pra registrar abastecimento
+- Fix: comprovante limitado a 2MB rejeitava fotos comuns de câmera de celular sem mostrar erro nenhum na tela — nenhum dos dois layouts (admin/portal) renderizava `$errors` do Laravel, então qualquer falha de validação nos formulários rápidos de lançamento/desconto falhava silenciosamente. Corrigido: limite subiu para 5MB e os dois layouts agora exibem um alerta com a mensagem de erro
 - Isolamento total entre motoristas (um não acessa dado do outro) e entre o portal e o painel administrativo
 - Troca de senha pelo próprio motorista
 
 ### Landing Page
 - Página institucional pública na raiz (`/`), servida a visitantes; usuário/motorista autenticado que acessa `/` é redirecionado direto para o dashboard/portal, sem ver a landing
-- Seções: hero com CTA, recursos do sistema, planos e preços (Starter/Pro/Business/Enterprise, com destaque no plano mais escolhido), e contato
+- Seções: hero com CTA, recursos do sistema, demonstração interativa, planos e preços (Starter/Pro/Business/Enterprise, com destaque no plano mais escolhido), e contato
+- **Demonstração interativa** ("Veja como é por dentro"): abas clicáveis (Dashboard, Viagens, Acerto, Portal do Motorista) com mockups em HTML/CSS puro — sidebar, KPIs, tabelas e o mockup do Portal em formato de celular —, reaproveitando as cores/badges reais do sistema; usada no lugar de screenshots porque ainda não há dados reais de cliente suficientes para uma demo autêntica
+- Acesso direto ao Portal do Motorista no cabeçalho, ao lado de "Entrar" e "Falar com Vendas" (rótulo curto "Portal" no mobile, pra não espremer o botão de CTA)
 - Tabela de planos exibida com valores reais (mensal e anual), teto de veículos por plano e taxa de implantação — CTA "Falar com Vendas" leva ao WhatsApp com a mensagem já preenchida com o nome do plano
 - Sem cadastro self-service ainda: toda venda passa por contato manual (WhatsApp/e-mail); a empresa continua sendo criada pelo super admin na tela `/empresas` depois do primeiro contato
 
@@ -149,7 +157,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Favicon próprio (caminhão sobre o gradiente laranja da marca) em todas as telas — o `favicon.ico` do scaffold original estava vazio (0 bytes)
 
 ### Infraestrutura de qualidade
-- 332 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
+- 345 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ### Deploy em produção
