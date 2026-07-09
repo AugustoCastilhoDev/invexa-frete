@@ -216,7 +216,7 @@
                     <iframe src="https://www.youtube-nocookie.com/embed/hcDeWR4BTeM"
                             title="Demonstração do Invexa Frete"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowfullscreen loading="lazy" style="border:0"></iframe>
+                            allowfullscreen style="border:0"></iframe>
                 </div>
             </div>
         </div>
