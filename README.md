@@ -114,6 +114,12 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Webhook (`/webhooks/asaas`, protegido por token) registra o status de cada evento de pagamento na empresa — suspensão por inadimplência continua sendo uma decisão manual do super admin
 - Badge de situação de cobrança (Em dia / Atrasado / Em trial / Sem assinatura / Reembolsado) na listagem de empresas, clicável, levando direto à seção de Cobrança de cada uma
 
+### 📄 Emissão de CT-e/MDF-e (Focus NFe)
+- Estrutura completa de emissão real de CT-e/MDF-e via [Focus NFe](https://focusnfe.com.br/), mas **desligada por padrão** — fica inerte para toda empresa até um super admin ativar manualmente para uma cliente específica (nenhum plano da Focus é contratado até haver demanda real; ver ROADMAP.md para o contexto)
+- Ativação em `/empresas/{id}`: upload do certificado digital A1 (.pfx) + senha, escolha de ambiente (homologação/produção) — token retornado pela Focus é guardado criptografado
+- Com a integração ativa, a tela da viagem ganha os botões "Emitir CT-e"/"Emitir MDF-e"; ao autorizar, o XML e o DACTE/DAMDFE são baixados dos servidores da Focus e guardados no nosso próprio storage, disponíveis para download junto com os documentos lançados manualmente
+- Webhook (`/webhooks/focus-nfe`, protegido por token) atualiza o status de cada emissão — nunca desativa a empresa nem toma nenhuma ação automática sozinho
+
 ### 👥 Usuários & Permissões
 - Papéis: **super admin** (gerencia empresas clientes), **admin** (gerencia usuários da própria empresa e vê tudo dela) e **operador** (acesso operacional do dia a dia)
 - Operador acessa Viagens, Motoristas, Veículos, Clientes, Lançamentos, Descontos, Documentos, Manutenções e Acertos — mas **não** vê DRE, Relatórios Financeiros nem Despesas Gerais (informação estratégica/administrativa), **não** exclui registros e **não** exclui a própria conta (só o admin apaga)
@@ -355,6 +361,12 @@ R2_ENDPOINT=https://SEU_ACCOUNT_ID.r2.cloudflarestorage.com
 ASAAS_API_KEY=sua_chave_de_producao
 ASAAS_ENV=production
 ASAAS_WEBHOOK_TOKEN=um_token_que_voce_cadastra_tambem_no_painel_do_asaas
+
+# Emissão de CT-e/MDF-e (Focus NFe) — opcional; sem isso, a ativação por
+# empresa em /empresas/{id} simplesmente falha com aviso no log, sem travar
+# o resto do sistema. Só preencher quando um plano for realmente contratado.
+FOCUS_NFE_TOKEN_CONTA_PRINCIPAL=
+FOCUS_NFE_WEBHOOK_TOKEN=
 
 # Backup automático — sem a senha, o backup roda sem criptografia (não recomendado)
 BACKUP_ARCHIVE_PASSWORD=uma_senha_forte_so_para_os_backups
