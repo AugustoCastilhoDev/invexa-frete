@@ -8,6 +8,9 @@ use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class EmissaoFiscal extends Model
 {
@@ -77,23 +80,71 @@ class EmissaoFiscal extends Model
      */
     public function aplicarRespostaFocus(array $payload): void
     {
+        $novoStatus = $payload['status'] ?? $this->status;
+
+        $arquivoXml = $this->arquivo_xml;
+        $arquivoPdf = $this->arquivo_pdf;
+
+        // Só baixa quando de fato autorizado — antes disso a Focus normalmente
+        // não tem XML/DACTE gerado ainda.
+        if ($novoStatus === 'autorizado') {
+            if ($urlXml = $payload['caminho_xml'] ?? null) {
+                $arquivoXml = $this->baixarEArmazenar($urlXml, 'xml') ?? $arquivoXml;
+            }
+
+            if ($urlPdf = $payload['caminho_danfe'] ?? $payload['caminho_damdfe'] ?? null) {
+                $arquivoPdf = $this->baixarEArmazenar($urlPdf, 'pdf') ?? $arquivoPdf;
+            }
+        }
+
         $this->update([
-            'status'         => $payload['status'] ?? $this->status,
+            'status'         => $novoStatus,
             'chave_acesso'   => $payload['chave_nfe'] ?? $payload['chave'] ?? $this->chave_acesso,
             'numero'         => $payload['numero'] ?? $this->numero,
             'serie'          => $payload['serie'] ?? $this->serie,
             'protocolo_autorizacao' => $payload['protocolo'] ?? $this->protocolo_autorizacao,
             'codigo_erro'    => $payload['codigo'] ?? null,
             'mensagem_erro'  => $payload['mensagem'] ?? null,
-            'arquivo_xml'    => $payload['caminho_xml'] ?? $this->arquivo_xml,
-            'arquivo_pdf'    => $payload['caminho_danfe'] ?? $payload['caminho_damdfe'] ?? $this->arquivo_pdf,
+            'arquivo_xml'    => $arquivoXml,
+            'arquivo_pdf'    => $arquivoPdf,
             'payload_resposta' => $payload,
-            'autorizado_em'  => ($payload['status'] ?? null) === 'autorizado' ? now() : $this->autorizado_em,
+            'autorizado_em'  => $novoStatus === 'autorizado' ? now() : $this->autorizado_em,
         ]);
 
         if ($this->status === 'autorizado') {
             $this->sincronizarDocumento();
         }
+    }
+
+    /**
+     * A Focus NFe devolve o XML/DACTE como arquivo hospedado nos servidores
+     * dela, não no nosso storage — baixamos e guardamos no disco configurado
+     * (mesmo padrão dos uploads manuais em DocumentosController) para que o
+     * link de download na tela seja permanente, e não dependa de uma URL
+     * externa/temporária. Falha aqui nunca deve derrubar a atualização de
+     * status vinda do webhook — só loga e segue sem arquivo.
+     */
+    private function baixarEArmazenar(string $url, string $extensao): ?string
+    {
+        try {
+            $response = Http::timeout(10)->get($url);
+        } catch (\Throwable $e) {
+            Log::warning("EmissaoFiscal #{$this->id}: falha ao baixar arquivo da Focus NFe.", ['url' => $url, 'erro' => $e->getMessage()]);
+
+            return null;
+        }
+
+        if ($response->failed()) {
+            Log::warning("EmissaoFiscal #{$this->id}: resposta de erro ao baixar arquivo da Focus NFe.", ['url' => $url, 'status' => $response->status()]);
+
+            return null;
+        }
+
+        $path = "documentos/{$this->referencia}.{$extensao}";
+
+        Storage::disk(config('filesystems.uploads_disk'))->put($path, $response->body());
+
+        return $path;
     }
 
     private function sincronizarDocumento(): void

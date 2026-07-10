@@ -5,6 +5,8 @@ namespace Tests\Unit\Models;
 use App\Models\Documento;
 use App\Models\EmissaoFiscal;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class EmissaoFiscalTest extends TestCase
@@ -40,6 +42,55 @@ class EmissaoFiscalTest extends TestCase
         $this->assertSame('autorizado', $documento->status);
         $this->assertSame('35250000000000000000550010000000011000000017', $documento->chave_acesso);
         $this->assertSame($emissao->viagem_id, $documento->viagem_id);
+    }
+
+    public function test_aplicar_resposta_autorizado_baixa_e_armazena_xml_e_pdf(): void
+    {
+        Storage::fake(config('filesystems.uploads_disk'));
+        Http::fake([
+            'https://focus.example/arquivo.xml' => Http::response('<xml>conteudo</xml>', 200),
+            'https://focus.example/arquivo.pdf' => Http::response('%PDF-conteudo', 200),
+        ]);
+
+        $emissao = EmissaoFiscal::factory()->create(['tipo' => 'cte', 'referencia' => 'ref-download-1']);
+
+        $emissao->aplicarRespostaFocus([
+            'status' => 'autorizado',
+            'chave_nfe' => str_repeat('1', 44),
+            'numero' => '123456',
+            'caminho_xml' => 'https://focus.example/arquivo.xml',
+            'caminho_danfe' => 'https://focus.example/arquivo.pdf',
+        ]);
+
+        $emissao->refresh();
+        $this->assertSame('documentos/ref-download-1.xml', $emissao->arquivo_xml);
+        $this->assertSame('documentos/ref-download-1.pdf', $emissao->arquivo_pdf);
+        Storage::disk(config('filesystems.uploads_disk'))->assertExists('documentos/ref-download-1.xml');
+        Storage::disk(config('filesystems.uploads_disk'))->assertExists('documentos/ref-download-1.pdf');
+
+        $documento = Documento::findOrFail($emissao->documento_id);
+        $this->assertSame('documentos/ref-download-1.pdf', $documento->arquivo);
+    }
+
+    public function test_falha_ao_baixar_arquivo_nao_impede_atualizacao_de_status(): void
+    {
+        Storage::fake(config('filesystems.uploads_disk'));
+        Http::fake([
+            'https://focus.example/arquivo.pdf' => Http::response('erro', 500),
+        ]);
+
+        $emissao = EmissaoFiscal::factory()->create(['tipo' => 'cte', 'referencia' => 'ref-download-2']);
+
+        $emissao->aplicarRespostaFocus([
+            'status' => 'autorizado',
+            'numero' => '123456',
+            'caminho_danfe' => 'https://focus.example/arquivo.pdf',
+        ]);
+
+        $emissao->refresh();
+        $this->assertSame('autorizado', $emissao->status);
+        $this->assertNull($emissao->arquivo_pdf);
+        $this->assertNotNull($emissao->documento_id);
     }
 
     public function test_aplicar_resposta_de_erro_nao_cria_documento(): void

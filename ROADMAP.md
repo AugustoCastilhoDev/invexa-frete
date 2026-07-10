@@ -70,6 +70,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Botões "Emitir CT-e"/"Emitir MDF-e" na tela da viagem só aparecem quando a empresa tem a integração ativa
 - Emissão roda síncrona (sem fila) — a própria API da Focus já é assíncrona (retorna `processando_autorizacao` e confirma depois via webhook), então não havia necessidade de introduzir o primeiro job em fila do sistema
 - `montarPayload()` no controller é só um scaffold da estrutura de seções exigida pela Focus — o mapeamento campo-a-campo completo (endereços estruturados, ICMS, etc.) fica para quando a feature for realmente ativada para o primeiro cliente
+- Ao autorizar, `EmissaoFiscal` baixa o XML e o DACTE/DAMDFE das URLs devolvidas pela Focus e guarda no nosso próprio disco (mesmo padrão dos uploads manuais) em vez de apontar pra um link externo/temporário — assim o botão de download na tela funciona igual a um documento lançado manualmente. Falha no download nunca derruba a atualização de status (só loga e segue sem arquivo)
 - Reajuste silencioso nos planos (Starter/Pro/Business, +~R$49–59/mês) já cobre o custo futuro da assinatura Focus NFe — a landing page não anuncia a feature até estar de fato ligada para um cliente real
 
 ### Financeiro / Acertos
