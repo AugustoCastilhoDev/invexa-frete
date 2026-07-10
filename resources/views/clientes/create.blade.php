@@ -190,18 +190,24 @@
 
     // ── Máscara CNPJ/CPF
     inputDoc.addEventListener('input', function () {
-        let v = this.value.replace(/\D/g, '');
         if (tipoPessoa.value === 'juridica') {
-            v = v.replace(/^(\d{2})(\d)/, '$1.$2');
-            v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-            v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
-            v = v.replace(/(\d{4})(\d)/, '$1-$2');
+            // CNPJ alfanumérico (Receita Federal): os 12 primeiros caracteres
+            // (raiz + ordem) podem ser letras ou números; os 2 dígitos
+            // verificadores finais continuam sempre numéricos.
+            let raw = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            let v = raw.slice(0, 12) + raw.slice(12, 14).replace(/\D/g, '');
+            v = v.replace(/^([A-Z0-9]{2})([A-Z0-9])/, '$1.$2');
+            v = v.replace(/^([A-Z0-9]{2})\.([A-Z0-9]{3})([A-Z0-9])/, '$1.$2.$3');
+            v = v.replace(/\.([A-Z0-9]{3})([A-Z0-9])/, '.$1/$2');
+            v = v.replace(/([A-Z0-9]{4})(\d{1,2})$/, '$1-$2');
+            this.value = v;
         } else {
+            let v = this.value.replace(/\D/g, '');
             v = v.replace(/(\d{3})(\d)/, '$1.$2');
             v = v.replace(/(\d{3})(\d)/, '$1.$2');
             v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            this.value = v;
         }
-        this.value = v;
     });
 
     // ── Máscara Telefone

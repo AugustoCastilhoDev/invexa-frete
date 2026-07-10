@@ -46,14 +46,23 @@ class Cliente extends Model
         return $this->hasMany(Viagem::class);
     }
 
-    // Accessor: documento formatado
+    // Accessor: documento formatado. Usa posição (não \d) para também suportar
+    // o CNPJ alfanumérico da Receita Federal (raiz+ordem podem ter letras;
+    // só os 2 dígitos verificadores finais continuam numéricos) — um CNPJ
+    // desse tipo não bate mais com um regex \d{14}.
     public function getDocumentoFormatadoAttribute(): string
     {
-        $doc = preg_replace('/\D/', '', $this->cpf_cnpj);
+        $doc = preg_replace('/[^A-Za-z0-9]/', '', (string) $this->cpf_cnpj);
+
         if (strlen($doc) === 11) {
-            return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $doc);
+            return substr($doc, 0, 3).'.'.substr($doc, 3, 3).'.'.substr($doc, 6, 3).'-'.substr($doc, 9, 2);
         }
-        return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $doc);
+
+        if (strlen($doc) === 14) {
+            return substr($doc, 0, 2).'.'.substr($doc, 2, 3).'.'.substr($doc, 5, 3).'/'.substr($doc, 8, 4).'-'.substr($doc, 12, 2);
+        }
+
+        return (string) $this->cpf_cnpj;
     }
 
     // Accessor: documento mascarado (CPF de pessoa física é dado pessoal; CNPJ não)
@@ -63,7 +72,7 @@ class Cliente extends Model
             return $this->documento_formatado;
         }
 
-        $doc = preg_replace('/\D/', '', $this->cpf_cnpj);
+        $doc = preg_replace('/[^A-Za-z0-9]/', '', (string) $this->cpf_cnpj);
 
         if (strlen($doc) !== 11) {
             return $this->documento_formatado;

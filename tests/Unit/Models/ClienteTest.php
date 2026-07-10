@@ -24,6 +24,16 @@ class ClienteTest extends TestCase
         $this->assertEquals('12.345.678/0001-99', $cliente->documento_formatado);
     }
 
+    public function test_documento_formatado_para_cnpj_alfanumerico(): void
+    {
+        // Novo formato da Receita Federal: raiz + ordem (12 primeiros
+        // caracteres) podem ter letras; só os 2 dígitos verificadores finais
+        // continuam numéricos.
+        $cliente = Cliente::factory()->create(['cpf_cnpj' => '12.ABC.345/0001-99']);
+
+        $this->assertEquals('12.ABC.345/0001-99', $cliente->documento_formatado);
+    }
+
     public function test_endereco_completo_concatena_partes_preenchidas(): void
     {
         $cliente = Cliente::factory()->create([
