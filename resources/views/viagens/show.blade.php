@@ -293,11 +293,15 @@
                     @if($viagem->empresa->focus_nfe_ativo && $viagem->status !== 'encerrada')
                     <form action="{{ route('viagens.emissoes-fiscais.store', [$viagem, 'cte']) }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-primary">Emitir CT-e</button>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-send me-1"></i>Emitir CT-e
+                        </button>
                     </form>
                     <form action="{{ route('viagens.emissoes-fiscais.store', [$viagem, 'mdfe']) }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-primary">Emitir MDF-e</button>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-send me-1"></i>Emitir MDF-e
+                        </button>
                     </form>
                     @endif
                     <span class="badge bg-secondary">{{ $viagem->documentos->count() }}</span>
@@ -319,7 +323,9 @@
                     </span>
                     <form action="{{ route('emissoes-fiscais.atualizar-status', $emissao) }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-secondary">Atualizar status</button>
+                        <button type="submit" class="btn btn-sm btn-secondary">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Atualizar status
+                        </button>
                     </form>
                 </div>
                 @endforeach
