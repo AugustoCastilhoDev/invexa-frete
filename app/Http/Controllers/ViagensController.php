@@ -178,9 +178,10 @@ class ViagensController extends Controller
     public function show(Viagem $viagem)
     {
         $viagem->load([
-            'motorista', 'veiculo', 'cliente',
+            'motorista', 'veiculo', 'cliente', 'empresa',
             'criadoPor', 'atualizadoPor',
             'lancamentos.criadoPor', 'descontos.criadoPor', 'documentos.criadoPor',
+            'emissoesFiscais',
         ]);
 
         $programacaoPendente = ProgramacaoViagem::where('status', 'pendente')

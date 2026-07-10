@@ -289,8 +289,42 @@
         <div class="card border-start border-3" style="border-color:#3b82f6!important">
             <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-file-earmark-text me-2 text-primary"></i>Documentos Fiscais</span>
-                <span class="badge bg-secondary">{{ $viagem->documentos->count() }}</span>
+                <div class="d-flex align-items-center gap-2">
+                    @if($viagem->empresa->focus_nfe_ativo && $viagem->status !== 'encerrada')
+                    <form action="{{ route('viagens.emissoes-fiscais.store', [$viagem, 'cte']) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Emitir CT-e</button>
+                    </form>
+                    <form action="{{ route('viagens.emissoes-fiscais.store', [$viagem, 'mdfe']) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Emitir MDF-e</button>
+                    </form>
+                    @endif
+                    <span class="badge bg-secondary">{{ $viagem->documentos->count() }}</span>
+                </div>
             </div>
+            @php
+                $emissoesPendentes = $viagem->emissoesFiscais->whereNotIn('status', ['autorizado']);
+            @endphp
+            @if($emissoesPendentes->isNotEmpty())
+            <div class="card-body border-bottom py-2">
+                @foreach($emissoesPendentes as $emissao)
+                <div class="d-flex justify-content-between align-items-center small py-1">
+                    <span>
+                        <span class="badge bg-warning text-dark">{{ $emissao->tipo_formatado }}</span>
+                        {{ $emissao->status }}
+                        @if($emissao->mensagem_erro)
+                            — <span class="text-danger">{{ $emissao->mensagem_erro }}</span>
+                        @endif
+                    </span>
+                    <form action="{{ route('emissoes-fiscais.atualizar-status', $emissao) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Atualizar status</button>
+                    </form>
+                </div>
+                @endforeach
+            </div>
+            @endif
             <div class="card-body p-0">
                 <div class="table-responsive">
                 <table class="table table-sm table-hover mb-0">

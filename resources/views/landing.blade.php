@@ -646,17 +646,17 @@
                     $planos = [
                         [
                             'nome' => 'Starter', 'limite' => 'até 5 veículos',
-                            'mensal' => '590', 'anual' => '492',
+                            'mensal' => '639', 'anual' => '533',
                             'destaque' => false,
                         ],
                         [
                             'nome' => 'Pro', 'limite' => 'até 15 veículos',
-                            'mensal' => '1.290', 'anual' => '1.075',
+                            'mensal' => '1.339', 'anual' => '1.116',
                             'destaque' => true,
                         ],
                         [
                             'nome' => 'Business', 'limite' => 'até 30 veículos',
-                            'mensal' => '2.190', 'anual' => '1.825',
+                            'mensal' => '2.249', 'anual' => '1.874',
                             'destaque' => false,
                         ],
                     ];

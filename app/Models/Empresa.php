@@ -21,10 +21,22 @@ class Empresa extends Model
         'asaas_subscription_id',
         'asaas_status',
         'asaas_last_event_at',
+        'focus_nfe_ativo',
+        'focus_nfe_ambiente',
+        'focus_nfe_empresa_id',
+        'focus_nfe_token',
+        'focus_nfe_status',
+        'focus_nfe_certificado_path',
+        'focus_nfe_certificado_senha',
+        'focus_nfe_certificado_validade',
     ];
 
     protected $casts = [
         'asaas_last_event_at' => 'datetime',
+        'focus_nfe_ativo' => 'boolean',
+        'focus_nfe_token' => 'encrypted',
+        'focus_nfe_certificado_senha' => 'encrypted',
+        'focus_nfe_certificado_validade' => 'date',
     ];
 
     public function usuarios()

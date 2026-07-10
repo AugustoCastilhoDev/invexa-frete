@@ -19,4 +19,13 @@ class EmpresaFactory extends Factory
     {
         return $this->state(fn () => ['status' => 'inativo']);
     }
+
+    public function focusNfeAtivo(): static
+    {
+        return $this->state(fn () => [
+            'focus_nfe_ativo' => true,
+            'focus_nfe_ambiente' => 'homologacao',
+            'focus_nfe_token' => 'token-teste',
+        ]);
+    }
 }

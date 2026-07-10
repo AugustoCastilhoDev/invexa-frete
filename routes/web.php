@@ -20,10 +20,13 @@ use App\Http\Controllers\DreController;
 use App\Http\Controllers\MotoristaPortalAccessController;
 use App\Http\Controllers\NotificacoesController;
 use App\Http\Controllers\EmpresasController;
+use App\Http\Controllers\EmissoesFiscaisController;
 use App\Http\Controllers\Webhooks\AsaasWebhookController;
+use App\Http\Controllers\Webhooks\FocusNfeWebhookController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 
 Route::post('webhooks/asaas', AsaasWebhookController::class)->name('webhooks.asaas');
+Route::post('webhooks/focus-nfe', FocusNfeWebhookController::class)->name('webhooks.focus-nfe');
 
 Route::get('/', function () {
     if (auth('web')->check()) {
@@ -78,6 +81,10 @@ Route::middleware(['auth', 'super_admin'])->group(function () {
         ->name('empresas.suporte.iniciar');
     Route::post('empresas/{empresa}/assinatura', [EmpresasController::class, 'criarAssinatura'])
         ->name('empresas.assinatura.criar');
+    Route::post('empresas/{empresa}/focus-nfe/ativar', [EmpresasController::class, 'ativarFocusNfe'])
+        ->name('empresas.focus-nfe.ativar');
+    Route::patch('empresas/{empresa}/focus-nfe/desativar', [EmpresasController::class, 'desativarFocusNfe'])
+        ->name('empresas.focus-nfe.desativar');
 });
 
 // Área operacional — escopada por empresa, o super admin (sem empresa) não acessa
@@ -193,6 +200,12 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         ->name('documentos.update');
     Route::delete('documentos/{documento}', [DocumentosController::class, 'destroy'])
         ->middleware('admin')->name('documentos.destroy');
+
+    Route::post('viagens/{viagem}/emissoes-fiscais/{tipo}', [EmissoesFiscaisController::class, 'store'])
+        ->whereIn('tipo', ['cte', 'mdfe'])
+        ->name('viagens.emissoes-fiscais.store');
+    Route::post('emissoes-fiscais/{emissaoFiscal}/atualizar-status', [EmissoesFiscaisController::class, 'atualizarStatus'])
+        ->name('emissoes-fiscais.atualizar-status');
 
     Route::get('/dashboard/grafico', [DashboardController::class, 'grafico'])
     ->name('dashboard.grafico');

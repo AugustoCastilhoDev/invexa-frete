@@ -128,6 +128,12 @@ class Viagem extends Model
     {
         return $this->hasMany(Documento::class);
     }
+
+    // Viagem tem muitas emissões fiscais (CT-e/MDF-e via Focus NFe)
+    public function emissoesFiscais()
+    {
+        return $this->hasMany(EmissaoFiscal::class);
+    }
     // Próximo status no fluxo (aberta → em_andamento → aguardando_acerto).
     // O encerramento tem sua própria ação (rota "encerrar"), por isso não entra aqui.
     private const PROXIMO_STATUS = [

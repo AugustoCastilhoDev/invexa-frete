@@ -63,6 +63,15 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Confirmação é sempre manual — encerrar a viagem atual não abre a próxima automaticamente; o botão "Confirmar" leva ao formulário normal de nova viagem, já pré-preenchido, e ao salvar marca a programação como confirmada e vinculada à viagem criada
 - Valor do frete opcional na programação (útil quando já negociado), pré-preenchido no formulário de nova viagem ao confirmar
 
+### Emissão de CT-e/MDF-e (Focus NFe) — estrutura pronta, desligada por padrão
+- Módulo completo de emissão real de CT-e/MDF-e via API da Focus NFe, mas **inerte para todo cliente até um super_admin ativar manualmente** para uma empresa específica — nenhum plano da Focus foi contratado ainda; ver `[[cte_mdfe_focus_nfe]]` na memória do projeto para o contexto da decisão
+- Modelo `EmissaoFiscal` deliberadamente separado de `Documento` (que continua enxuto, só para lançamento manual) — quando a Focus autoriza um documento, `EmissaoFiscal` cria/atualiza a linha correspondente em `Documento`, então o card "Documentos Fiscais" da viagem não precisou de nenhuma mudança para exibir emissões reais
+- Ativação por empresa em `/empresas/{id}`: upload do certificado digital A1 (.pfx) + senha, ambiente (homologação/produção); token retornado pela Focus fica em coluna `encrypted`
+- Botões "Emitir CT-e"/"Emitir MDF-e" na tela da viagem só aparecem quando a empresa tem a integração ativa
+- Emissão roda síncrona (sem fila) — a própria API da Focus já é assíncrona (retorna `processando_autorizacao` e confirma depois via webhook), então não havia necessidade de introduzir o primeiro job em fila do sistema
+- `montarPayload()` no controller é só um scaffold da estrutura de seções exigida pela Focus — o mapeamento campo-a-campo completo (endereços estruturados, ICMS, etc.) fica para quando a feature for realmente ativada para o primeiro cliente
+- Reajuste silencioso nos planos (Starter/Pro/Business, +~R$49–59/mês) já cobre o custo futuro da assinatura Focus NFe — a landing page não anuncia a feature até estar de fato ligada para um cliente real
+
 ### Financeiro / Acertos
 - Acertos por Motorista com histórico individual
 - **Média de combustível (km/L) do período**: soma do KM rodado e dos litros abastecidos em todas as viagens do filtro (motorista + período), exibida como card na tela, no PDF e como colunas extras no CSV

@@ -41,4 +41,9 @@ return [
         'webhook_token' => env('ASAAS_WEBHOOK_TOKEN'),
     ],
 
+    'focus_nfe' => [
+        'token_conta_principal' => env('FOCUS_NFE_TOKEN_CONTA_PRINCIPAL'),
+        'webhook_token' => env('FOCUS_NFE_WEBHOOK_TOKEN'),
+    ],
+
 ];

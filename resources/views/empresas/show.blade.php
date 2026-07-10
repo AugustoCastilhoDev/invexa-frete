@@ -174,6 +174,89 @@
     </div>
 </div>
 
+{{-- Integração Fiscal (Focus NFe) --}}
+<div class="card mb-4" id="focus-nfe">
+    <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-file-earmark-text me-1"></i> Integração Fiscal — Emissão de CT-e/MDF-e
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3 col-6">
+                <div class="text-muted" style="font-size:.75rem">Status</div>
+                <div class="fw-semibold">
+                    @if($empresa->focus_nfe_ativo)
+                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Ativo</span>
+                    @else
+                        <span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i>Inativo</span>
+                    @endif
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-muted" style="font-size:.75rem">Ambiente</div>
+                <div class="fw-semibold">{{ $empresa->focus_nfe_ambiente ? ucfirst($empresa->focus_nfe_ambiente) : '-' }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-muted" style="font-size:.75rem">Status Focus NFe</div>
+                <div class="fw-semibold">{{ $empresa->focus_nfe_status ?? '-' }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-muted" style="font-size:.75rem">Validade do certificado</div>
+                <div class="fw-semibold">{{ $empresa->focus_nfe_certificado_validade?->format('d/m/Y') ?? '-' }}</div>
+            </div>
+        </div>
+
+        @if($empresa->focus_nfe_ativo)
+        <div class="border-top pt-3 mt-3">
+            <form action="{{ route('empresas.focus-nfe.desativar', $empresa) }}" method="POST"
+                  onsubmit="return confirm('Desativar a emissão de CT-e/MDF-e para esta empresa? As emissões já feitas não são afetadas.');">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-x-circle me-1"></i> Desativar Focus NFe
+                </button>
+            </form>
+        </div>
+        @else
+        <div class="border-top pt-3 mt-3">
+            <div class="alert alert-light border py-2">
+                <i class="bi bi-info-circle me-1 text-muted"></i>
+                Ativação manual — só use quando esta transportadora realmente for
+                emitir CT-e/MDF-e pelo sistema. Requer o certificado digital A1
+                (.pfx) da empresa.
+            </div>
+            <form action="{{ route('empresas.focus-nfe.ativar', $empresa) }}" method="POST"
+                  enctype="multipart/form-data" class="row g-2 align-items-end">
+                @csrf
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Ambiente</label>
+                    <select name="ambiente" class="form-select form-select-sm" required>
+                        <option value="homologacao">Homologação</option>
+                        <option value="producao">Produção</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Certificado (.pfx)</label>
+                    <input type="file" name="certificado" class="form-control form-control-sm" accept=".pfx,.p12" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Senha do certificado</label>
+                    <input type="password" name="certificado_senha" class="form-control form-control-sm" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Validade</label>
+                    <input type="date" name="certificado_validade" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plug me-1"></i> Ativar Focus NFe
+                    </button>
+                </div>
+            </form>
+        </div>
+        @endif
+    </div>
+</div>
+
 <script>
     (function () {
         const plano = document.getElementById('plano-assinatura');

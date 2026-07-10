@@ -11,9 +11,11 @@ use App\Models\Veiculo;
 use App\Models\Viagem;
 use App\Services\Asaas\AsaasClient;
 use App\Services\Asaas\PlanoPricing;
+use App\Services\FocusNfe\FocusNfeClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -185,6 +187,70 @@ class EmpresasController extends Controller
 
         return redirect()->route('empresas.index')
             ->with('success', 'Empresa atualizada com sucesso!');
+    }
+
+    /**
+     * Ativa a emissão de CT-e/MDF-e para esta empresa: recebe o certificado
+     * digital A1 do cliente, registra a empresa como sub-empresa da conta
+     * principal da Invexa na Focus NFe, e guarda o token retornado. Ação
+     * sempre manual — nunca disparada por self-service do tenant nem por
+     * nenhum webhook.
+     */
+    public function ativarFocusNfe(Request $request, Empresa $empresa, FocusNfeClient $focusNfe)
+    {
+        $request->validate([
+            'ambiente'              => 'required|in:homologacao,producao',
+            'certificado'           => 'required|file|mimes:pfx,p12|max:5120',
+            'certificado_senha'     => 'required|string|max:100',
+            'certificado_validade'  => 'nullable|date',
+        ]);
+
+        $certificadoPath = $request->file('certificado')
+            ->store('certificados', config('filesystems.uploads_disk'));
+
+        $resultado = $focusNfe->registrarEmpresa(
+            ['cnpj' => $empresa->cnpj, 'nome' => $empresa->nome],
+            base64_encode($request->file('certificado')->get()),
+            $request->certificado_senha,
+            $request->ambiente
+        );
+
+        if (! $resultado) {
+            Storage::disk(config('filesystems.uploads_disk'))->delete($certificadoPath);
+
+            return back()->with('error', 'Não foi possível registrar a empresa no Focus NFe.');
+        }
+
+        $empresa->update([
+            'focus_nfe_ativo'                => true,
+            'focus_nfe_ambiente'             => $request->ambiente,
+            'focus_nfe_empresa_id'           => $resultado['id'] ?? null,
+            'focus_nfe_token'                => $resultado['token'] ?? null,
+            'focus_nfe_status'               => $resultado['status'] ?? 'ativo',
+            'focus_nfe_certificado_path'     => $certificadoPath,
+            'focus_nfe_certificado_senha'    => $request->certificado_senha,
+            'focus_nfe_certificado_validade' => $request->certificado_validade,
+        ]);
+
+        Log::info("Focus NFe ativado para a empresa #{$empresa->id} ({$empresa->nome}) por {$request->user()->email}, ambiente={$request->ambiente}.");
+
+        return redirect()->route('empresas.show', $empresa)
+            ->with('success', 'Focus NFe ativado para esta empresa.');
+    }
+
+    /**
+     * Desliga a emissão para esta empresa sem apagar token/certificado —
+     * permite reativar depois sem reenviar o certificado. Emissões já
+     * existentes não são afetadas.
+     */
+    public function desativarFocusNfe(Request $request, Empresa $empresa)
+    {
+        $empresa->update(['focus_nfe_ativo' => false]);
+
+        Log::info("Focus NFe desativado para a empresa #{$empresa->id} ({$empresa->nome}) por {$request->user()->email}.");
+
+        return redirect()->route('empresas.show', $empresa)
+            ->with('success', 'Focus NFe desativado. Emissões existentes não são afetadas.');
     }
 
     public function toggleStatus(Empresa $empresa)
