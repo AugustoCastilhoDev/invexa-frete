@@ -637,15 +637,15 @@
                             <input type="text" name="descricao" class="form-control form-control-sm"
                                    placeholder="Descrição" required>
                         </div>
-                        <div class="col-md-1 d-none" id="lancamento-km-wrapper">
+                        <div class="col-md-3 d-none" id="lancamento-km-wrapper">
                             <input type="number" name="km_veiculo" class="form-control form-control-sm"
                                    placeholder="KM do veículo" min="0">
                         </div>
-                        <div class="col-md-2 d-none" id="lancamento-litros-wrapper">
+                        <div class="col-md-1 d-none" id="lancamento-litros-wrapper">
                             <input type="number" name="litros" id="lancamento-litros" class="form-control form-control-sm"
                                    placeholder="Litros" step="0.01" min="0">
                         </div>
-                        <div class="col-md-2 d-none" id="lancamento-valor-litro-wrapper">
+                        <div class="col-md-1 d-none" id="lancamento-valor-litro-wrapper">
                             <input type="number" name="valor_litro" id="lancamento-valor-litro" class="form-control form-control-sm"
                                    placeholder="Valor/Litro" step="0.001" min="0">
                         </div>
