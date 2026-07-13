@@ -625,7 +625,7 @@
                       method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row g-2">
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <select name="tipo" id="lancamento-tipo" class="form-select form-select-sm" required>
                                 <option value="">Tipo</option>
                                 <option value="combustivel">Combustível</option>
@@ -633,21 +633,9 @@
                                 <option value="outros">Outros</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-6">
                             <input type="text" name="descricao" class="form-control form-control-sm"
                                    placeholder="Descrição" required>
-                        </div>
-                        <div class="col-md-3 d-none" id="lancamento-km-wrapper">
-                            <input type="number" name="km_veiculo" class="form-control form-control-sm"
-                                   placeholder="KM do veículo" min="0">
-                        </div>
-                        <div class="col-md-1 d-none" id="lancamento-litros-wrapper">
-                            <input type="number" name="litros" id="lancamento-litros" class="form-control form-control-sm"
-                                   placeholder="Litros" step="0.01" min="0">
-                        </div>
-                        <div class="col-md-1 d-none" id="lancamento-valor-litro-wrapper">
-                            <input type="number" name="valor_litro" id="lancamento-valor-litro" class="form-control form-control-sm"
-                                   placeholder="Valor/Litro" step="0.001" min="0">
                         </div>
                         <div class="col-md-2">
                             <input type="number" name="valor" id="lancamento-valor" class="form-control form-control-sm"
@@ -658,6 +646,20 @@
                             <button type="submit" class="btn btn-warning btn-sm w-100">
                                 <i class="bi bi-plus"></i>
                             </button>
+                        </div>
+                    </div>
+                    <div class="row g-2 mt-1">
+                        <div class="col-md-4 d-none" id="lancamento-km-wrapper">
+                            <input type="number" name="km_veiculo" class="form-control form-control-sm"
+                                   placeholder="KM do veículo" min="0">
+                        </div>
+                        <div class="col-md-4 d-none" id="lancamento-litros-wrapper">
+                            <input type="number" name="litros" id="lancamento-litros" class="form-control form-control-sm"
+                                   placeholder="Litros" step="0.01" min="0">
+                        </div>
+                        <div class="col-md-4 d-none" id="lancamento-valor-litro-wrapper">
+                            <input type="number" name="valor_litro" id="lancamento-valor-litro" class="form-control form-control-sm"
+                                   placeholder="Valor/Litro" step="0.001" min="0">
                         </div>
                     </div>
                 </form>
