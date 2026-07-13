@@ -19,6 +19,7 @@ class Lancamento extends Model
         'valor',
         'km_veiculo',
         'litros',
+        'valor_litro',
         'data_lancamento',
         'comprovante',
         'observacao',
@@ -28,6 +29,7 @@ class Lancamento extends Model
         'data_lancamento' => 'date',
         'valor'           => 'decimal:2',
         'litros'          => 'decimal:2',
+        'valor_litro'     => 'decimal:3',
     ];
 
     // Lançamento pertence a uma viagem

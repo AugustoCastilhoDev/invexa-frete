@@ -542,6 +542,7 @@
                             <th>Data</th>
                             <th>KM</th>
                             <th>Litros</th>
+                            <th>Valor/Litro</th>
                             <th>Valor</th>
                             <th>Status</th>
                             <th></th>
@@ -574,6 +575,7 @@
                             <td>{{ $lancamento->data_lancamento->format('d/m/Y') }}</td>
                             <td>{{ $lancamento->km_veiculo ? number_format($lancamento->km_veiculo, 0, ',', '.') : '-' }}</td>
                             <td>{{ $lancamento->litros ? number_format($lancamento->litros, 2, ',', '.') : '-' }}</td>
+                            <td>{{ $lancamento->valor_litro ? 'R$ ' . number_format($lancamento->valor_litro, 3, ',', '.') : '-' }}</td>
                             <td>R$ {{ number_format($lancamento->valor, 2, ',', '.') }}</td>
                             <td>
                                 <span class="badge bg-{{ $lancamento->status_badge }}">
@@ -609,7 +611,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="8" class="text-center text-muted py-2 small">
+                        <tr><td colspan="9" class="text-center text-muted py-2 small">
                             Nenhum lançamento registrado.
                         </td></tr>
                         @endforelse
@@ -631,21 +633,25 @@
                                 <option value="outros">Outros</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <input type="text" name="descricao" class="form-control form-control-sm"
                                    placeholder="Descrição" required>
                         </div>
-                        <div class="col-md-2 d-none" id="lancamento-km-wrapper">
+                        <div class="col-md-1 d-none" id="lancamento-km-wrapper">
                             <input type="number" name="km_veiculo" class="form-control form-control-sm"
                                    placeholder="KM do veículo" min="0">
                         </div>
                         <div class="col-md-2 d-none" id="lancamento-litros-wrapper">
-                            <input type="number" name="litros" class="form-control form-control-sm"
+                            <input type="number" name="litros" id="lancamento-litros" class="form-control form-control-sm"
                                    placeholder="Litros" step="0.01" min="0">
                         </div>
+                        <div class="col-md-2 d-none" id="lancamento-valor-litro-wrapper">
+                            <input type="number" name="valor_litro" id="lancamento-valor-litro" class="form-control form-control-sm"
+                                   placeholder="Valor/Litro" step="0.001" min="0">
+                        </div>
                         <div class="col-md-2">
-                            <input type="number" name="valor" class="form-control form-control-sm"
-                                   placeholder="Valor" step="0.01" min="0" required>
+                            <input type="number" name="valor" id="lancamento-valor" class="form-control form-control-sm"
+                                   placeholder="Valor Total" step="0.01" min="0" required>
                         </div>
                         <input type="hidden" name="data_lancamento" value="{{ date('Y-m-d') }}">
                         <div class="col-md-1">
@@ -665,13 +671,29 @@
             const tipo = document.getElementById('lancamento-tipo');
             const kmWrapper = document.getElementById('lancamento-km-wrapper');
             const litrosWrapper = document.getElementById('lancamento-litros-wrapper');
-            if (!tipo || !kmWrapper || !litrosWrapper) return;
+            const valorLitroWrapper = document.getElementById('lancamento-valor-litro-wrapper');
+            const litros = document.getElementById('lancamento-litros');
+            const valorLitro = document.getElementById('lancamento-valor-litro');
+            const valor = document.getElementById('lancamento-valor');
+            if (!tipo || !kmWrapper || !litrosWrapper || !valorLitroWrapper || !litros || !valorLitro || !valor) return;
 
             tipo.addEventListener('change', function () {
                 const ehCombustivel = tipo.value === 'combustivel';
                 kmWrapper.classList.toggle('d-none', !ehCombustivel);
                 litrosWrapper.classList.toggle('d-none', !ehCombustivel);
+                valorLitroWrapper.classList.toggle('d-none', !ehCombustivel);
             });
+
+            function calcularValorTotal() {
+                const l = parseFloat(litros.value);
+                const vl = parseFloat(valorLitro.value);
+                if (l > 0 && vl > 0) {
+                    valor.value = (l * vl).toFixed(2);
+                }
+            }
+
+            litros.addEventListener('input', calcularValorTotal);
+            valorLitro.addEventListener('input', calcularValorTotal);
         })();
         </script>
         @endpush

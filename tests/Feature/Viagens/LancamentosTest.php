@@ -67,6 +67,41 @@ class LancamentosTest extends TestCase
         $this->assertEquals(65.5, $viagem->fresh()->total_litros);
     }
 
+    public function test_registra_valor_do_litro_no_lancamento_de_combustivel(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create();
+
+        $this->post(route('lancamentos.store', $viagem), [
+            'tipo'            => 'combustivel',
+            'descricao'       => 'Abastecimento',
+            'valor'           => 327.5,
+            'litros'          => 65,
+            'valor_litro'     => 5.038,
+            'data_lancamento' => now()->format('Y-m-d'),
+        ]);
+
+        $this->assertEquals(5.038, Lancamento::firstOrFail()->valor_litro);
+    }
+
+    public function test_valor_do_litro_e_opcional(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $viagem = Viagem::factory()->create();
+
+        $response = $this->post(route('lancamentos.store', $viagem), [
+            'tipo'            => 'combustivel',
+            'descricao'       => 'Abastecimento',
+            'valor'           => 150,
+            'data_lancamento' => now()->format('Y-m-d'),
+        ]);
+
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertNull(Lancamento::firstOrFail()->valor_litro);
+    }
+
     public function test_km_do_veiculo_e_opcional(): void
     {
         $this->actingAs(User::factory()->create());
