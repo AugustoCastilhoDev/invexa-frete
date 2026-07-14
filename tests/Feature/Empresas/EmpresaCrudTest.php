@@ -204,7 +204,7 @@ class EmpresaCrudTest extends TestCase
         Http::assertSent(function ($request) {
             return str_contains($request->url(), '/subscriptions')
                 && $request['cycle'] === 'MONTHLY'
-                && $request['value'] === 1290.00;
+                && $request['value'] === 1339.00;
         });
     }
 
@@ -297,7 +297,7 @@ class EmpresaCrudTest extends TestCase
 
         Http::assertSent(fn ($request) => str_contains($request->url(), '/subscriptions')
             && $request['cycle'] === 'YEARLY'
-            && $request['value'] === 21900.00);
+            && $request['value'] === 22490.00);
     }
 
     public function test_definir_plano_enterprise_na_assinatura_retroativa_nao_chama_asaas(): void

@@ -11,9 +11,9 @@ class PlanoPricing
     public static function tabela(): array
     {
         return [
-            'starter' => ['limite_veiculos' => 5, 'mensal' => 590.00, 'anual' => 5900.00],
-            'pro' => ['limite_veiculos' => 15, 'mensal' => 1290.00, 'anual' => 12900.00],
-            'business' => ['limite_veiculos' => 30, 'mensal' => 2190.00, 'anual' => 21900.00],
+            'starter' => ['limite_veiculos' => 5, 'mensal' => 639.00, 'anual' => 6390.00],
+            'pro' => ['limite_veiculos' => 15, 'mensal' => 1339.00, 'anual' => 13390.00],
+            'business' => ['limite_veiculos' => 30, 'mensal' => 2249.00, 'anual' => 22490.00],
             'enterprise' => ['limite_veiculos' => null, 'mensal' => null, 'anual' => null],
         ];
     }
