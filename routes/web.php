@@ -125,7 +125,9 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
     Route::delete('veiculos/{veiculo}', [VeiculosController::class, 'destroy'])
         ->middleware('admin')->name('veiculos.destroy');
 
-    // Manutenções (aninhadas no veículo)
+    // Manutenções (aninhadas no veículo, + histórico consolidado da frota)
+    Route::get('manutencoes', [ManutencoesController::class, 'index'])->name('manutencoes.index');
+    Route::get('manutencoes/csv', [ManutencoesController::class, 'csv'])->name('manutencoes.csv');
     Route::post('veiculos/{veiculo}/manutencoes', [ManutencoesController::class, 'store'])
         ->name('manutencoes.store');
     Route::patch('manutencoes/{manutencao}', [ManutencoesController::class, 'update'])

@@ -88,4 +88,58 @@ class ManutencoesTest extends TestCase
         $response->assertOk();
         $response->assertSee('Revisão geral');
     }
+
+    public function test_historico_lista_manutencoes_de_todos_os_veiculos(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $veiculoA = Veiculo::factory()->create();
+        $veiculoB = Veiculo::factory()->create();
+        Manutencao::factory()->create(['veiculo_id' => $veiculoA->id, 'descricao' => 'Troca de óleo']);
+        Manutencao::factory()->create(['veiculo_id' => $veiculoB->id, 'descricao' => 'Alinhamento']);
+
+        $response = $this->get(route('manutencoes.index'));
+
+        $response->assertOk();
+        $response->assertSee('Troca de óleo');
+        $response->assertSee('Alinhamento');
+    }
+
+    public function test_historico_pagina_com_no_maximo_10_por_pagina(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Manutencao::factory()->count(15)->create();
+
+        $response = $this->get(route('manutencoes.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('manutencoes', function ($manutencoes) {
+            return $manutencoes->count() === 10 && $manutencoes->total() === 15;
+        });
+    }
+
+    public function test_historico_filtra_por_veiculo(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $veiculoA = Veiculo::factory()->create();
+        $veiculoB = Veiculo::factory()->create();
+        Manutencao::factory()->create(['veiculo_id' => $veiculoA->id, 'descricao' => 'Troca de óleo']);
+        Manutencao::factory()->create(['veiculo_id' => $veiculoB->id, 'descricao' => 'Alinhamento']);
+
+        $response = $this->get(route('manutencoes.index', ['veiculo_id' => $veiculoA->id]));
+
+        $response->assertOk();
+        $response->assertSee('Troca de óleo');
+        $response->assertDontSee('Alinhamento');
+    }
+
+    public function test_historico_csv_exporta_manutencoes(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Manutencao::factory()->create(['descricao' => 'Troca de óleo']);
+
+        $response = $this->get(route('manutencoes.csv'));
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+    }
 }
