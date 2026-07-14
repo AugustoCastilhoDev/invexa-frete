@@ -352,7 +352,7 @@
         </a>
         <a class="nav-link {{ request()->routeIs('manutencoes.index') ? 'active' : '' }}"
            href="{{ route('manutencoes.index') }}">
-            <i class="bi bi-tools"></i> Histórico de Manutenção
+            <i class="bi bi-tools"></i> Histórico de Manutenções
         </a>
         <a class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}"
             href="{{ route('clientes.index') }}">

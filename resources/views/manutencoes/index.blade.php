@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', 'Histórico de Manutenção')
+@section('title', 'Histórico de Manutenções')
 
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Histórico de Manutenção</h4>
+        <h4 class="mb-0">Histórico de Manutenções</h4>
         <small class="text-muted">Todas as manutenções da frota, em um só lugar</small>
     </div>
     <div class="d-flex gap-2">
