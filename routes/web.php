@@ -206,8 +206,14 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
     Route::post('viagens/{viagem}/emissoes-fiscais/{tipo}', [EmissoesFiscaisController::class, 'store'])
         ->whereIn('tipo', ['cte', 'mdfe'])
         ->name('viagens.emissoes-fiscais.store');
+    Route::get('emissoes-fiscais', [EmissoesFiscaisController::class, 'index'])
+        ->name('emissoes-fiscais.index');
+    Route::get('emissoes-fiscais/csv', [EmissoesFiscaisController::class, 'csv'])
+        ->name('emissoes-fiscais.csv');
     Route::post('emissoes-fiscais/{emissaoFiscal}/atualizar-status', [EmissoesFiscaisController::class, 'atualizarStatus'])
         ->name('emissoes-fiscais.atualizar-status');
+    Route::post('emissoes-fiscais/{emissaoFiscal}/encerrar', [EmissoesFiscaisController::class, 'encerrar'])
+        ->name('emissoes-fiscais.encerrar');
 
     Route::get('/dashboard/grafico', [DashboardController::class, 'grafico'])
     ->name('dashboard.grafico');

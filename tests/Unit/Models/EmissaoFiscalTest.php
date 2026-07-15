@@ -118,4 +118,49 @@ class EmissaoFiscalTest extends TestCase
         $this->assertSame('CT-e', $cte->tipo_formatado);
         $this->assertSame('MDF-e', $mdfe->tipo_formatado);
     }
+
+    public function test_aplicar_encerramento_com_sucesso_marca_encerrado(): void
+    {
+        $emissao = EmissaoFiscal::factory()->autorizada()->create(['tipo' => 'mdfe']);
+
+        $emissao->aplicarEncerramento([
+            'status' => 'encerrado',
+            'status_sefaz' => '135',
+            'mensagem_sefaz' => 'Evento registrado e vinculado a MDF-e',
+        ]);
+
+        $emissao->refresh();
+        $this->assertSame('encerrado', $emissao->status);
+        $this->assertSame('135', $emissao->protocolo_encerramento);
+        $this->assertNotNull($emissao->encerrado_em);
+        $this->assertNull($emissao->mensagem_erro);
+    }
+
+    public function test_aplicar_encerramento_com_erro_nao_preenche_encerrado_em(): void
+    {
+        $emissao = EmissaoFiscal::factory()->autorizada()->create(['tipo' => 'mdfe']);
+
+        $emissao->aplicarEncerramento([
+            'status' => 'erro_encerramento',
+            'mensagem_sefaz' => 'MDF-e não encontrado',
+        ]);
+
+        $emissao->refresh();
+        $this->assertSame('erro_encerramento', $emissao->status);
+        $this->assertNull($emissao->encerrado_em);
+        $this->assertSame('MDF-e não encontrado', $emissao->mensagem_erro);
+    }
+
+    public function test_pode_encerrar(): void
+    {
+        $cte = EmissaoFiscal::factory()->autorizada()->create(['tipo' => 'cte']);
+        $mdfeProcessando = EmissaoFiscal::factory()->create(['tipo' => 'mdfe', 'status' => 'processando_autorizacao']);
+        $mdfeAutorizado = EmissaoFiscal::factory()->autorizada()->create(['tipo' => 'mdfe']);
+        $mdfeEncerrado = EmissaoFiscal::factory()->encerrada()->create();
+
+        $this->assertFalse($cte->podeEncerrar());
+        $this->assertFalse($mdfeProcessando->podeEncerrar());
+        $this->assertTrue($mdfeAutorizado->podeEncerrar());
+        $this->assertFalse($mdfeEncerrado->podeEncerrar());
+    }
 }

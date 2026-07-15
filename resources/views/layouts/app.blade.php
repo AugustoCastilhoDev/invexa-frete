@@ -366,6 +366,14 @@
         @endif
     </nav>
 
+    <div class="nav-section">Fiscal</div>
+    <nav class="nav flex-column">
+        <a class="nav-link {{ request()->routeIs('emissoes-fiscais.*') ? 'active' : '' }}"
+           href="{{ route('emissoes-fiscais.index') }}">
+            <i class="bi bi-file-earmark-check"></i> Emissões Fiscais
+        </a>
+    </nav>
+
     @if(auth()->user()?->isAdmin())
     <div class="nav-section">Administração</div>
     <nav class="nav flex-column">

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmissaoFiscal;
+use App\Models\Veiculo;
 use App\Models\Viagem;
 use App\Services\FocusNfe\FocusNfeClient;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmissoesFiscaisController extends Controller
 {
@@ -60,6 +62,87 @@ class EmissoesFiscaisController extends Controller
         $emissaoFiscal->aplicarRespostaFocus($resposta);
 
         return back()->with('success', 'Status atualizado.');
+    }
+
+    public function encerrar(Request $request, EmissaoFiscal $emissaoFiscal, FocusNfeClient $focusNfe)
+    {
+        abort_unless($emissaoFiscal->podeEncerrar(), 422, 'Este MDF-e não pode ser encerrado agora.');
+
+        $dados = $request->validate([
+            'data' => 'required|date',
+            'sigla_uf' => 'required|string|size:2',
+            'nome_municipio' => 'required|string|max:255',
+        ]);
+
+        $resposta = $focusNfe->encerrarMdfe($emissaoFiscal->empresa, $emissaoFiscal->referencia, $dados);
+
+        if (! $resposta) {
+            return back()->with('error', 'Não foi possível encerrar o MDF-e agora — veja os logs da aplicação.');
+        }
+
+        $emissaoFiscal->aplicarEncerramento($resposta);
+
+        return back()->with(
+            $emissaoFiscal->status === 'encerrado' ? 'success' : 'error',
+            $emissaoFiscal->status === 'encerrado'
+                ? 'MDF-e encerrado com sucesso.'
+                : ('Falha ao encerrar: ' . $emissaoFiscal->mensagem_erro)
+        );
+    }
+
+    public function index(Request $request)
+    {
+        $query = $this->emissoesFiltradas($request);
+
+        $totalRegistros = (clone $query)->count();
+
+        $emissoes = $query->orderByDesc('created_at')
+            ->paginate(15)->withQueryString();
+
+        $veiculos = Veiculo::orderBy('placa')->get();
+
+        return view('emissoes-fiscais.index', compact('emissoes', 'veiculos', 'totalRegistros'));
+    }
+
+    public function csv(Request $request): StreamedResponse
+    {
+        $emissoes = $this->emissoesFiltradas($request)->orderByDesc('created_at')->get();
+
+        return response()->streamDownload(function () use ($emissoes) {
+            $saida = fopen('php://output', 'w');
+            fwrite($saida, "\xEF\xBB\xBF");
+
+            fputcsv($saida, [
+                'Viagem', 'Veículo', 'Motorista', 'Tipo', 'Número', 'Série',
+                'Status', 'Emitido em', 'Encerrado em',
+            ], ';');
+
+            foreach ($emissoes as $emissao) {
+                fputcsv($saida, [
+                    $emissao->viagem_id,
+                    $emissao->viagem?->veiculo?->placa,
+                    $emissao->viagem?->motorista?->nome,
+                    $emissao->tipo_formatado,
+                    $emissao->numero,
+                    $emissao->serie,
+                    ucfirst(str_replace('_', ' ', $emissao->status)),
+                    $emissao->created_at->format('d/m/Y H:i'),
+                    optional($emissao->encerrado_em)->format('d/m/Y H:i'),
+                ], ';');
+            }
+
+            fclose($saida);
+        }, 'emissoes-fiscais.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    private function emissoesFiltradas(Request $request)
+    {
+        return EmissaoFiscal::with(['viagem.veiculo', 'viagem.motorista'])
+            ->when($request->input('tipo'), fn ($q, $v) => $q->where('tipo', $v))
+            ->when($request->input('status'), fn ($q, $v) => $q->where('status', $v))
+            ->when($request->input('veiculo_id'), fn ($q, $v) => $q->whereHas('viagem', fn ($qq) => $qq->where('veiculo_id', $v)))
+            ->when($request->input('data_inicio'), fn ($q, $v) => $q->whereDate('created_at', '>=', $v))
+            ->when($request->input('data_fim'), fn ($q, $v) => $q->whereDate('created_at', '<=', $v));
     }
 
     /**

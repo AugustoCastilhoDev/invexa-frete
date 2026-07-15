@@ -70,6 +70,23 @@
     </div>
 </div>
 
+@php
+    $mdfePendenteEncerramento = $viagem->emissoesFiscais->first(fn ($e) => $e->podeEncerrar());
+@endphp
+@if($viagem->status === 'encerrada' && $mdfePendenteEncerramento)
+<div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Esta viagem foi encerrada, mas o MDF-e ainda não foi encerrado na SEFAZ.
+        Encerre o manifesto para liberar este veículo para uma nova viagem.
+    </div>
+    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+            data-bs-target="#encerrarMdfe{{ $mdfePendenteEncerramento->id }}">
+        <i class="bi bi-flag me-1"></i>Encerrar MDF-e
+    </button>
+</div>
+@endif
+
 {{-- Cards de Resumo --}}
 <div class="row g-3 mb-4">
     <div class="col-md-3">
@@ -331,6 +348,63 @@
                 @endforeach
             </div>
             @endif
+            @php
+                $mdfesParaEncerrar = $viagem->emissoesFiscais->filter(fn ($e) => $e->podeEncerrar());
+            @endphp
+            @if($mdfesParaEncerrar->isNotEmpty())
+            <div class="card-body border-bottom py-2">
+                @foreach($mdfesParaEncerrar as $emissao)
+                <div class="d-flex justify-content-between align-items-center small py-1">
+                    <span>
+                        <span class="badge bg-info text-dark">MDF-e</span>
+                        Autorizado — nº {{ $emissao->numero }} — aguardando encerramento
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal"
+                            data-bs-target="#encerrarMdfe{{ $emissao->id }}">
+                        <i class="bi bi-flag me-1"></i>Encerrar MDF-e
+                    </button>
+                </div>
+                <div class="modal fade" id="encerrarMdfe{{ $emissao->id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="{{ route('emissoes-fiscais.encerrar', $emissao) }}" method="POST">
+                                @csrf
+                                <div class="modal-header">
+                                    <h6 class="modal-title mb-0">Encerrar MDF-e nº {{ $emissao->numero }}</h6>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold">Data do encerramento</label>
+                                        <input type="date" name="data" class="form-control form-control-sm"
+                                               value="{{ now()->toDateString() }}" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold">UF do encerramento</label>
+                                        <select name="sigla_uf" class="form-select form-select-sm" required>
+                                            @foreach(['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] as $uf)
+                                                <option value="{{ $uf }}">{{ $uf }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold">Município do encerramento</label>
+                                        <input type="text" name="nome_municipio" class="form-control form-control-sm"
+                                               value="{{ $viagem->destino }}" required>
+                                        <div class="form-text">Preenchido com o destino da viagem — ajuste se o encerramento ocorreu em outro município.</div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-warning btn-sm">Encerrar MDF-e</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @endif
             <div class="card-body p-0">
                 <div class="table-responsive">
                 <table class="table table-sm table-hover mb-0">
@@ -364,6 +438,12 @@
                                 <span class="badge bg-{{ $doc->status_badge }}">
                                     {{ ucfirst($doc->status) }}
                                 </span>
+                                @php
+                                    $emissaoDoDoc = $viagem->emissoesFiscais->firstWhere('documento_id', $doc->id);
+                                @endphp
+                                @if($emissaoDoDoc?->encerrado_em)
+                                    <br><span class="badge bg-secondary mt-1">Encerrado em {{ $emissaoDoDoc->encerrado_em->format('d/m/Y') }}</span>
+                                @endif
                             </td>
                             <td>
                                 <div class="d-flex gap-1">

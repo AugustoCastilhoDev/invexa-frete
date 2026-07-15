@@ -142,4 +142,82 @@ class EmissoesFiscaisTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_encerrar_mdfe_autorizado_com_sucesso(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'mdfe',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        Http::fake([
+            '*/v2/mdfe/*/encerrar' => Http::response([
+                'status' => 'encerrado',
+                'status_sefaz' => '135',
+                'mensagem_sefaz' => 'Evento registrado e vinculado a MDF-e',
+            ], 200),
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.encerrar', $emissao), [
+            'data' => now()->format('Y-m-d'),
+            'sigla_uf' => 'SP',
+            'nome_municipio' => 'São Paulo',
+        ]);
+
+        $response->assertRedirect();
+        $emissao->refresh();
+        $this->assertSame('encerrado', $emissao->status);
+        $this->assertNotNull($emissao->encerrado_em);
+    }
+
+    public function test_encerrar_mdfe_com_falha_da_focus_mantem_erro(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'mdfe',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        Http::fake([
+            '*/v2/mdfe/*/encerrar' => Http::response([
+                'status' => 'erro_encerramento',
+                'mensagem_sefaz' => 'MDF-e não encontrado',
+            ], 422),
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.encerrar', $emissao), [
+            'data' => now()->format('Y-m-d'),
+            'sigla_uf' => 'SP',
+            'nome_municipio' => 'São Paulo',
+        ]);
+
+        $response->assertRedirect();
+        $emissao->refresh();
+        $this->assertSame('erro_encerramento', $emissao->status);
+        $this->assertNull($emissao->encerrado_em);
+    }
+
+    public function test_nao_permite_encerrar_cte_ou_mdfe_nao_autorizado(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+
+        $cteAutorizado = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'cte',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+        $mdfeProcessando = EmissaoFiscal::factory()->create([
+            'tipo' => 'mdfe',
+            'status' => 'processando_autorizacao',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        $payload = ['data' => now()->format('Y-m-d'), 'sigla_uf' => 'SP', 'nome_municipio' => 'São Paulo'];
+
+        $this->post(route('emissoes-fiscais.encerrar', $cteAutorizado), $payload)->assertStatus(422);
+        $this->post(route('emissoes-fiscais.encerrar', $mdfeProcessando), $payload)->assertStatus(422);
+    }
 }

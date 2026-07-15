@@ -26,4 +26,14 @@ class EmissaoFiscalFactory extends Factory
             'autorizado_em' => now(),
         ]);
     }
+
+    public function encerrada(): static
+    {
+        return $this->autorizada()->state(fn () => [
+            'tipo' => 'mdfe',
+            'status' => 'encerrado',
+            'protocolo_encerramento' => $this->faker->numerify(str_repeat('#', 15)),
+            'encerrado_em' => now(),
+        ]);
+    }
 }

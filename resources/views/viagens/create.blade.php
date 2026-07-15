@@ -51,8 +51,10 @@
                         <option value="">Selecione o veículo</option>
                         @foreach($veiculos as $veiculo)
                             <option value="{{ $veiculo->id }}"
-                                {{ old('veiculo_id', request('veiculo_id')) == $veiculo->id ? 'selected' : '' }}>
+                                {{ old('veiculo_id', request('veiculo_id')) == $veiculo->id ? 'selected' : '' }}
+                                {{ $veiculosBloqueados->contains($veiculo->id) ? 'disabled' : '' }}>
                                 {{ $veiculo->placa }} — {{ $veiculo->modelo }}
+                                {{ $veiculosBloqueados->contains($veiculo->id) ? '— MDF-e pendente de encerramento' : '' }}
                             </option>
                         @endforeach
                     </select>

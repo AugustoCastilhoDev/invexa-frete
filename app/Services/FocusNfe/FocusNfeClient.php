@@ -79,6 +79,29 @@ class FocusNfeClient
         return $this->consultar($empresa, "/v2/mdfe/{$referencia}");
     }
 
+    public function encerrarMdfe(Empresa $empresa, string $referencia, array $payload): ?array
+    {
+        if (! $empresa->focus_nfe_ativo || ! filled($empresa->focus_nfe_token)) {
+            Log::warning("Focus NFe: tentativa de encerrar MDF-e sem a empresa #{$empresa->id} estar ativa/configurada.");
+
+            return null;
+        }
+
+        try {
+            $response = $this->http($empresa)->post("/v2/mdfe/{$referencia}/encerrar", $payload);
+        } catch (\Throwable $e) {
+            Log::error('Focus NFe: falha de transporte ao encerrar MDF-e.', ['erro' => $e->getMessage()]);
+
+            return null;
+        }
+
+        if (! $response->successful()) {
+            Log::warning('Focus NFe: resposta de erro ao encerrar MDF-e.', ['status' => $response->status(), 'body' => $response->json()]);
+        }
+
+        return $response->json();
+    }
+
     /**
      * Retorna null apenas quando nem tentamos a chamada (empresa não ativa /
      * sem token / falha de transporte). Um erro de negócio real da Focus

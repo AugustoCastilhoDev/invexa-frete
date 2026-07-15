@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Viagem;
+use App\Models\EmissaoFiscal;
 use App\Models\Motorista;
 use App\Models\ProgramacaoViagem;
 use App\Models\Veiculo;
@@ -130,7 +131,11 @@ class ViagensController extends Controller
             ->find($request->input('programacao_id'));
     }
 
-    return view('viagens.create', compact('motoristas', 'veiculos', 'clientes', 'programacao'));
+    $veiculosBloqueados = EmissaoFiscal::where('tipo', 'mdfe')->where('status', 'autorizado')
+        ->whereNull('encerrado_em')->with('viagem:id,veiculo_id')->get()
+        ->pluck('viagem.veiculo_id')->filter()->unique();
+
+    return view('viagens.create', compact('motoristas', 'veiculos', 'clientes', 'programacao', 'veiculosBloqueados'));
 }
 
     public function store(Request $request)
@@ -148,6 +153,12 @@ class ViagensController extends Controller
             'valor_adiantamento'   => 'nullable|numeric|min:0',
             'observacoes'          => 'nullable|string',
         ]);
+
+        if (EmissaoFiscal::mdfeAbertoDoVeiculo((int) $request->input('veiculo_id'))->exists()) {
+            return back()->withInput()->withErrors([
+                'veiculo_id' => 'Este veículo possui um MDF-e autorizado e ainda não encerrado. Encerre o manifesto da viagem anterior antes de abrir uma nova.',
+            ]);
+        }
 
         $data = $request->only([
             'motorista_id', 'veiculo_id', 'origem', 'destino', 'cliente_id',

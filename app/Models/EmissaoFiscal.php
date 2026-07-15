@@ -35,15 +35,20 @@ class EmissaoFiscal extends Model
         'arquivo_xml',
         'arquivo_pdf',
         'autorizado_em',
+        'encerrado_em',
+        'protocolo_encerramento',
+        'payload_encerramento',
     ];
 
     protected $casts = [
-        'payload_enviado'  => 'array',
-        'payload_resposta' => 'array',
-        'autorizado_em'    => 'datetime',
+        'payload_enviado'      => 'array',
+        'payload_resposta'     => 'array',
+        'payload_encerramento' => 'array',
+        'autorizado_em'        => 'datetime',
+        'encerrado_em'         => 'datetime',
     ];
 
-    private const STATUS_FINAIS = ['autorizado', 'cancelado', 'erro_autorizacao', 'denegado'];
+    private const STATUS_FINAIS = ['autorizado', 'cancelado', 'erro_autorizacao', 'denegado', 'encerrado'];
 
     public function viagem()
     {
@@ -58,6 +63,19 @@ class EmissaoFiscal extends Model
     public function isFinal(): bool
     {
         return in_array($this->status, self::STATUS_FINAIS, true);
+    }
+
+    public function podeEncerrar(): bool
+    {
+        return $this->tipo === 'mdfe' && $this->status === 'autorizado' && is_null($this->encerrado_em);
+    }
+
+    public function scopeMdfeAbertoDoVeiculo($query, int $veiculoId)
+    {
+        return $query->where('tipo', 'mdfe')
+            ->where('status', 'autorizado')
+            ->whereNull('encerrado_em')
+            ->whereHas('viagem', fn ($q) => $q->where('veiculo_id', $veiculoId));
     }
 
     // Accessor: tipo formatado (mesmo padrão de Documento::getTipoFormatadoAttribute)
@@ -114,6 +132,25 @@ class EmissaoFiscal extends Model
         if ($this->status === 'autorizado') {
             $this->sincronizarDocumento();
         }
+    }
+
+    /**
+     * Aplica a resposta do endpoint de encerramento de MDF-e — shape diferente
+     * do usado por aplicarRespostaFocus() (status/status_sefaz/mensagem_sefaz/
+     * caminho_xml, sem chave/numero/serie/protocolo), por isso não reaproveita
+     * aquele método.
+     */
+    public function aplicarEncerramento(array $payload): void
+    {
+        $novoStatus = $payload['status'] ?? 'erro_encerramento';
+
+        $this->update([
+            'status' => $novoStatus,
+            'protocolo_encerramento' => $payload['protocolo'] ?? $payload['status_sefaz'] ?? $this->protocolo_encerramento,
+            'mensagem_erro' => $novoStatus === 'encerrado' ? null : ($payload['mensagem_sefaz'] ?? $payload['mensagem'] ?? null),
+            'payload_encerramento' => $payload,
+            'encerrado_em' => $novoStatus === 'encerrado' ? now() : $this->encerrado_em,
+        ]);
     }
 
     /**

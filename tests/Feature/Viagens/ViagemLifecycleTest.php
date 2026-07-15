@@ -3,6 +3,7 @@
 namespace Tests\Feature\Viagens;
 
 use App\Models\Cliente;
+use App\Models\EmissaoFiscal;
 use App\Models\Motorista;
 use App\Models\User;
 use App\Models\Veiculo;
@@ -48,6 +49,43 @@ class ViagemLifecycleTest extends TestCase
         $this->assertEquals('aberta', $viagem->status);
         $this->assertEquals(200, $viagem->valor_motorista);
         $this->assertEquals(1800, $viagem->lucro_transportadora);
+    }
+
+    public function test_bloqueia_nova_viagem_quando_veiculo_tem_mdfe_nao_encerrado(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $motorista = Motorista::factory()->create();
+        $veiculo   = Veiculo::factory()->create();
+
+        $viagemAnterior = Viagem::factory()->create(['veiculo_id' => $veiculo->id]);
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'mdfe',
+            'viagem_id' => $viagemAnterior->id,
+        ]);
+
+        $dadosNovaViagem = [
+            'motorista_id'         => $motorista->id,
+            'veiculo_id'           => $veiculo->id,
+            'origem'               => 'Curitiba',
+            'destino'              => 'São Paulo',
+            'data_saida'           => now()->format('Y-m-d'),
+            'valor_frete'          => 1000,
+            'percentual_motorista' => 10,
+        ];
+
+        $response = $this->post(route('viagens.store'), $dadosNovaViagem);
+
+        $response->assertSessionHasErrors('veiculo_id');
+        $this->assertSame(1, Viagem::count());
+
+        $emissao->update(['status' => 'encerrado', 'encerrado_em' => now()]);
+
+        $response = $this->post(route('viagens.store'), $dadosNovaViagem);
+
+        $viagem = Viagem::orderByDesc('id')->firstOrFail();
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $this->assertSame(2, Viagem::count());
     }
 
     public function test_abrir_viagem_com_adiantamento_nao_descontavel_nao_reduz_saldo_de_imediato(): void
