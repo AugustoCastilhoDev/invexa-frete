@@ -89,6 +89,14 @@
                     </div>
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label fw-semibold">Tara (kg)</label>
+                    <div class="input-group">
+                        <input type="number" name="tara_kg" class="form-control"
+                               value="{{ old('tara_kg', $veiculo->tara_kg) }}" min="0">
+                        <span class="input-group-text">kg</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <label class="form-label fw-semibold">Status *</label>
                     <select name="status" class="form-select" required>
                         @foreach(['ativo'=>'Ativo','inativo'=>'Inativo','manutencao'=>'Em Manutenção'] as $val => $label)

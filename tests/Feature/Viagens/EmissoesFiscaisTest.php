@@ -200,6 +200,118 @@ class EmissoesFiscaisTest extends TestCase
         $this->assertNull($emissao->encerrado_em);
     }
 
+    public function test_payload_do_cte_usa_campos_planos_da_focus(): void
+    {
+        $empresa = $this->ativarFocusNfeNaEmpresaDeTeste();
+        $empresa->update([
+            'codigo_municipio' => '4106902',
+            'municipio' => 'Curitiba',
+            'uf' => 'PR',
+            'logradouro' => 'Rua das Flores',
+            'numero' => '100',
+            'bairro' => 'Centro',
+            'cep' => '80010-000',
+            'telefone' => '(41) 3333-4444',
+            'inscricao_estadual' => '1234567890',
+            'rntrc' => '12345678',
+            'cfop_padrao' => '6353',
+            'icms_situacao_tributaria' => '40',
+            'icms_aliquota' => 12.00,
+        ]);
+        $this->actingAs(User::factory()->create());
+
+        $cliente = \App\Models\Cliente::factory()->create([
+            'nome' => 'Cliente Teste',
+            'cidade' => 'São Paulo',
+            'estado' => 'SP',
+        ]);
+        $viagem = Viagem::factory()->create([
+            'cliente_id' => $cliente->id,
+            'origem' => 'Curitiba',
+            'origem_uf' => 'PR',
+            'origem_codigo_municipio' => '4106902',
+            'destino' => 'São Paulo',
+            'destino_uf' => 'SP',
+            'destino_codigo_municipio' => '3550308',
+            'descricao_carga' => 'Eletrônicos',
+        ]);
+
+        Http::fake(['*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'cte']));
+
+        Http::assertSent(function ($request) use ($empresa, $cliente) {
+            return str_contains($request->url(), '/v2/cte')
+                && $request['cnpj_emitente'] === $empresa->cnpj
+                && $request['uf_emitente'] === 'PR'
+                && $request['codigo_municipio_envio'] === '4106902'
+                && $request['cfop'] === '6353'
+                && $request['icms_aliquota'] == 12.00
+                && $request['nome_destinatario'] === 'Cliente Teste'
+                && $request['municipio_destinatario'] === 'São Paulo'
+                && $request['uf_destinatario'] === 'SP'
+                && $request['municipio_inicio'] === 'Curitiba'
+                && $request['codigo_municipio_fim'] === '3550308'
+                && $request['produto_predominante'] === 'Eletrônicos'
+                && $request['modal_rodoviario']['rntrc'] === '12345678';
+        });
+    }
+
+    public function test_payload_do_mdfe_inclui_condutor_e_cte_vinculado(): void
+    {
+        $empresa = $this->ativarFocusNfeNaEmpresaDeTeste();
+        $motorista = \App\Models\Motorista::factory()->create(['nome' => 'João Silva', 'cpf' => '123.456.789-00']);
+        $veiculo = \App\Models\Veiculo::factory()->create(['renavam' => '12345678900', 'capacidade_kg' => 15000, 'tara_kg' => 8000]);
+        $viagem = Viagem::factory()->create([
+            'motorista_id' => $motorista->id,
+            'veiculo_id' => $veiculo->id,
+            'origem' => 'Curitiba',
+            'origem_uf' => 'PR',
+            'origem_codigo_municipio' => '4106902',
+            'destino' => 'São Paulo',
+            'destino_uf' => 'SP',
+        ]);
+        $cteAutorizado = EmissaoFiscal::factory()->autorizada()->create([
+            'viagem_id' => $viagem->id,
+            'tipo' => 'cte',
+            'chave_acesso' => str_repeat('1', 44),
+        ]);
+        $this->actingAs(User::factory()->create());
+
+        Http::fake(['*/v2/mdfe*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'mdfe']));
+
+        Http::assertSent(function ($request) use ($veiculo, $cteAutorizado) {
+            return str_contains($request->url(), '/v2/mdfe')
+                && $request['placa_veiculo'] === $veiculo->placa
+                && $request['renavam_veiculo'] === '12345678900'
+                && $request['tara_veiculo'] === 8000
+                && $request['condutores'][0]['nome'] === 'João Silva'
+                && $request['condutores'][0]['cpf'] === '12345678900'
+                && $request['municipios_carregamento'][0]['codigo'] === '4106902'
+                && count($request['percursos']) === 2
+                && $request['conhecimentos_transporte'][0]['chave_cte'] === $cteAutorizado->chave_acesso;
+        });
+    }
+
+    public function test_payload_do_mdfe_sem_cte_autorizado_manda_lista_vazia(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create(['origem_uf' => 'PR', 'destino_uf' => 'PR']);
+
+        Http::fake(['*/v2/mdfe*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'mdfe']));
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/v2/mdfe')
+                && $request['conhecimentos_transporte'] === []
+                && count($request['percursos']) === 1;
+        });
+    }
+
     public function test_nao_permite_encerrar_cte_ou_mdfe_nao_autorizado(): void
     {
         $this->ativarFocusNfeNaEmpresaDeTeste();

@@ -48,18 +48,45 @@
             <h6 class="fw-bold text-uppercase text-muted mb-3" style="font-size:.75rem;letter-spacing:1px">
                 <i class="bi bi-map me-1"></i> Rota e Datas
             </h6>
+            @php
+                $ufs = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+            @endphp
             <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Origem *</label>
-                    <input type="text" name="origem" class="form-control"
-                           value="{{ old('origem', $viagem->origem) }}" required>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">UF Origem *</label>
+                    <select name="origem_uf" id="origem_uf" class="form-select" required>
+                        <option value="">UF</option>
+                        @foreach($ufs as $uf)
+                            <option value="{{ $uf }}" {{ old('origem_uf', $viagem->origem_uf) === $uf ? 'selected' : '' }}>{{ $uf }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold">Destino *</label>
-                    <input type="text" name="destino" class="form-control"
-                           value="{{ old('destino', $viagem->destino) }}" required>
+                    <label class="form-label fw-semibold">Cidade Origem *</label>
+                    <select name="origem" id="origem_cidade" class="form-select" required>
+                        <option value="{{ old('origem', $viagem->origem) }}" selected>{{ old('origem', $viagem->origem) }}</option>
+                    </select>
+                    <input type="hidden" name="origem_codigo_municipio" id="origem_codigo_municipio"
+                           value="{{ old('origem_codigo_municipio', $viagem->origem_codigo_municipio) }}">
                 </div>
-                <<div class="col-md-4">
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">UF Destino *</label>
+                    <select name="destino_uf" id="destino_uf" class="form-select" required>
+                        <option value="">UF</option>
+                        @foreach($ufs as $uf)
+                            <option value="{{ $uf }}" {{ old('destino_uf', $viagem->destino_uf) === $uf ? 'selected' : '' }}>{{ $uf }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Cidade Destino *</label>
+                    <select name="destino" id="destino_cidade" class="form-select" required>
+                        <option value="{{ old('destino', $viagem->destino) }}" selected>{{ old('destino', $viagem->destino) }}</option>
+                    </select>
+                    <input type="hidden" name="destino_codigo_municipio" id="destino_codigo_municipio"
+                           value="{{ old('destino_codigo_municipio', $viagem->destino_codigo_municipio) }}">
+                </div>
+                <div class="col-md-4">
                     <label class="form-label fw-semibold">Cliente</label>
                     <select name="cliente_id" class="form-select">
                         <option value="">Selecione o cliente</option>
@@ -70,6 +97,11 @@
                             </option>
                         @endforeach
                     </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Descrição da carga</label>
+                    <input type="text" name="descricao_carga" class="form-control"
+                           value="{{ old('descricao_carga', $viagem->descricao_carga) }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Data Saída *</label>
@@ -167,4 +199,46 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // ── Cidade por UF (API pública do IBGE)
+    function ligarSelectCidade(ufId, cidadeId, codigoId, valorAntigo, codigoAntigo) {
+        const ufSelect = document.getElementById(ufId);
+        const cidadeSelect = document.getElementById(cidadeId);
+        const codigoInput = document.getElementById(codigoId);
+
+        function carregarCidades(ufSelecionada, selecionarCidade) {
+            if (! ufSelecionada) {
+                cidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+                return;
+            }
+            cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+            fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufSelecionada}/municipios`)
+                .then(r => r.json())
+                .then(municipios => {
+                    cidadeSelect.innerHTML = '<option value="">Selecione a cidade</option>' +
+                        municipios.map(m => `<option value="${m.nome}" data-codigo="${m.id}">${m.nome}</option>`).join('');
+                    if (selecionarCidade) {
+                        cidadeSelect.value = selecionarCidade;
+                        codigoInput.value = cidadeSelect.selectedOptions[0]?.dataset.codigo || codigoAntigo || '';
+                    }
+                })
+                .catch(() => { cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>'; });
+        }
+
+        ufSelect.addEventListener('change', function () { carregarCidades(this.value, null); });
+        cidadeSelect.addEventListener('change', function () {
+            codigoInput.value = this.selectedOptions[0]?.dataset.codigo || '';
+        });
+
+        if (ufSelect.value) {
+            carregarCidades(ufSelect.value, valorAntigo);
+        }
+    }
+
+    ligarSelectCidade('origem_uf', 'origem_cidade', 'origem_codigo_municipio', @json(old('origem', $viagem->origem)), @json(old('origem_codigo_municipio', $viagem->origem_codigo_municipio)));
+    ligarSelectCidade('destino_uf', 'destino_cidade', 'destino_codigo_municipio', @json(old('destino', $viagem->destino)), @json(old('destino_codigo_municipio', $viagem->destino_codigo_municipio)));
+</script>
+@endpush
 @endsection

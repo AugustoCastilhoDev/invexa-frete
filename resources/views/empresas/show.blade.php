@@ -174,12 +174,131 @@
     </div>
 </div>
 
+{{-- Dados Fiscais --}}
+<div class="card mb-4" id="dados-fiscais">
+    <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-file-earmark-ruled me-1"></i> Dados Fiscais
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning py-2 small mb-3">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            CFOP e tributação do ICMS têm efeito fiscal real — confirme com o
+            contador da transportadora antes de preencher.
+        </div>
+        <form action="{{ route('empresas.dados-fiscais.atualizar', $empresa) }}" method="POST">
+            @csrf @method('PATCH')
+            <h6 class="fw-bold text-uppercase text-muted mb-2" style="font-size:.7rem;letter-spacing:1px">Endereço</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">CEP</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="cep" id="empresa_cep" class="form-control"
+                               value="{{ old('cep', $empresa->cep) }}" placeholder="00000-000" maxlength="9">
+                        <button type="button" class="btn btn-outline-secondary" id="empresa_btn_cep">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Logradouro</label>
+                    <input type="text" name="logradouro" id="empresa_logradouro" class="form-control form-control-sm"
+                           value="{{ old('logradouro', $empresa->logradouro) }}">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small fw-semibold">Número</label>
+                    <input type="text" name="numero" class="form-control form-control-sm"
+                           value="{{ old('numero', $empresa->numero) }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Complemento</label>
+                    <input type="text" name="complemento" class="form-control form-control-sm"
+                           value="{{ old('complemento', $empresa->complemento) }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Bairro</label>
+                    <input type="text" name="bairro" id="empresa_bairro" class="form-control form-control-sm"
+                           value="{{ old('bairro', $empresa->bairro) }}">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small fw-semibold">UF</label>
+                    <input type="text" name="uf" id="empresa_uf" class="form-control form-control-sm"
+                           value="{{ old('uf', $empresa->uf) }}" maxlength="2" style="text-transform:uppercase">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Município</label>
+                    <input type="text" name="municipio" id="empresa_municipio" class="form-control form-control-sm"
+                           value="{{ old('municipio', $empresa->municipio) }}">
+                </div>
+                <input type="hidden" name="codigo_municipio" id="empresa_codigo_municipio"
+                       value="{{ old('codigo_municipio', $empresa->codigo_municipio) }}">
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Telefone</label>
+                    <input type="text" name="telefone" class="form-control form-control-sm"
+                           value="{{ old('telefone', $empresa->telefone) }}">
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-uppercase text-muted mb-2" style="font-size:.7rem;letter-spacing:1px">Fiscal</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Inscrição Estadual</label>
+                    <input type="text" name="inscricao_estadual" class="form-control form-control-sm"
+                           value="{{ old('inscricao_estadual', $empresa->inscricao_estadual) }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">RNTRC</label>
+                    <input type="text" name="rntrc" class="form-control form-control-sm"
+                           value="{{ old('rntrc', $empresa->rntrc) }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Regime Tributário</label>
+                    <input type="text" name="regime_tributario" class="form-control form-control-sm"
+                           value="{{ old('regime_tributario', $empresa->regime_tributario) }}"
+                           placeholder="Ex: Simples Nacional">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">CFOP Padrão</label>
+                    <input type="text" name="cfop_padrao" class="form-control form-control-sm"
+                           value="{{ old('cfop_padrao', $empresa->cfop_padrao) }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Situação Tributária ICMS</label>
+                    <input type="text" name="icms_situacao_tributaria" class="form-control form-control-sm"
+                           value="{{ old('icms_situacao_tributaria', $empresa->icms_situacao_tributaria) }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Alíquota ICMS (%)</label>
+                    <input type="number" step="0.01" min="0" max="100" name="icms_aliquota" class="form-control form-control-sm"
+                           value="{{ old('icms_aliquota', $empresa->icms_aliquota) }}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-check-lg me-1"></i> Salvar Dados Fiscais
+            </button>
+        </form>
+    </div>
+</div>
+
 {{-- Integração Fiscal (Focus NFe) --}}
 <div class="card mb-4" id="focus-nfe">
     <div class="card-header bg-white fw-semibold">
         <i class="bi bi-file-earmark-text me-1"></i> Integração Fiscal — Emissão de CT-e/MDF-e
     </div>
     <div class="card-body">
+        @php
+            $dadosFiscaisIncompletos = collect([
+                $empresa->cfop_padrao, $empresa->icms_situacao_tributaria, $empresa->icms_aliquota,
+                $empresa->rntrc, $empresa->codigo_municipio, $empresa->inscricao_estadual,
+            ])->contains(fn ($v) => blank($v));
+        @endphp
+        @if($empresa->focus_nfe_ativo && $dadosFiscaisIncompletos)
+        <div class="alert alert-warning py-2 small">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Dados fiscais incompletos — emissões podem ser rejeitadas pela SEFAZ
+            até completar o card "Dados Fiscais" acima.
+        </div>
+        @endif
         <div class="row g-3">
             <div class="col-md-3 col-6">
                 <div class="text-muted" style="font-size:.75rem">Status</div>
@@ -270,6 +389,36 @@
         plano.addEventListener('change', atualizar);
         atualizar();
     })();
+
+    // ── Busca CEP via ViaCEP (Dados Fiscais)
+    const empresaBtnCep = document.getElementById('empresa_btn_cep');
+    if (empresaBtnCep) {
+        empresaBtnCep.addEventListener('click', function () {
+            const cep = document.getElementById('empresa_cep').value.replace(/\D/g, '');
+            if (cep.length !== 8) {
+                alert('Digite um CEP válido com 8 dígitos.');
+                return;
+            }
+            this.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.erro) {
+                        alert('CEP não encontrado.');
+                    } else {
+                        document.getElementById('empresa_logradouro').value = data.logradouro || '';
+                        document.getElementById('empresa_bairro').value = data.bairro || '';
+                        document.getElementById('empresa_municipio').value = data.localidade || '';
+                        document.getElementById('empresa_uf').value = data.uf || '';
+                        document.getElementById('empresa_codigo_municipio').value = data.ibge || '';
+                    }
+                })
+                .catch(() => alert('Erro ao buscar CEP.'))
+                .finally(() => {
+                    this.innerHTML = '<i class="bi bi-search"></i>';
+                });
+        });
+    }
 </script>
 
 {{-- Usuários da empresa --}}

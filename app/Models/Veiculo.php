@@ -24,6 +24,7 @@ class Veiculo extends Model
         'validade_documento',
         'cavalo_id',
         'capacidade_kg',
+        'tara_kg',
         'status',
     ];
 

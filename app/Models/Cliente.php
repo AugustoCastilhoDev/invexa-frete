@@ -30,6 +30,7 @@ class Cliente extends Model
         'bairro',
         'cidade',
         'estado',
+        'codigo_municipio',
         'tabela_frete',
         'observacoes',
         'status',

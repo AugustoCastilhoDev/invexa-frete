@@ -48,6 +48,7 @@ class VeiculosController extends Controller
             'validade_documento' => 'nullable|date',
             'cavalo_id'    => ['nullable', 'prohibited_unless:tipo,carreta', Rule::exists('veiculos', 'id')->where('tipo', 'truck')],
             'capacidade_kg'=> 'nullable|numeric|min:0',
+            'tara_kg'      => 'nullable|integer|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
         ]);
 
@@ -92,6 +93,7 @@ class VeiculosController extends Controller
             'validade_documento' => 'nullable|date',
             'cavalo_id'    => ['nullable', 'prohibited_unless:tipo,carreta', Rule::exists('veiculos', 'id')->where('tipo', 'truck')],
             'capacidade_kg'=> 'nullable|numeric|min:0',
+            'tara_kg'      => 'nullable|integer|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
         ]);
 

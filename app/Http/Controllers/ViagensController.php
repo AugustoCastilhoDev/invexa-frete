@@ -144,7 +144,12 @@ class ViagensController extends Controller
             'motorista_id'         => 'required|exists:motoristas,id',
             'veiculo_id'           => 'required|exists:veiculos,id',
             'origem'               => 'required|string|max:255',
+            'origem_uf'            => 'nullable|string|max:2',
+            'origem_codigo_municipio' => 'nullable|string|max:7',
             'destino'              => 'required|string|max:255',
+            'destino_uf'           => 'nullable|string|max:2',
+            'destino_codigo_municipio' => 'nullable|string|max:7',
+            'descricao_carga'      => 'nullable|string|max:255',
             'cliente_id'           => 'nullable|exists:clientes,id',
             'data_saida'           => 'required|date',
             'km_inicial'           => 'nullable|integer|min:0',
@@ -161,7 +166,10 @@ class ViagensController extends Controller
         }
 
         $data = $request->only([
-            'motorista_id', 'veiculo_id', 'origem', 'destino', 'cliente_id',
+            'motorista_id', 'veiculo_id',
+            'origem', 'origem_uf', 'origem_codigo_municipio',
+            'destino', 'destino_uf', 'destino_codigo_municipio',
+            'descricao_carga', 'cliente_id',
             'data_saida', 'km_inicial', 'valor_frete', 'percentual_motorista',
             'observacoes',
         ]);
@@ -216,7 +224,12 @@ class ViagensController extends Controller
             'motorista_id'         => 'required|exists:motoristas,id',
             'veiculo_id'           => 'required|exists:veiculos,id',
             'origem'               => 'required|string|max:255',
+            'origem_uf'            => 'nullable|string|max:2',
+            'origem_codigo_municipio' => 'nullable|string|max:7',
             'destino'              => 'required|string|max:255',
+            'destino_uf'           => 'nullable|string|max:2',
+            'destino_codigo_municipio' => 'nullable|string|max:7',
+            'descricao_carga'      => 'nullable|string|max:255',
             'cliente_id'           => 'nullable|exists:clientes,id',
             'data_saida'           => 'required|date',
             'data_retorno'         => 'nullable|date|after_or_equal:data_saida',

@@ -147,6 +147,8 @@
                                value="{{ old('estado', $cliente->estado) }}"
                                maxlength="2" style="text-transform:uppercase">
                     </div>
+                    <input type="hidden" name="codigo_municipio" id="codigo_municipio"
+                           value="{{ old('codigo_municipio', $cliente->codigo_municipio) }}">
                 </div>
             </div>
         </div>
@@ -198,6 +200,7 @@
                     document.getElementById('bairro').value     = data.bairro || '';
                     document.getElementById('cidade').value     = data.localidade || '';
                     document.getElementById('estado').value     = data.uf || '';
+                    document.getElementById('codigo_municipio').value = data.ibge || '';
                 }
             });
     });

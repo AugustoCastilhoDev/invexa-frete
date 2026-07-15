@@ -26,7 +26,7 @@ class EmissoesFiscaisController extends Controller
             'status'     => 'processando_autorizacao',
         ]);
 
-        $payload = $this->montarPayload($tipo, $viagem);
+        $payload = $tipo === 'cte' ? $this->montarPayloadCte($viagem) : $this->montarPayloadMdfe($viagem);
         $emissao->update(['payload_enviado' => $payload]);
 
         $resposta = $tipo === 'cte'
@@ -146,70 +146,108 @@ class EmissoesFiscaisController extends Controller
     }
 
     /**
-     * Monta as seções de nível raiz exigidas pela Focus NFe para CT-e/MDF-e a
-     * partir dos dados já cadastrados na viagem. Isto é um scaffold da
-     * estrutura, não o mapeamento campo-a-campo completo — a Focus exige
-     * dezenas de campos por seção (endereço estruturado do remetente/
-     * destinatário, dados do modal rodoviário, ICMS, etc.) que dependem de
-     * cadastros (Cliente/Veiculo/Motorista) que hoje podem não ter todos os
-     * dados necessários. Completar contra respostas reais de homologação
-     * antes de usar em produção — não adivinhar os campos faltantes aqui.
+     * Payload plano do CT-e (uma chave por campo, com sufixo _emitente/
+     * _remetente/_destinatario), conforme doc.focusnfe.com.br/reference/emitir_cte
+     * — a Focus NÃO usa objetos aninhados aqui. Remetente = a própria
+     * transportadora (simplificação: hoje não há conceito de "quem despachou
+     * a carga" separado de Empresa/Cliente no sistema).
      */
-    private function montarPayload(string $tipo, Viagem $viagem): array
+    private function montarPayloadCte(Viagem $viagem): array
     {
         $empresa = $viagem->empresa;
         $cliente = $viagem->cliente;
-        $veiculo = $viagem->veiculo;
 
-        $base = [
+        return [
+            'cfop' => $empresa->cfop_padrao,
             'natureza_operacao' => 'Prestação de serviço de transporte',
             'data_emissao' => now()->toIso8601String(),
+            'codigo_municipio_envio' => $empresa->codigo_municipio,
+            'municipio_envio' => $empresa->municipio,
+            'uf_envio' => $empresa->uf,
+            'codigo_municipio_inicio' => $viagem->origem_codigo_municipio,
+            'municipio_inicio' => $viagem->origem,
+            'uf_inicio' => $viagem->origem_uf,
+            'codigo_municipio_fim' => $viagem->destino_codigo_municipio,
+            'municipio_fim' => $viagem->destino,
+            'uf_fim' => $viagem->destino_uf,
             'cnpj_emitente' => $empresa->cnpj,
-            'emitente' => [
-                'cnpj' => $empresa->cnpj,
-                'nome' => $empresa->nome,
-                // TODO: inscrição estadual e endereço estruturado do emitente
-                // ainda não existem no cadastro de Empresa — precisa ser
-                // adicionado antes de emitir de verdade.
-            ],
+            'inscricao_estadual_emitente' => $empresa->inscricao_estadual,
+            'nome_emitente' => $empresa->nome,
+            'logradouro_emitente' => $empresa->logradouro,
+            'numero_emitente' => $empresa->numero,
+            'bairro_emitente' => $empresa->bairro,
+            'municipio_emitente' => $empresa->municipio,
+            'cep_emitente' => $empresa->cep,
+            'uf_emitente' => $empresa->uf,
+            'telefone_emitente' => $empresa->telefone,
+            'cnpj_remetente' => $empresa->cnpj,
+            'inscricao_estadual_remetente' => $empresa->inscricao_estadual,
+            'nome_remetente' => $empresa->nome,
+            'logradouro_remetente' => $empresa->logradouro,
+            'numero_remetente' => $empresa->numero,
+            'bairro_remetente' => $empresa->bairro,
+            'codigo_municipio_remetente' => $empresa->codigo_municipio,
+            'municipio_remetente' => $empresa->municipio,
+            'cep_remetente' => $empresa->cep,
+            'uf_remetente' => $empresa->uf,
+            'cnpj_destinatario' => $cliente?->cpf_cnpj,
+            'inscricao_estadual_destinatario' => $cliente?->ie,
+            'nome_destinatario' => $cliente?->nome,
+            'telefone_destinatario' => $cliente?->telefone,
+            'logradouro_destinatario' => $cliente?->logradouro,
+            'numero_destinatario' => $cliente?->numero,
+            'complemento_destinatario' => $cliente?->complemento,
+            'bairro_destinatario' => $cliente?->bairro,
+            'municipio_destinatario' => $cliente?->cidade,
+            'cep_destinatario' => $cliente?->cep,
+            'uf_destinatario' => $cliente?->estado,
+            'valor_total_carga' => (float) $viagem->valor_frete,
+            'produto_predominante' => $viagem->descricao_carga,
+            'valor_total' => (float) $viagem->valor_frete,
+            'valor_receber' => (float) $viagem->valor_frete,
+            'icms_situacao_tributaria' => $empresa->icms_situacao_tributaria,
+            'icms_aliquota' => $empresa->icms_aliquota,
+            'modal' => '01',
+            'modal_rodoviario' => ['rntrc' => $empresa->rntrc],
         ];
+    }
 
-        if ($tipo === 'cte') {
-            return array_merge($base, [
-                'remetente' => [
-                    'cnpj' => $empresa->cnpj,
-                    'nome' => $empresa->nome,
-                ],
-                'destinatario' => [
-                    'nome' => $cliente?->nome,
-                    'cpf_cnpj' => $cliente?->cpf_cnpj,
-                    // TODO: endereço estruturado do cliente
-                ],
-                'modal_rodoviario' => [
-                    'placa' => $veiculo?->placa,
-                ],
-                'valores' => [
-                    'valor_total' => (float) $viagem->valor_frete,
-                    'valor_receber' => (float) $viagem->valor_frete,
-                ],
-                'operacao' => [
-                    'cfop' => null, // TODO: definir CFOP correto por operação
-                    'municipio_inicio' => $viagem->origem,
-                    'municipio_fim' => $viagem->destino,
-                ],
-                'carga' => [
-                    'produto_predominante' => null, // TODO
-                ],
-            ]);
-        }
+    /**
+     * Payload do MDF-e conforme campos.focusnfe.com.br/mdfe/*: condutores
+     * (nome+CPF), municípios de carregamento (nome+código IBGE), percurso
+     * (UFs) e documentos vinculados (chave do CT-e já autorizado da mesma
+     * viagem, quando existir).
+     */
+    private function montarPayloadMdfe(Viagem $viagem): array
+    {
+        $empresa = $viagem->empresa;
+        $veiculo = $viagem->veiculo;
+        $motorista = $viagem->motorista;
 
-        return array_merge($base, [
-            'veiculo_tracao' => [
-                'placa' => $veiculo?->placa,
+        $cteAutorizado = $viagem->emissoesFiscais
+            ->first(fn ($e) => $e->tipo === 'cte' && $e->status === 'autorizado');
+
+        return [
+            'data_emissao' => now()->toIso8601String(),
+            'cnpj_emitente' => $empresa->cnpj,
+            'municipios_carregamento' => [
+                ['codigo' => $viagem->origem_codigo_municipio, 'nome' => $viagem->origem],
             ],
-            'municipio_carregamento' => $viagem->origem,
-            'percurso' => [$viagem->destino],
-            // TODO: CT-es vinculados a este MDF-e, condutor (motorista), etc.
-        ]);
+            'percursos' => $viagem->destino_uf && $viagem->destino_uf !== $viagem->origem_uf
+                ? [['uf_percurso' => $viagem->origem_uf], ['uf_percurso' => $viagem->destino_uf]]
+                : [['uf_percurso' => $viagem->origem_uf]],
+            'placa_veiculo' => $veiculo?->placa,
+            'renavam_veiculo' => $veiculo?->renavam,
+            'tara_veiculo' => $veiculo?->tara_kg,
+            'capacidade_kg_veiculo' => $veiculo?->capacidade_kg,
+            'registro_nacional_transporte' => $empresa->rntrc,
+            'condutores' => $motorista ? [[
+                'nome' => $motorista->nome,
+                'cpf' => preg_replace('/\D/', '', (string) $motorista->cpf),
+            ]] : [],
+            'conhecimentos_transporte' => $cteAutorizado
+                ? [['chave_cte' => $cteAutorizado->chave_acesso]]
+                : [],
+        ];
     }
 }

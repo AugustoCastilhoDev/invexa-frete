@@ -325,6 +325,17 @@
                 </div>
             </div>
             @php
+                $temCteAutorizado = $viagem->emissoesFiscais->contains(fn ($e) => $e->tipo === 'cte' && $e->status === 'autorizado');
+            @endphp
+            @if($viagem->empresa->focus_nfe_ativo && $viagem->status !== 'encerrada' && ! $temCteAutorizado)
+            <div class="px-3 pt-2">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Nenhum CT-e autorizado vinculado — o MDF-e será emitido sem documento fiscal vinculado.
+                </small>
+            </div>
+            @endif
+            @php
                 $emissoesPendentes = $viagem->emissoesFiscais->whereNotIn('status', ['autorizado']);
             @endphp
             @if($emissoesPendentes->isNotEmpty())

@@ -81,6 +81,8 @@ Route::middleware(['auth', 'super_admin'])->group(function () {
         ->name('empresas.suporte.iniciar');
     Route::post('empresas/{empresa}/assinatura', [EmpresasController::class, 'criarAssinatura'])
         ->name('empresas.assinatura.criar');
+    Route::patch('empresas/{empresa}/dados-fiscais', [EmpresasController::class, 'atualizarDadosFiscais'])
+        ->name('empresas.dados-fiscais.atualizar');
     Route::post('empresas/{empresa}/focus-nfe/ativar', [EmpresasController::class, 'ativarFocusNfe'])
         ->name('empresas.focus-nfe.ativar');
     Route::patch('empresas/{empresa}/focus-nfe/desativar', [EmpresasController::class, 'desativarFocusNfe'])

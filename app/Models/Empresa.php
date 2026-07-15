@@ -29,6 +29,21 @@ class Empresa extends Model
         'focus_nfe_certificado_path',
         'focus_nfe_certificado_senha',
         'focus_nfe_certificado_validade',
+        'cep',
+        'logradouro',
+        'numero',
+        'complemento',
+        'bairro',
+        'municipio',
+        'codigo_municipio',
+        'uf',
+        'telefone',
+        'inscricao_estadual',
+        'rntrc',
+        'regime_tributario',
+        'cfop_padrao',
+        'icms_situacao_tributaria',
+        'icms_aliquota',
     ];
 
     protected $casts = [
@@ -37,6 +52,7 @@ class Empresa extends Model
         'focus_nfe_token' => 'encrypted',
         'focus_nfe_certificado_senha' => 'encrypted',
         'focus_nfe_certificado_validade' => 'date',
+        'icms_aliquota' => 'decimal:2',
     ];
 
     public function usuarios()

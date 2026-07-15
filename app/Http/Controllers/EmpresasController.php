@@ -196,6 +196,32 @@ class EmpresasController extends Controller
      * sempre manual — nunca disparada por self-service do tenant nem por
      * nenhum webhook.
      */
+    public function atualizarDadosFiscais(Request $request, Empresa $empresa)
+    {
+        $dados = $request->validate([
+            'cep' => 'nullable|string|max:9',
+            'logradouro' => 'nullable|string|max:255',
+            'numero' => 'nullable|string|max:20',
+            'complemento' => 'nullable|string|max:255',
+            'bairro' => 'nullable|string|max:255',
+            'municipio' => 'nullable|string|max:255',
+            'codigo_municipio' => 'nullable|string|max:7',
+            'uf' => 'nullable|string|max:2',
+            'telefone' => 'nullable|string|max:20',
+            'inscricao_estadual' => 'nullable|string|max:30',
+            'rntrc' => 'nullable|string|max:20',
+            'regime_tributario' => 'nullable|string|max:50',
+            'cfop_padrao' => 'nullable|string|max:10',
+            'icms_situacao_tributaria' => 'nullable|string|max:10',
+            'icms_aliquota' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        $empresa->update($dados);
+
+        return redirect()->route('empresas.show', $empresa)
+            ->with('success', 'Dados fiscais atualizados.');
+    }
+
     public function ativarFocusNfe(Request $request, Empresa $empresa, FocusNfeClient $focusNfe)
     {
         $request->validate([
