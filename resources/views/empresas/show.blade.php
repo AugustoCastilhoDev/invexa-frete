@@ -114,7 +114,9 @@
                 <div class="fw-semibold">{{ $empresa->ciclo_cobranca ? ucfirst($empresa->ciclo_cobranca) : '-' }}</div>
             </div>
             <div class="col-md-3 col-6">
-                @php($cobranca = $empresa->situacaoCobranca())
+                @php
+                    $cobranca = $empresa->situacaoCobranca();
+                @endphp
                 <div class="text-muted" style="font-size:.75rem">Status Asaas</div>
                 <div class="fw-semibold">
                     <span class="badge {{ $cobranca['classe'] }}">

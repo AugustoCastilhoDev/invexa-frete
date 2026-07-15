@@ -67,7 +67,9 @@
             </thead>
             <tbody>
                 @forelse($empresas as $empresa)
-                @php($cobranca = $empresa->situacaoCobranca())
+                @php
+                    $cobranca = $empresa->situacaoCobranca();
+                @endphp
                 <tr>
                     <td class="ps-4 fw-semibold">{{ $empresa->nome }}</td>
                     <td>{{ $empresa->cnpj ?? '-' }}</td>
