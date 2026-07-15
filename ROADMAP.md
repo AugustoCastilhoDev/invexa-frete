@@ -29,6 +29,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Data/KM da próxima manutenção prevista
 - Registrar manutenção "em andamento" move o veículo para status "manutenção" automaticamente; concluir devolve para "ativo" (se não houver outra manutenção em aberto)
 - Histórico e total gasto por veículo na tela de detalhe
+- **Histórico consolidado (`/manutencoes`)**: todas as manutenções da frota numa única tela, sem precisar abrir veículo por veículo — filtros (veículo/tipo/status/período), paginação de 10 por página e exportação CSV; item "Histórico de Manutenções" no menu lateral, abaixo de Veículos
 
 ### Clientes
 - Cadastro de Pessoa Física e Jurídica
@@ -63,16 +64,19 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Confirmação é sempre manual — encerrar a viagem atual não abre a próxima automaticamente; o botão "Confirmar" leva ao formulário normal de nova viagem, já pré-preenchido, e ao salvar marca a programação como confirmada e vinculada à viagem criada
 - Valor do frete opcional na programação (útil quando já negociado), pré-preenchido no formulário de nova viagem ao confirmar
 
-### Emissão de CT-e/MDF-e (Focus NFe) — estrutura pronta, desligada por padrão
+### Emissão de CT-e/MDF-e (Focus NFe) — estrutura e payload prontos, desligada por padrão
 - Módulo completo de emissão real de CT-e/MDF-e via API da Focus NFe, mas **inerte para todo cliente até um super_admin ativar manualmente** para uma empresa específica — nenhum plano da Focus foi contratado ainda; ver `[[cte_mdfe_focus_nfe]]` na memória do projeto para o contexto da decisão
 - Modelo `EmissaoFiscal` deliberadamente separado de `Documento` (que continua enxuto, só para lançamento manual) — quando a Focus autoriza um documento, `EmissaoFiscal` cria/atualiza a linha correspondente em `Documento`, então o card "Documentos Fiscais" da viagem não precisou de nenhuma mudança para exibir emissões reais
 - Ativação por empresa em `/empresas/{id}`: upload do certificado digital A1 (.pfx) + senha, ambiente (homologação/produção); token retornado pela Focus fica em coluna `encrypted`
 - Botões "Emitir CT-e"/"Emitir MDF-e" na tela da viagem só aparecem quando a empresa tem a integração ativa
+- **Encerramento de MDF-e**: todo MDF-e autorizado precisa ser encerrado na SEFAZ ao fim da viagem — botão dedicado (`FocusNfeClient::encerrarMdfe()`, endpoint `POST /v2/mdfe/{referencia}/encerrar`) com modal para data/UF/município do encerramento. Abrir uma nova viagem para um veículo com MDF-e autorizado e ainda não encerrado é **bloqueado** (a SEFAZ rejeitaria de qualquer forma)
+- **Tela consolidada `/emissoes-fiscais`**: lista CT-e e MDF-e de todas as viagens da empresa, com filtros (tipo/status/veículo/período), paginação, exportação CSV e ação de encerrar direto na lista — item "Fiscal" no menu lateral
 - Emissão roda síncrona (sem fila) — a própria API da Focus já é assíncrona (retorna `processando_autorizacao` e confirma depois via webhook), então não havia necessidade de introduzir o primeiro job em fila do sistema
-- `montarPayload()` no controller é só um scaffold da estrutura de seções exigida pela Focus — o mapeamento campo-a-campo completo (endereços estruturados, ICMS, etc.) fica para quando a feature for realmente ativada para o primeiro cliente
+- **Payload real** (`montarPayloadCte()`/`montarPayloadMdfe()`) — conferido campo a campo contra a documentação oficial da Focus (CT-e é **plano**, uma chave por campo, não aninhado). Para viabilizar isso, `Empresa` ganhou endereço fiscal estruturado + IE + RNTRC + regime tributário + CFOP + ICMS (card "Dados Fiscais", editável a qualquer momento por super_admin), `Cliente` ganhou o código IBGE do município, `Veiculo` ganhou a tara, e Origem/Destino da viagem viraram seleção estruturada de UF+Cidade (API pública do IBGE) em vez de texto livre. RNTRC e CFOP/ICMS ficam **vazios de propósito** até serem confirmados com o contador da transportadora que for ativar de verdade — não são bugs
 - Ao autorizar, `EmissaoFiscal` baixa o XML e o DACTE/DAMDFE das URLs devolvidas pela Focus e guarda no nosso próprio disco (mesmo padrão dos uploads manuais) em vez de apontar pra um link externo/temporário — assim o botão de download na tela funciona igual a um documento lançado manualmente. Falha no download nunca derruba a atualização de status (só loga e segue sem arquivo)
 - Reajuste silencioso nos planos (Starter/Pro/Business, +~R$49–59/mês) já cobre o custo futuro da assinatura Focus NFe — a landing page não anuncia a feature até estar de fato ligada para um cliente real
 - **Suporte ao CNPJ alfanumérico** (novo formato da Receita Federal, raiz+ordem podem ter letras): `Cliente::documento_formatado/mascarado` e a máscara de digitação no cadastro de cliente agrupam por posição em vez de assumir só dígitos; campo `cnpj` da Empresa já era texto livre e não precisou de mudança
+- **Ainda TBD, só confirmável no primeiro teste real** (Focus NFe não contratada ainda): schema exato do `POST /v2/empresas` (nomes de campo do certificado) e o nome do campo de referência no payload do webhook — ambos marcados no código como melhor palpite contra a doc, nunca validados numa chamada real
 
 ### Financeiro / Acertos
 - Acertos por Motorista com histórico individual
@@ -190,7 +194,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Favicon próprio (caminhão sobre o gradiente laranja da marca) em todas as telas — o `favicon.ico` do scaffold original estava vazio (0 bytes)
 
 ### Infraestrutura de qualidade
-- 370 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete e o portal do motorista
+- 417 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e e o portal do motorista
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 
 ### Deploy em produção
@@ -218,7 +222,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Suspensão automática por inadimplência**: hoje o webhook do Asaas só registra o status (ver seção Cobrança recorrente); automatizar a desativação da empresa fica para quando o volume de clientes justificar o risco de um falso positivo suspender alguém por engano
 - **Upgrade/downgrade de plano self-service**: hoje trocar de plano depois de criada a empresa é manual (ajustar `limite_veiculos` e a assinatura no Asaas direto); um fluxo pela própria tela do admin é um passo natural depois que houver clientes reais pedindo isso
 - **Integração com rastreamento veicular (GPS)** para KM automático em vez de digitação manual
-- **Validação fiscal automática (via API paga)**: o link de verificação manual na SEFAZ já foi implementado (ver seção Viagens); uma automação completa (status buscado e exibido sem o usuário sair do sistema) exigiria assinar um provedor como Danfe Rápida, Nuvem Fiscal ou Focus NFe — avaliado e não contratado ainda, pois o link manual já resolve a necessidade atual sem custo recorrente
+- **Cancelamento de CT-e/MDF-e**: hoje o módulo Focus NFe cobre emissão + encerramento de MDF-e, mas não cancelamento — fica para quando a demanda real aparecer
+- **Lembrete automático de MDF-e pendente de encerramento**: hoje só aparece quando alguém visita a viagem ou a tela `/emissoes-fiscais`; um lembrete proativo (e-mail/notificação) é natural depois que houver uso real
 
 ---
 
