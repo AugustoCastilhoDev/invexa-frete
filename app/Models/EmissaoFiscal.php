@@ -20,6 +20,7 @@ class EmissaoFiscal extends Model
 
     protected $fillable = [
         'viagem_id',
+        'carga_id',
         'documento_id',
         'tipo',
         'referencia',
@@ -53,6 +54,13 @@ class EmissaoFiscal extends Model
     public function viagem()
     {
         return $this->belongsTo(Viagem::class);
+    }
+
+    // Só preenchido para tipo=cte (um CT-e pertence a uma carga/cliente); o
+    // MDF-e cobre a viagem inteira e não tem carga própria.
+    public function carga()
+    {
+        return $this->belongsTo(Carga::class);
     }
 
     public function documento()
@@ -190,6 +198,7 @@ class EmissaoFiscal extends Model
             ['id' => $this->documento_id],
             [
                 'viagem_id'    => $this->viagem_id,
+                'carga_id'     => $this->carga_id,
                 'tipo'         => $this->tipo,
                 'numero'       => $this->numero ?? '',
                 'chave_acesso' => $this->chave_acesso,

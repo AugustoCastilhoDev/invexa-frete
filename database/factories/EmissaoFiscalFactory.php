@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Carga;
 use App\Models\Viagem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -34,6 +35,17 @@ class EmissaoFiscalFactory extends Factory
             'status' => 'encerrado',
             'protocolo_encerramento' => $this->faker->numerify(str_repeat('#', 15)),
             'encerrado_em' => now(),
+        ]);
+    }
+
+    // CT-e vinculado a uma carga já existente — mantém viagem_id em sincronia
+    // com a viagem da carga (mesmo padrão denormalizado usado pelo controller).
+    public function paraCarga(Carga $carga): static
+    {
+        return $this->state(fn () => [
+            'tipo'      => 'cte',
+            'carga_id'  => $carga->id,
+            'viagem_id' => $carga->viagem_id,
         ]);
     }
 }

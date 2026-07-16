@@ -14,6 +14,7 @@ class Documento extends Model
 
     protected $fillable = [
         'viagem_id',
+        'carga_id',
         'tipo',
         'numero',
         'chave_acesso',
@@ -34,6 +35,13 @@ class Documento extends Model
     public function viagem()
     {
         return $this->belongsTo(Viagem::class);
+    }
+
+    // Documento pertence a uma carga (nullable — só usado quando a empresa
+    // tem Focus NFe ativo e o documento é uma NF-e a ser vinculada a um CT-e)
+    public function carga()
+    {
+        return $this->belongsTo(Carga::class);
     }
 
     public function scopePendentes($query)

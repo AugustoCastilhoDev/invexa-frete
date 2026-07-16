@@ -52,6 +52,18 @@
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label fw-semibold small">Cliente</label>
+                    <select name="cliente_id" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        @foreach($clientes as $c)
+                            <option value="{{ $c->id }}"
+                                {{ request('cliente_id') == $c->id ? 'selected' : '' }}>
+                                {{ $c->nome }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label fw-semibold small">Data Início</label>
                     <input type="date" name="data_inicio" class="form-control form-control-sm"
                            value="{{ request('data_inicio') }}">
@@ -94,6 +106,7 @@
             <thead class="table-light">
                 <tr>
                     <th class="ps-3">Viagem</th>
+                    <th>Cliente</th>
                     <th>Tipo</th>
                     <th>Número / Série</th>
                     <th>Status</th>
@@ -115,6 +128,7 @@
                             {{ $emissao->viagem?->motorista?->nome ?? '-' }}
                         </small>
                     </td>
+                    <td class="small">{{ $emissao->carga?->cliente?->nome ?? '-' }}</td>
                     <td>
                         <span class="badge {{ $emissao->tipo === 'mdfe' ? 'bg-info text-dark' : 'bg-primary' }} bg-opacity-10 text-{{ $emissao->tipo === 'mdfe' ? 'info' : 'primary' }}">
                             {{ $emissao->tipo_formatado }}
@@ -196,7 +210,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-4">
+                    <td colspan="8" class="text-center text-muted py-4">
                         Nenhuma emissão fiscal encontrada.
                     </td>
                 </tr>

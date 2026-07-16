@@ -5,13 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Documento;
 use App\Models\Viagem;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class DocumentosController extends Controller
 {
     public function store(Request $request, Viagem $viagem)
     {
+        // carga_id só é exigida quando a empresa tem Focus NFe ativo — é
+        // nesse caso que a tela mostra o campo. Sem isso, o registro manual
+        // de NF-e continua funcionando como sempre (nenhuma empresa hoje tem
+        // o Focus ativo em produção, mas o teste de regressão cobre isso).
+        $exigeCarga = $request->input('tipo') === 'nfe' && $viagem->empresa->focus_nfe_ativo;
+
         $request->validate([
             'tipo'          => 'required|in:cte,mdfe,nfe,outros',
+            'carga_id'      => [Rule::requiredIf($exigeCarga), 'nullable', 'exists:cargas,id'],
             'numero'        => 'required|string|max:50',
             'chave_acesso'  => 'nullable|string|max:60',
             'serie'         => 'nullable|string|max:10',

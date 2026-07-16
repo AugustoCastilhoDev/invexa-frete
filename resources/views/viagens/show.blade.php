@@ -308,13 +308,10 @@
                 <span><i class="bi bi-file-earmark-text me-2 text-primary"></i>Documentos Fiscais</span>
                 <div class="d-flex align-items-center gap-2">
                     @if($viagem->empresa->focus_nfe_ativo && $viagem->status !== 'encerrada')
-                    <form action="{{ route('viagens.emissoes-fiscais.store', [$viagem, 'cte']) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="bi bi-send me-1"></i>Emitir CT-e
-                        </button>
-                    </form>
-                    <form action="{{ route('viagens.emissoes-fiscais.store', [$viagem, 'mdfe']) }}" method="POST">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#novaCarga">
+                        <i class="bi bi-plus-lg me-1"></i>Nova Carga
+                    </button>
+                    <form action="{{ route('viagens.emitir-mdfe', $viagem) }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-sm btn-primary">
                             <i class="bi bi-send me-1"></i>Emitir MDF-e
@@ -333,6 +330,75 @@
                     <i class="bi bi-info-circle me-1"></i>
                     Nenhum CT-e autorizado vinculado — o MDF-e será emitido sem documento fiscal vinculado.
                 </small>
+            </div>
+            @endif
+            @if($viagem->empresa->focus_nfe_ativo)
+            <div class="card-body border-bottom py-2">
+                @forelse($viagem->cargas as $carga)
+                @php
+                    $cteDaCarga = $carga->emissoesFiscais->firstWhere('status', 'autorizado');
+                @endphp
+                <div class="d-flex justify-content-between align-items-center small py-1">
+                    <span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold">{{ $carga->numero_formatado }}</span>
+                        {{ $carga->cliente->nome }}
+                        @if($carga->valor_frete)
+                            — R$ {{ number_format($carga->valor_frete, 2, ',', '.') }}
+                        @endif
+                        @if($cteDaCarga)
+                            <span class="badge bg-success ms-1">CT-e nº {{ $cteDaCarga->numero }}</span>
+                        @endif
+                    </span>
+                    @if(! $cteDaCarga && $viagem->status !== 'encerrada')
+                    <form action="{{ route('cargas.emitir-cte', $carga) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-send me-1"></i>Emitir CT-e
+                        </button>
+                    </form>
+                    @endif
+                </div>
+                @empty
+                <small class="text-muted">Nenhuma carga criada ainda — clique em "Nova Carga" para vincular NF-e's a um cliente.</small>
+                @endforelse
+            </div>
+            <div class="modal fade" id="novaCarga" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="{{ route('cargas.store', $viagem) }}" method="POST">
+                            @csrf
+                            <div class="modal-header">
+                                <h6 class="modal-title mb-0">Nova Carga</h6>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">Cliente</label>
+                                    <select name="cliente_id" class="form-select form-select-sm" required>
+                                        <option value="">Selecione o cliente</option>
+                                        @foreach($clientes as $cliente)
+                                        <option value="{{ $cliente->id }}" {{ $viagem->cliente_id == $cliente->id ? 'selected' : '' }}>
+                                            {{ $cliente->nome }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">Valor do frete desta carga</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">R$</span>
+                                        <input type="number" name="valor_frete" class="form-control form-control-sm" step="0.01" min="0">
+                                    </div>
+                                    <div class="form-text">Usado no CT-e deste cliente — pode ser diferente do valor de frete da viagem inteira.</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary btn-sm">Adicionar Carga</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
             @endif
             @php
@@ -431,7 +497,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($viagem->documentos as $doc)
+                        @php
+                            // Quando tem Focus NFe ativo, as NF-e's já vinculadas a uma carga
+                            // aparecem no bloco de cargas acima — aqui sobram só os documentos
+                            // manuais (CT-e/MDF-e/outros) sem carga.
+                            $documentosListados = $viagem->empresa->focus_nfe_ativo
+                                ? $viagem->documentos->whereNull('carga_id')
+                                : $viagem->documentos;
+                        @endphp
+                        @forelse($documentosListados as $doc)
                         <tr>
                             <td class="ps-3">
                                 <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold">
@@ -604,6 +678,16 @@
                                    class="form-control form-control-sm"
                                    placeholder="Observação">
                         </div>
+                        @if($viagem->empresa->focus_nfe_ativo)
+                        <div class="col-md-4">
+                            <select name="carga_id" class="form-select form-select-sm">
+                                <option value="">Carga (obrigatório se for NF-e)</option>
+                                @foreach($viagem->cargas as $carga)
+                                <option value="{{ $carga->id }}">{{ $carga->numero_formatado }} — {{ $carga->cliente->nome }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                     </div>
                 </form>
             </div>

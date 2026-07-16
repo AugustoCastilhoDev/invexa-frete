@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Viagens;
 
+use App\Models\Carga;
+use App\Models\Cliente;
 use App\Models\Documento;
 use App\Models\Empresa;
 use App\Models\EmissaoFiscal;
+use App\Models\Motorista;
 use App\Models\User;
+use App\Models\Veiculo;
 use App\Models\Viagem;
 use App\Support\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,9 +41,9 @@ class EmissoesFiscaisTest extends TestCase
     public function test_nega_emissao_quando_empresa_nao_tem_focus_nfe_ativo(): void
     {
         $this->actingAs(User::factory()->create());
-        $viagem = Viagem::factory()->create();
+        $carga = Carga::factory()->create();
 
-        $response = $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'cte']));
+        $response = $this->post(route('cargas.emitir-cte', $carga));
 
         $response->assertForbidden();
         $this->assertSame(0, EmissaoFiscal::count());
@@ -49,18 +53,20 @@ class EmissoesFiscaisTest extends TestCase
     {
         $this->ativarFocusNfeNaEmpresaDeTeste();
         $this->actingAs(User::factory()->create());
-        $viagem = Viagem::factory()->create();
+        $carga = Carga::factory()->create();
 
         Http::fake([
             '*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202),
         ]);
 
-        $response = $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'cte']));
+        $response = $this->post(route('cargas.emitir-cte', $carga));
 
-        $response->assertRedirect(route('viagens.show', $viagem));
+        $response->assertRedirect(route('viagens.show', $carga->viagem));
         $emissao = EmissaoFiscal::firstOrFail();
         $this->assertSame('cte', $emissao->tipo);
         $this->assertSame('processando_autorizacao', $emissao->status);
+        $this->assertSame($carga->id, $emissao->carga_id);
+        $this->assertSame($carga->viagem_id, $emissao->viagem_id);
         $this->assertNull($emissao->documento_id);
     }
 
@@ -78,7 +84,7 @@ class EmissoesFiscaisTest extends TestCase
             ], 200),
         ]);
 
-        $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'mdfe']));
+        $this->post(route('viagens.emitir-mdfe', $viagem));
 
         $emissao = EmissaoFiscal::firstOrFail();
         $this->assertSame('autorizado', $emissao->status);
@@ -94,15 +100,15 @@ class EmissoesFiscaisTest extends TestCase
     {
         $this->ativarFocusNfeNaEmpresaDeTeste();
         $this->actingAs(User::factory()->create());
-        $viagem = Viagem::factory()->create();
+        $carga = Carga::factory()->create();
 
         Http::fake(function () {
             throw new \Illuminate\Http\Client\ConnectionException('timeout');
         });
 
-        $response = $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'cte']));
+        $response = $this->post(route('cargas.emitir-cte', $carga));
 
-        $response->assertRedirect(route('viagens.show', $viagem));
+        $response->assertRedirect(route('viagens.show', $carga->viagem));
         $emissao = EmissaoFiscal::firstOrFail();
         $this->assertSame('erro_autorizacao', $emissao->status);
         $this->assertSame(0, Documento::count());
@@ -220,13 +226,12 @@ class EmissoesFiscaisTest extends TestCase
         ]);
         $this->actingAs(User::factory()->create());
 
-        $cliente = \App\Models\Cliente::factory()->create([
+        $cliente = Cliente::factory()->create([
             'nome' => 'Cliente Teste',
             'cidade' => 'São Paulo',
             'estado' => 'SP',
         ]);
         $viagem = Viagem::factory()->create([
-            'cliente_id' => $cliente->id,
             'origem' => 'Curitiba',
             'origem_uf' => 'PR',
             'origem_codigo_municipio' => '4106902',
@@ -235,10 +240,21 @@ class EmissoesFiscaisTest extends TestCase
             'destino_codigo_municipio' => '3550308',
             'descricao_carga' => 'Eletrônicos',
         ]);
+        $carga = Carga::factory()->create([
+            'viagem_id' => $viagem->id,
+            'cliente_id' => $cliente->id,
+            'valor_frete' => 800.00,
+        ]);
+        Documento::factory()->create([
+            'viagem_id' => $viagem->id,
+            'carga_id' => $carga->id,
+            'tipo' => 'nfe',
+            'valor' => 1500.00,
+        ]);
 
         Http::fake(['*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
 
-        $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'cte']));
+        $this->post(route('cargas.emitir-cte', $carga));
 
         Http::assertSent(function ($request) use ($empresa, $cliente) {
             return str_contains($request->url(), '/v2/cte')
@@ -253,15 +269,18 @@ class EmissoesFiscaisTest extends TestCase
                 && $request['municipio_inicio'] === 'Curitiba'
                 && $request['codigo_municipio_fim'] === '3550308'
                 && $request['produto_predominante'] === 'Eletrônicos'
+                && $request['valor_total'] == 800.00
+                && $request['valor_receber'] == 800.00
+                && $request['valor_total_carga'] == 1500.00
                 && $request['modal_rodoviario']['rntrc'] === '12345678';
         });
     }
 
-    public function test_payload_do_mdfe_inclui_condutor_e_cte_vinculado(): void
+    public function test_payload_do_mdfe_inclui_condutor_e_ctes_de_todas_as_cargas(): void
     {
-        $empresa = $this->ativarFocusNfeNaEmpresaDeTeste();
-        $motorista = \App\Models\Motorista::factory()->create(['nome' => 'João Silva', 'cpf' => '123.456.789-00']);
-        $veiculo = \App\Models\Veiculo::factory()->create(['renavam' => '12345678900', 'capacidade_kg' => 15000, 'tara_kg' => 8000]);
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $motorista = Motorista::factory()->create(['nome' => 'João Silva', 'cpf' => '123.456.789-00']);
+        $veiculo = Veiculo::factory()->create(['renavam' => '12345678900', 'capacidade_kg' => 15000, 'tara_kg' => 8000]);
         $viagem = Viagem::factory()->create([
             'motorista_id' => $motorista->id,
             'veiculo_id' => $veiculo->id,
@@ -271,18 +290,23 @@ class EmissoesFiscaisTest extends TestCase
             'destino' => 'São Paulo',
             'destino_uf' => 'SP',
         ]);
-        $cteAutorizado = EmissaoFiscal::factory()->autorizada()->create([
-            'viagem_id' => $viagem->id,
-            'tipo' => 'cte',
+        $cargaA = Carga::factory()->create(['viagem_id' => $viagem->id]);
+        $cargaB = Carga::factory()->create(['viagem_id' => $viagem->id]);
+        $cteA = EmissaoFiscal::factory()->autorizada()->paraCarga($cargaA)->create([
             'chave_acesso' => str_repeat('1', 44),
+        ]);
+        $cteB = EmissaoFiscal::factory()->autorizada()->paraCarga($cargaB)->create([
+            'chave_acesso' => str_repeat('2', 44),
         ]);
         $this->actingAs(User::factory()->create());
 
         Http::fake(['*/v2/mdfe*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
 
-        $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'mdfe']));
+        $this->post(route('viagens.emitir-mdfe', $viagem));
 
-        Http::assertSent(function ($request) use ($veiculo, $cteAutorizado) {
+        Http::assertSent(function ($request) use ($veiculo, $cteA, $cteB) {
+            $chaves = array_column($request['conhecimentos_transporte'], 'chave_cte');
+
             return str_contains($request->url(), '/v2/mdfe')
                 && $request['placa_veiculo'] === $veiculo->placa
                 && $request['renavam_veiculo'] === '12345678900'
@@ -291,7 +315,9 @@ class EmissoesFiscaisTest extends TestCase
                 && $request['condutores'][0]['cpf'] === '12345678900'
                 && $request['municipios_carregamento'][0]['codigo'] === '4106902'
                 && count($request['percursos']) === 2
-                && $request['conhecimentos_transporte'][0]['chave_cte'] === $cteAutorizado->chave_acesso;
+                && count($chaves) === 2
+                && in_array($cteA->chave_acesso, $chaves, true)
+                && in_array($cteB->chave_acesso, $chaves, true);
         });
     }
 
@@ -303,7 +329,7 @@ class EmissoesFiscaisTest extends TestCase
 
         Http::fake(['*/v2/mdfe*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
 
-        $this->post(route('viagens.emissoes-fiscais.store', [$viagem, 'mdfe']));
+        $this->post(route('viagens.emitir-mdfe', $viagem));
 
         Http::assertSent(function ($request) {
             return str_contains($request->url(), '/v2/mdfe')

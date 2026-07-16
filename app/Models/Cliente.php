@@ -47,6 +47,12 @@ class Cliente extends Model
         return $this->hasMany(Viagem::class);
     }
 
+    // Cliente tem muitas cargas (agrupamentos de NF-e por viagem)
+    public function cargas()
+    {
+        return $this->hasMany(Carga::class);
+    }
+
     // Accessor: documento formatado. Usa posição (não \d) para também suportar
     // o CNPJ alfanumérico da Receita Federal (raiz+ordem podem ter letras;
     // só os 2 dígitos verificadores finais continuam numéricos) — um CNPJ

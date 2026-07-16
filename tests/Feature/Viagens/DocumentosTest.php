@@ -103,4 +103,39 @@ class DocumentosTest extends TestCase
         $response->assertForbidden();
         $this->assertDatabaseHas('documentos', ['id' => $documento->id]);
     }
+
+    public function test_nfe_exige_carga_quando_empresa_tem_focus_nfe_ativo(): void
+    {
+        $empresa = \App\Models\Empresa::findOrFail(\App\Support\TenantContext::id());
+        $empresa->update(['focus_nfe_ativo' => true]);
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+
+        $response = $this->post(route('documentos.store', $viagem), [
+            'tipo'          => 'nfe',
+            'numero'        => '123456',
+            'data_emissao'  => now()->format('Y-m-d'),
+            'valor'         => 500,
+            'status'        => 'pendente',
+        ]);
+
+        $response->assertSessionHasErrors('carga_id');
+    }
+
+    public function test_nfe_nao_exige_carga_quando_empresa_nao_tem_focus_nfe_ativo(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+
+        $response = $this->post(route('documentos.store', $viagem), [
+            'tipo'          => 'nfe',
+            'numero'        => '123456',
+            'data_emissao'  => now()->format('Y-m-d'),
+            'valor'         => 500,
+            'status'        => 'pendente',
+        ]);
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $this->assertDatabaseHas('documentos', ['viagem_id' => $viagem->id, 'tipo' => 'nfe']);
+    }
 }

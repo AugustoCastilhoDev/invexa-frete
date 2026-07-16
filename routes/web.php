@@ -9,6 +9,7 @@ use App\Http\Controllers\DescontosController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\ClientesController;
+use App\Http\Controllers\CargasController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\AcertosController;
 use App\Http\Controllers\ProfileController;
@@ -205,9 +206,15 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
     Route::delete('documentos/{documento}', [DocumentosController::class, 'destroy'])
         ->middleware('admin')->name('documentos.destroy');
 
-    Route::post('viagens/{viagem}/emissoes-fiscais/{tipo}', [EmissoesFiscaisController::class, 'store'])
-        ->whereIn('tipo', ['cte', 'mdfe'])
-        ->name('viagens.emissoes-fiscais.store');
+    Route::post('viagens/{viagem}/cargas', [CargasController::class, 'store'])
+        ->name('cargas.store');
+    Route::delete('cargas/{carga}', [CargasController::class, 'destroy'])
+        ->name('cargas.destroy');
+
+    Route::post('cargas/{carga}/cte', [EmissoesFiscaisController::class, 'emitirCte'])
+        ->name('cargas.emitir-cte');
+    Route::post('viagens/{viagem}/mdfe', [EmissoesFiscaisController::class, 'emitirMdfe'])
+        ->name('viagens.emitir-mdfe');
     Route::get('emissoes-fiscais', [EmissoesFiscaisController::class, 'index'])
         ->name('emissoes-fiscais.index');
     Route::get('emissoes-fiscais/csv', [EmissoesFiscaisController::class, 'csv'])

@@ -134,6 +134,12 @@ class Viagem extends Model
         return $this->hasMany(Documento::class);
     }
 
+    // Viagem tem muitas cargas (uma por cliente/destinatário atendido na rota)
+    public function cargas()
+    {
+        return $this->hasMany(Carga::class);
+    }
+
     // Viagem tem muitas emissões fiscais (CT-e/MDF-e via Focus NFe)
     public function emissoesFiscais()
     {

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\EmissoesFiscais;
 
+use App\Models\Carga;
+use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\EmissaoFiscal;
 use App\Models\User;
@@ -95,6 +97,23 @@ class EmissoesFiscaisIndexTest extends TestCase
         $response->assertOk();
         $response->assertSee('222');
         $response->assertDontSee('111');
+    }
+
+    public function test_index_filtra_por_cliente(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $clienteA = Cliente::factory()->create(['nome' => 'Cliente A']);
+        $clienteB = Cliente::factory()->create(['nome' => 'Cliente B']);
+        $cargaA = Carga::factory()->create(['cliente_id' => $clienteA->id]);
+        $cargaB = Carga::factory()->create(['cliente_id' => $clienteB->id]);
+        EmissaoFiscal::factory()->autorizada()->paraCarga($cargaA)->create(['numero' => '111']);
+        EmissaoFiscal::factory()->autorizada()->paraCarga($cargaB)->create(['numero' => '222']);
+
+        $response = $this->get(route('emissoes-fiscais.index', ['cliente_id' => $clienteA->id]));
+
+        $response->assertOk();
+        $response->assertSee('111');
+        $response->assertDontSee('222');
     }
 
     public function test_csv_exporta_emissoes(): void

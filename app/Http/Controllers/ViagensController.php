@@ -201,13 +201,16 @@ class ViagensController extends Controller
             'criadoPor', 'atualizadoPor',
             'lancamentos.criadoPor', 'descontos.criadoPor', 'documentos.criadoPor',
             'emissoesFiscais',
+            'cargas.cliente', 'cargas.documentos', 'cargas.emissoesFiscais',
         ]);
 
         $programacaoPendente = ProgramacaoViagem::where('status', 'pendente')
             ->where('veiculo_id', $viagem->veiculo_id)
             ->first();
 
-        return view('viagens.show', compact('viagem', 'programacaoPendente'));
+        $clientes = Cliente::where('status', 'ativo')->orderBy('nome')->get();
+
+        return view('viagens.show', compact('viagem', 'programacaoPendente', 'clientes'));
     }
 
     public function edit(Viagem $viagem)

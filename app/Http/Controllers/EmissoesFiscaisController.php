@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Carga;
+use App\Models\Cliente;
 use App\Models\EmissaoFiscal;
 use App\Models\Veiculo;
 use App\Models\Viagem;
@@ -11,27 +13,25 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmissoesFiscaisController extends Controller
 {
-    public function store(Request $request, Viagem $viagem, string $tipo, FocusNfeClient $focusNfe)
+    public function emitirCte(Request $request, Carga $carga, FocusNfeClient $focusNfe)
     {
-        abort_unless(in_array($tipo, ['cte', 'mdfe'], true), 404);
-
+        $viagem = $carga->viagem;
         $empresa = $viagem->empresa;
 
         abort_unless($empresa->focus_nfe_ativo, 403, 'Emissão fiscal não está habilitada para esta empresa.');
 
         $emissao = EmissaoFiscal::create([
             'viagem_id'  => $viagem->id,
-            'tipo'       => $tipo,
-            'referencia' => "invexa-{$viagem->id}-{$tipo}-" . now()->timestamp,
+            'carga_id'   => $carga->id,
+            'tipo'       => 'cte',
+            'referencia' => "invexa-{$viagem->id}-cte-carga{$carga->id}-" . now()->timestamp,
             'status'     => 'processando_autorizacao',
         ]);
 
-        $payload = $tipo === 'cte' ? $this->montarPayloadCte($viagem) : $this->montarPayloadMdfe($viagem);
+        $payload = $this->montarPayloadCte($carga);
         $emissao->update(['payload_enviado' => $payload]);
 
-        $resposta = $tipo === 'cte'
-            ? $focusNfe->emitirCte($empresa, $emissao->referencia, $payload)
-            : $focusNfe->emitirMdfe($empresa, $emissao->referencia, $payload);
+        $resposta = $focusNfe->emitirCte($empresa, $emissao->referencia, $payload);
 
         if (! $resposta) {
             $emissao->update([
@@ -40,13 +40,47 @@ class EmissoesFiscaisController extends Controller
             ]);
 
             return redirect()->route('viagens.show', $viagem)
-                ->with('error', 'Não foi possível iniciar a emissão do ' . $emissao->tipo_formatado . '.');
+                ->with('error', 'Não foi possível iniciar a emissão do CT-e.');
         }
 
         $emissao->aplicarRespostaFocus($resposta);
 
         return redirect()->route('viagens.show', $viagem)
-            ->with('success', $emissao->tipo_formatado . ' enviado para autorização.');
+            ->with('success', 'CT-e enviado para autorização.');
+    }
+
+    public function emitirMdfe(Request $request, Viagem $viagem, FocusNfeClient $focusNfe)
+    {
+        $empresa = $viagem->empresa;
+
+        abort_unless($empresa->focus_nfe_ativo, 403, 'Emissão fiscal não está habilitada para esta empresa.');
+
+        $emissao = EmissaoFiscal::create([
+            'viagem_id'  => $viagem->id,
+            'tipo'       => 'mdfe',
+            'referencia' => "invexa-{$viagem->id}-mdfe-" . now()->timestamp,
+            'status'     => 'processando_autorizacao',
+        ]);
+
+        $payload = $this->montarPayloadMdfe($viagem);
+        $emissao->update(['payload_enviado' => $payload]);
+
+        $resposta = $focusNfe->emitirMdfe($empresa, $emissao->referencia, $payload);
+
+        if (! $resposta) {
+            $emissao->update([
+                'status'        => 'erro_autorizacao',
+                'mensagem_erro' => 'Não foi possível iniciar a emissão — veja os logs da aplicação.',
+            ]);
+
+            return redirect()->route('viagens.show', $viagem)
+                ->with('error', 'Não foi possível iniciar a emissão do MDF-e.');
+        }
+
+        $emissao->aplicarRespostaFocus($resposta);
+
+        return redirect()->route('viagens.show', $viagem)
+            ->with('success', 'MDF-e enviado para autorização.');
     }
 
     public function atualizarStatus(EmissaoFiscal $emissaoFiscal, FocusNfeClient $focusNfe)
@@ -100,8 +134,9 @@ class EmissoesFiscaisController extends Controller
             ->paginate(15)->withQueryString();
 
         $veiculos = Veiculo::orderBy('placa')->get();
+        $clientes = Cliente::orderBy('nome')->get();
 
-        return view('emissoes-fiscais.index', compact('emissoes', 'veiculos', 'totalRegistros'));
+        return view('emissoes-fiscais.index', compact('emissoes', 'veiculos', 'clientes', 'totalRegistros'));
     }
 
     public function csv(Request $request): StreamedResponse
@@ -113,7 +148,7 @@ class EmissoesFiscaisController extends Controller
             fwrite($saida, "\xEF\xBB\xBF");
 
             fputcsv($saida, [
-                'Viagem', 'Veículo', 'Motorista', 'Tipo', 'Número', 'Série',
+                'Viagem', 'Veículo', 'Motorista', 'Cliente', 'Tipo', 'Número', 'Série',
                 'Status', 'Emitido em', 'Encerrado em',
             ], ';');
 
@@ -122,6 +157,7 @@ class EmissoesFiscaisController extends Controller
                     $emissao->viagem_id,
                     $emissao->viagem?->veiculo?->placa,
                     $emissao->viagem?->motorista?->nome,
+                    $emissao->carga?->cliente?->nome,
                     $emissao->tipo_formatado,
                     $emissao->numero,
                     $emissao->serie,
@@ -137,10 +173,11 @@ class EmissoesFiscaisController extends Controller
 
     private function emissoesFiltradas(Request $request)
     {
-        return EmissaoFiscal::with(['viagem.veiculo', 'viagem.motorista'])
+        return EmissaoFiscal::with(['viagem.veiculo', 'viagem.motorista', 'carga.cliente'])
             ->when($request->input('tipo'), fn ($q, $v) => $q->where('tipo', $v))
             ->when($request->input('status'), fn ($q, $v) => $q->where('status', $v))
             ->when($request->input('veiculo_id'), fn ($q, $v) => $q->whereHas('viagem', fn ($qq) => $qq->where('veiculo_id', $v)))
+            ->when($request->input('cliente_id'), fn ($q, $v) => $q->whereHas('carga', fn ($qq) => $qq->where('cliente_id', $v)))
             ->when($request->input('data_inicio'), fn ($q, $v) => $q->whereDate('created_at', '>=', $v))
             ->when($request->input('data_fim'), fn ($q, $v) => $q->whereDate('created_at', '<=', $v));
     }
@@ -150,12 +187,14 @@ class EmissoesFiscaisController extends Controller
      * _remetente/_destinatario), conforme doc.focusnfe.com.br/reference/emitir_cte
      * — a Focus NÃO usa objetos aninhados aqui. Remetente = a própria
      * transportadora (simplificação: hoje não há conceito de "quem despachou
-     * a carga" separado de Empresa/Cliente no sistema).
+     * a carga" separado de Empresa/Cliente no sistema). Destinatário e valores
+     * vêm da Carga (um CT-e por carga/cliente), não mais da viagem inteira.
      */
-    private function montarPayloadCte(Viagem $viagem): array
+    private function montarPayloadCte(Carga $carga): array
     {
+        $viagem = $carga->viagem;
         $empresa = $viagem->empresa;
-        $cliente = $viagem->cliente;
+        $cliente = $carga->cliente;
 
         return [
             'cfop' => $empresa->cfop_padrao,
@@ -180,6 +219,9 @@ class EmissoesFiscaisController extends Controller
             'cep_emitente' => $empresa->cep,
             'uf_emitente' => $empresa->uf,
             'telefone_emitente' => $empresa->telefone,
+            // Remetente = a própria transportadora (simplificação já existente antes
+            // desta rodada — reavaliar com o contador se fizer sentido diferenciar
+            // remetente/emitente quando houver um cliente real).
             'cnpj_remetente' => $empresa->cnpj,
             'inscricao_estadual_remetente' => $empresa->inscricao_estadual,
             'nome_remetente' => $empresa->nome,
@@ -201,10 +243,10 @@ class EmissoesFiscaisController extends Controller
             'municipio_destinatario' => $cliente?->cidade,
             'cep_destinatario' => $cliente?->cep,
             'uf_destinatario' => $cliente?->estado,
-            'valor_total_carga' => (float) $viagem->valor_frete,
+            'valor_total_carga' => (float) $carga->documentos()->where('tipo', 'nfe')->sum('valor'),
             'produto_predominante' => $viagem->descricao_carga,
-            'valor_total' => (float) $viagem->valor_frete,
-            'valor_receber' => (float) $viagem->valor_frete,
+            'valor_total' => (float) $carga->valor_frete,
+            'valor_receber' => (float) $carga->valor_frete,
             'icms_situacao_tributaria' => $empresa->icms_situacao_tributaria,
             'icms_aliquota' => $empresa->icms_aliquota,
             'modal' => '01',
@@ -215,8 +257,9 @@ class EmissoesFiscaisController extends Controller
     /**
      * Payload do MDF-e conforme campos.focusnfe.com.br/mdfe/*: condutores
      * (nome+CPF), municípios de carregamento (nome+código IBGE), percurso
-     * (UFs) e documentos vinculados (chave do CT-e já autorizado da mesma
-     * viagem, quando existir).
+     * (UFs) e documentos vinculados — todos os CT-e's autorizados de todas
+     * as cargas da viagem (não só o primeiro), já que uma viagem pode
+     * atender vários clientes/cargas na mesma rota.
      */
     private function montarPayloadMdfe(Viagem $viagem): array
     {
@@ -224,8 +267,9 @@ class EmissoesFiscaisController extends Controller
         $veiculo = $viagem->veiculo;
         $motorista = $viagem->motorista;
 
-        $cteAutorizado = $viagem->emissoesFiscais
-            ->first(fn ($e) => $e->tipo === 'cte' && $e->status === 'autorizado');
+        $ctesAutorizados = $viagem->emissoesFiscais
+            ->where('tipo', 'cte')
+            ->where('status', 'autorizado');
 
         return [
             'data_emissao' => now()->toIso8601String(),
@@ -245,9 +289,10 @@ class EmissoesFiscaisController extends Controller
                 'nome' => $motorista->nome,
                 'cpf' => preg_replace('/\D/', '', (string) $motorista->cpf),
             ]] : [],
-            'conhecimentos_transporte' => $cteAutorizado
-                ? [['chave_cte' => $cteAutorizado->chave_acesso]]
-                : [],
+            'conhecimentos_transporte' => $ctesAutorizados
+                ->map(fn ($e) => ['chave_cte' => $e->chave_acesso])
+                ->values()
+                ->all(),
         ];
     }
 }
