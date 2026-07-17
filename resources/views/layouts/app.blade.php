@@ -318,26 +318,10 @@
         href="{{ route('programacoes.index') }}">
             <i class="bi bi-signpost-2"></i> Programação de Frota
         </a>
-    </nav>
-
-    <div class="nav-section">Relatórios</div>
-    <nav class="nav flex-column">
-        @if(auth()->user()?->isAdmin())
-        <a class="nav-link {{ request()->routeIs('relatorios.*') ? 'active' : '' }}"
-        href="{{ route('relatorios.index') }}">
-            <i class="bi bi-bar-chart-line"></i> Financeiro
-        </a>
-        @endif
         <a class="nav-link {{ request()->routeIs('acertos.*') ? 'active' : '' }}"
         href="{{ route('acertos.index') }}">
             <i class="bi bi-person-check"></i> Acertos
         </a>
-        @if(auth()->user()?->isAdmin())
-        <a class="nav-link {{ request()->routeIs('dre.*') ? 'active' : '' }}"
-        href="{{ route('dre.index') }}">
-            <i class="bi bi-clipboard-data"></i> DRE
-        </a>
-        @endif
     </nav>
 
     <div class="nav-section">Cadastros</div>
@@ -358,12 +342,6 @@
             href="{{ route('clientes.index') }}">
             <i class="bi bi-building"></i> Clientes
         </a>
-        @if(auth()->user()?->isAdmin())
-        <a class="nav-link {{ request()->routeIs('despesas-gerais.*') ? 'active' : '' }}"
-            href="{{ route('despesas-gerais.index') }}">
-            <i class="bi bi-receipt"></i> Despesas Gerais
-        </a>
-        @endif
     </nav>
 
     <div class="nav-section">Fiscal</div>
@@ -377,6 +355,18 @@
     @if(auth()->user()?->isAdmin())
     <div class="nav-section">Administração</div>
     <nav class="nav flex-column">
+        <a class="nav-link {{ request()->routeIs('relatorios.*') ? 'active' : '' }}"
+        href="{{ route('relatorios.index') }}">
+            <i class="bi bi-bar-chart-line"></i> Financeiro
+        </a>
+        <a class="nav-link {{ request()->routeIs('dre.*') ? 'active' : '' }}"
+        href="{{ route('dre.index') }}">
+            <i class="bi bi-clipboard-data"></i> DRE
+        </a>
+        <a class="nav-link {{ request()->routeIs('despesas-gerais.*') ? 'active' : '' }}"
+            href="{{ route('despesas-gerais.index') }}">
+            <i class="bi bi-receipt"></i> Despesas Gerais
+        </a>
         <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
            href="{{ route('users.index') }}">
             <i class="bi bi-people"></i> Usuários
