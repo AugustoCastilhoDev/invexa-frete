@@ -1,4 +1,14 @@
 <x-guest-layout>
+    <div class="flex mb-6 rounded-lg bg-gray-100 p-1 text-sm font-medium">
+        <span class="flex-1 text-center py-1.5 rounded-md bg-white text-orange-600 shadow-sm">
+            Operador / Admin
+        </span>
+        <a href="{{ route('portal.login') }}"
+           class="flex-1 text-center py-1.5 rounded-md text-gray-500 hover:text-gray-700 no-underline">
+            Portal do Motorista
+        </a>
+    </div>
+
     <div class="mb-6">
         <h1 class="text-lg font-semibold text-gray-800">Bem-vindo de volta</h1>
         <p class="text-sm text-gray-500 mt-1">Entre com suas credenciais para acessar o sistema.</p>
