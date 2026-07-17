@@ -125,7 +125,7 @@
     <div class="col-md-2">
         <div class="card text-center border-start border-success border-3">
             <div class="card-body py-3">
-                <div class="text-muted small">Lucro Líquido</div>
+                <div class="text-muted small">Lucro da Operação</div>
                 <div class="fw-bold text-success">
                     R$ {{ number_format($totais['lucro'], 2, ',', '.') }}
                 </div>
@@ -198,6 +198,14 @@
         <div class="card h-100 border-start border-3" style="border-color:#8b5cf6!important">
             <div class="card-header bg-white fw-semibold">
                 <i class="bi bi-pie-chart me-2 text-primary"></i>Composição das Despesas
+            </div>
+            <div class="px-3 pt-2">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Só considera dados de viagem — não inclui despesas gerais nem
+                    manutenções fora de viagem. Para o resultado completo da empresa,
+                    veja o <a href="{{ route('dre.index') }}">DRE</a>.
+                </small>
             </div>
             <div class="card-body d-flex flex-column align-items-center justify-content-center">
                 <div style="width:180px;height:180px">

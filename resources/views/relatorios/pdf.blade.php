@@ -89,10 +89,14 @@
             <div class="value">R$ {{ number_format($totais['manutencao'], 2, ',', '.') }}</div>
         </div>
         <div class="card green">
-            <div class="label">Lucro Líquido</div>
+            <div class="label">Lucro da Operação</div>
             <div class="value">R$ {{ number_format($totais['lucro'], 2, ',', '.') }}</div>
         </div>
     </div>
+    <p style="font-size:9px;color:#6c757d;margin-top:-4px">
+        Lucro da Operação considera só dados de viagem — não inclui despesas gerais
+        nem manutenções fora de viagem. Para o resultado completo da empresa, veja o DRE.
+    </p>
 
     {{-- Por Motorista --}}
     <div class="section-title">Resumo por Motorista</div>
