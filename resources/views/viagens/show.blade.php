@@ -854,6 +854,13 @@
                                    placeholder="Valor/Litro" step="0.001" min="0">
                         </div>
                     </div>
+                    <div class="row g-2 mt-1">
+                        <div class="col-md-12">
+                            <label class="form-label small text-muted mb-1">Comprovante (opcional)</label>
+                            <input type="file" name="comprovante" class="form-control form-control-sm"
+                                   accept=".jpg,.jpeg,.png,.pdf">
+                        </div>
+                    </div>
                 </form>
             </div>
             @endif

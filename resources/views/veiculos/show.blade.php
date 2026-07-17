@@ -142,7 +142,7 @@
                         @forelse($veiculo->manutencoes as $manutencao)
                         <tr>
                             <td class="ps-3">
-                                <span class="badge {{ $manutencao->tipo === 'preventiva' ? 'bg-info text-dark' : 'bg-danger' }} bg-opacity-10 text-{{ $manutencao->tipo === 'preventiva' ? 'info' : 'danger' }}">
+                                <span class="badge {{ $manutencao->tipo === 'preventiva' ? 'bg-info text-dark' : 'bg-danger' }}">
                                     {{ ucfirst($manutencao->tipo) }}
                                 </span>
                             </td>
