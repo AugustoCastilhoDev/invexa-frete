@@ -106,7 +106,7 @@
             <thead class="table-light">
                 <tr>
                     <th class="ps-3">Viagem</th>
-                    <th>Cliente</th>
+                    <th>Carga / Cliente</th>
                     <th>Tipo</th>
                     <th>Número / Série</th>
                     <th>Status</th>
@@ -128,7 +128,14 @@
                             {{ $emissao->viagem?->motorista?->nome ?? '-' }}
                         </small>
                     </td>
-                    <td class="small">{{ $emissao->carga?->cliente?->nome ?? '-' }}</td>
+                    <td class="small">
+                        @if($emissao->carga)
+                            <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold">{{ $emissao->carga->numero_formatado }}</span>
+                            {{ $emissao->carga->cliente?->nome }}
+                        @else
+                            -
+                        @endif
+                    </td>
                     <td>
                         <span class="badge {{ $emissao->tipo === 'mdfe' ? 'bg-info text-dark' : 'bg-primary' }} bg-opacity-10 text-{{ $emissao->tipo === 'mdfe' ? 'info' : 'primary' }}">
                             {{ $emissao->tipo_formatado }}
