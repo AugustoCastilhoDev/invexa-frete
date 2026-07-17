@@ -19,7 +19,7 @@
 
 <div class="row g-4">
     <div class="col-md-4">
-        <div class="card mb-4">
+        <div class="card mb-4 border-start border-primary border-3">
             <div class="card-header bg-white fw-semibold">
                 <i class="bi bi-person-vcard me-2 text-primary"></i>Dados do Cliente
             </div>
@@ -62,7 +62,7 @@
         </div>
 
         @if($cliente->logradouro)
-        <div class="card">
+        <div class="card border-start border-info border-3">
             <div class="card-header bg-white fw-semibold">
                 <i class="bi bi-geo-alt me-2 text-primary"></i>Endereço
             </div>
@@ -80,7 +80,7 @@
     </div>
 
     <div class="col-md-8">
-        <div class="card">
+        <div class="card border-start border-secondary border-3">
             <div class="card-header bg-white fw-semibold">
                 <i class="bi bi-truck me-2 text-primary"></i>Histórico de Viagens
             </div>

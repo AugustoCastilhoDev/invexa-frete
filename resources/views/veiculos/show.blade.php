@@ -19,7 +19,7 @@
 
 <div class="row g-4">
     <div class="col-md-4">
-        <div class="card">
+        <div class="card border-start border-primary border-3">
             <div class="card-header bg-white fw-semibold">
                 <i class="bi bi-car-front me-2 text-primary"></i>Dados do Veículo
             </div>
@@ -68,7 +68,7 @@
     </div>
 
     <div class="col-md-8">
-        <div class="card">
+        <div class="card border-start border-secondary border-3">
             <div class="card-header bg-white fw-semibold">
                 <i class="bi bi-truck me-2 text-primary"></i>Histórico de Viagens
             </div>

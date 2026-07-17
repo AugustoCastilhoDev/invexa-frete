@@ -73,7 +73,7 @@
 </div>
 @endif
 
-<div class="card">
+<div class="card border-start border-secondary border-3">
     <div class="card-body p-0">
         <div class="table-responsive">
         <table class="table table-hover mb-0">
