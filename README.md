@@ -119,9 +119,10 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Estrutura completa de emissão real de CT-e/MDF-e via [Focus NFe](https://focusnfe.com.br/), mas **desligada por padrão** — fica inerte para toda empresa até um super admin ativar manualmente para uma cliente específica (nenhum plano da Focus é contratado até haver demanda real; ver ROADMAP.md para o contexto)
 - Ativação em `/empresas/{id}`: upload do certificado digital A1 (.pfx) + senha, escolha de ambiente (homologação/produção) — token retornado pela Focus é guardado criptografado
 - Card "Dados Fiscais" na mesma tela (endereço completo com busca por CEP, IE, RNTRC, regime tributário, CFOP, ICMS) alimenta o payload real de emissão — campos ficam vazios até serem confirmados com o contador da transportadora, sem valor chutado
-- Com a integração ativa, a tela da viagem ganha os botões "Emitir CT-e"/"Emitir MDF-e" (Origem/Destino da viagem são selecionados por UF+Cidade, com código IBGE resolvido automaticamente); ao autorizar, o XML e o DACTE/DAMDFE são baixados dos servidores da Focus e guardados no nosso próprio storage, disponíveis para download junto com os documentos lançados manualmente
-- **Encerramento de MDF-e**: botão dedicado para encerrar o manifesto na SEFAZ ao fim da viagem — abrir uma nova viagem para um veículo com MDF-e ainda não encerrado é bloqueado
-- **Tela consolidada `/emissoes-fiscais`**: todos os CT-e/MDF-e da frota num só lugar, com filtros, paginação e exportação CSV
+- **Cargas**: uma viagem pode atender vários clientes/destinatários na mesma rota — cada "Carga" agrupa as NF-e's de um cliente e vira a unidade de emissão do CT-e (destinatário e valor do frete próprios); ao autorizar, o XML e o DACTE/DAMDFE são baixados dos servidores da Focus e guardados no nosso próprio storage, disponíveis para download junto com os documentos lançados manualmente
+- **Encerramento de MDF-e**: botão dedicado para encerrar o manifesto na SEFAZ ao fim da viagem — abrir uma nova viagem para um veículo com MDF-e ainda não encerrado é bloqueado; o MDF-e referencia automaticamente todos os CT-e's autorizados de todas as cargas da viagem
+- **Unidades (matriz/filial)**: uma empresa pode cadastrar filiais com CNPJ/IE/endereço fiscal próprios (mesma raiz de CNPJ, sufixo de ordem diferente); ao criar a viagem/carga dá pra escolher qual unidade emite aquele CT-e/MDF-e — frota, usuários e limite de veículos continuam compartilhados, sem duplicar tenant
+- **Tela consolidada `/emissoes-fiscais`**: todos os CT-e/MDF-e da frota num só lugar, com filtros (tipo, status, veículo, cliente, período), paginação e exportação CSV
 - Webhook (`/webhooks/focus-nfe`, protegido por token) atualiza o status de cada emissão — nunca desativa a empresa nem toma nenhuma ação automática sozinho
 
 ### 👥 Usuários & Permissões
@@ -176,7 +177,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 417+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso e emissão/encerramento de CT-e/MDF-e
+- 436+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso e emissão/encerramento de CT-e/MDF-e
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -200,7 +201,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (417+ testes) |
+| Testes | PHPUnit (436+ testes) |
 | CI | GitHub Actions |
 
 ---
