@@ -193,6 +193,21 @@
         html[data-bs-theme="dark"] .card-saldo-pendente { background: linear-gradient(135deg,#3a2e10,#4d3d10); }
         html[data-bs-theme="dark"] .card-saldo-pago { background: linear-gradient(135deg,#0f2e1c,#123c22); }
 
+        /* Cards de destaque com apenas uma borda lateral colorida ficam "sumidos" no modo
+           claro (cartão branco sobre fundo quase branco) mas saltam à vista no escuro
+           (cartão escuro sobre fundo ainda mais escuro). Um leve gradiente de fundo por
+           cor deixa os dois temas com o mesmo nível de realce. */
+        .card-accent-blue    { background: linear-gradient(135deg,#eff6ff,#dbeafe); }
+        .card-accent-purple  { background: linear-gradient(135deg,#f5f3ff,#ede9fe); }
+        .card-accent-green   { background: linear-gradient(135deg,#f0fdf4,#dcfce7); }
+        .card-accent-orange  { background: linear-gradient(135deg,#fff7ed,#ffedd5); }
+        .card-accent-gray    { background: linear-gradient(135deg,#f8fafc,#f1f5f9); }
+        html[data-bs-theme="dark"] .card-accent-blue   { background: linear-gradient(135deg,#0f1f3a,#13294d); }
+        html[data-bs-theme="dark"] .card-accent-purple { background: linear-gradient(135deg,#241a3d,#2e2150); }
+        html[data-bs-theme="dark"] .card-accent-green  { background: linear-gradient(135deg,#0f2e1c,#123c22); }
+        html[data-bs-theme="dark"] .card-accent-orange { background: linear-gradient(135deg,#3a2410,#4d3010); }
+        html[data-bs-theme="dark"] .card-accent-gray   { background: linear-gradient(135deg,#1a1d27,#20242f); }
+
         .pagination { margin-bottom: 0; }
         .page-link { color: #f97316; padding: .25rem .6rem; font-size: .8rem; }
         .page-item.active .page-link { background: #f97316; border-color: #f97316; }

@@ -7,7 +7,7 @@
 <div class="row g-3 mb-4">
 
     <div class="col-md-4 col-lg-2">
-        <div class="card h-100 border-start border-primary border-3">
+        <div class="card h-100 border-start border-primary border-3 card-accent-blue">
             <div class="card-body">
                 <div class="text-muted small mb-1">Viagens Abertas</div>
                 <div class="fs-3 fw-bold text-primary">{{ $totalViagensAbertas }}</div>
@@ -17,7 +17,7 @@
     </div>
 
     <div class="col-md-4 col-lg-2">
-        <div class="card h-100 border-start border-3" style="border-color:#8b5cf6!important">
+        <div class="card h-100 border-start border-3 card-accent-purple" style="border-color:#8b5cf6!important">
             <div class="card-body">
                 <div class="text-muted small mb-1">Aguard. Acerto</div>
                 <div class="fs-3 fw-bold" style="color:#8b5cf6">{{ $totalAguardandoAcerto }}</div>
@@ -27,7 +27,7 @@
     </div>
 
     <div class="col-md-4 col-lg-2">
-        <div class="card h-100 border-start border-success border-3">
+        <div class="card h-100 border-start border-success border-3 card-accent-green">
             <div class="card-body">
                 <div class="text-muted small mb-1">Encerradas no Mês</div>
                 <div class="fs-3 fw-bold text-success">{{ $totalViagensEncerradasMes }}</div>
@@ -37,7 +37,7 @@
     </div>
 
     <div class="col-md-4 col-lg-2">
-        <div class="card h-100 border-start border-3" style="border-color:#f97316!important">
+        <div class="card h-100 border-start border-3 card-accent-orange" style="border-color:#f97316!important">
             <div class="card-body">
                 <div class="text-muted small mb-1">Faturamento do Mês</div>
                 <div class="fs-5 fw-bold" style="color:#f97316">
@@ -49,7 +49,7 @@
     </div>
 
     <div class="col-md-4 col-lg-2">
-        <div class="card h-100 border-start border-success border-3">
+        <div class="card h-100 border-start border-success border-3 card-accent-green">
             <div class="card-body">
                 <div class="text-muted small mb-1">Lucro do Mês</div>
                 <div class="fs-5 fw-bold text-success">
@@ -61,7 +61,7 @@
     </div>
 
     <div class="col-md-4 col-lg-2">
-        <div class="card h-100 border-start border-secondary border-3">
+        <div class="card h-100 border-start border-secondary border-3 card-accent-gray">
             <div class="card-body">
                 <div class="text-muted small mb-1">Frota / Motoristas</div>
                 <div class="fs-3 fw-bold text-secondary">
