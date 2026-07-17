@@ -12,10 +12,12 @@ class CargasController extends Controller
     {
         $dados = $request->validate([
             'cliente_id'  => 'required|exists:clientes,id',
+            'unidade_id'  => 'nullable|exists:unidades,id',
             'valor_frete' => 'nullable|numeric|min:0',
         ]);
 
         $dados['viagem_id'] = $viagem->id;
+        $dados['unidade_id'] = $dados['unidade_id'] ?? $viagem->unidade_id;
 
         Carga::create($dados);
 

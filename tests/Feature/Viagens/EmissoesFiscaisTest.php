@@ -8,6 +8,7 @@ use App\Models\Documento;
 use App\Models\Empresa;
 use App\Models\EmissaoFiscal;
 use App\Models\Motorista;
+use App\Models\Unidade;
 use App\Models\User;
 use App\Models\Veiculo;
 use App\Models\Viagem;
@@ -273,6 +274,59 @@ class EmissoesFiscaisTest extends TestCase
                 && $request['valor_receber'] == 800.00
                 && $request['valor_total_carga'] == 1500.00
                 && $request['modal_rodoviario']['rntrc'] === '12345678';
+        });
+    }
+
+    public function test_payload_do_cte_usa_cnpj_da_unidade_quando_a_carga_tem_uma(): void
+    {
+        $empresa = $this->ativarFocusNfeNaEmpresaDeTeste();
+        $empresa->update(['cnpj' => '11.111.111/0001-11', 'municipio' => 'Curitiba', 'uf' => 'PR']);
+        $this->actingAs(User::factory()->create());
+
+        $unidade = Unidade::factory()->create([
+            'empresa_id' => $empresa->id,
+            'nome' => 'Filial — Minas Gerais',
+            'cnpj' => '11.111.111/0002-92',
+            'municipio' => 'Belo Horizonte',
+            'uf' => 'MG',
+            'rntrc' => '99999999',
+        ]);
+        $cliente = Cliente::factory()->create();
+        $viagem = Viagem::factory()->create(['unidade_id' => $unidade->id]);
+        $carga = Carga::factory()->create([
+            'viagem_id' => $viagem->id,
+            'cliente_id' => $cliente->id,
+            'unidade_id' => $unidade->id,
+        ]);
+
+        Http::fake(['*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('cargas.emitir-cte', $carga));
+
+        Http::assertSent(function ($request) use ($unidade) {
+            return str_contains($request->url(), '/v2/cte')
+                && $request['cnpj_emitente'] === $unidade->cnpj
+                && $request['municipio_envio'] === 'Belo Horizonte'
+                && $request['uf_envio'] === 'MG'
+                && $request['modal_rodoviario']['rntrc'] === '99999999';
+        });
+    }
+
+    public function test_payload_do_cte_usa_empresa_quando_carga_nao_tem_unidade(): void
+    {
+        $empresa = $this->ativarFocusNfeNaEmpresaDeTeste();
+        $empresa->update(['cnpj' => '11.111.111/0001-11', 'municipio' => 'Curitiba', 'uf' => 'PR']);
+        $this->actingAs(User::factory()->create());
+        $carga = Carga::factory()->create();
+
+        Http::fake(['*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('cargas.emitir-cte', $carga));
+
+        Http::assertSent(function ($request) use ($empresa) {
+            return str_contains($request->url(), '/v2/cte')
+                && $request['cnpj_emitente'] === $empresa->cnpj
+                && $request['municipio_envio'] === 'Curitiba';
         });
     }
 

@@ -11,6 +11,7 @@ use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\CargasController;
 use App\Http\Controllers\DocumentosController;
+use App\Http\Controllers\UnidadesController;
 use App\Http\Controllers\AcertosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramacoesViagemController;
@@ -84,6 +85,12 @@ Route::middleware(['auth', 'super_admin'])->group(function () {
         ->name('empresas.assinatura.criar');
     Route::patch('empresas/{empresa}/dados-fiscais', [EmpresasController::class, 'atualizarDadosFiscais'])
         ->name('empresas.dados-fiscais.atualizar');
+    Route::post('empresas/{empresa}/unidades', [UnidadesController::class, 'store'])
+        ->name('unidades.store');
+    Route::patch('unidades/{unidade}', [UnidadesController::class, 'update'])
+        ->name('unidades.update');
+    Route::delete('unidades/{unidade}', [UnidadesController::class, 'destroy'])
+        ->name('unidades.destroy');
     Route::post('empresas/{empresa}/focus-nfe/ativar', [EmpresasController::class, 'ativarFocusNfe'])
         ->name('empresas.focus-nfe.ativar');
     Route::patch('empresas/{empresa}/focus-nfe/desativar', [EmpresasController::class, 'desativarFocusNfe'])

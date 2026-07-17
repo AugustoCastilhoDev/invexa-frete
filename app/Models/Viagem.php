@@ -58,6 +58,7 @@ class Viagem extends Model
         'destino_codigo_municipio',
         'descricao_carga',
         'cliente_id',
+        'unidade_id',
         'data_saida',
         'data_retorno',
         'km_inicial',
@@ -114,6 +115,13 @@ class Viagem extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    // Unidade (matriz/filial) que emite o MDF-e desta viagem — também serve
+    // de valor padrão pro unidade_id das cargas criadas nela.
+    public function unidade()
+    {
+        return $this->belongsTo(Unidade::class);
     }
 
     // Viagem tem muitos lançamentos

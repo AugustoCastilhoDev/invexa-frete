@@ -282,6 +282,220 @@
     </div>
 </div>
 
+{{-- Unidades (Matriz/Filiais) --}}
+<div class="card mb-4" id="unidades">
+    <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-diagram-3 me-1"></i> Unidades (Matriz/Filiais)
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">
+            Cada unidade tem CNPJ/IE/endereço próprios, usados na emissão do CT-e/MDF-e
+            quando escolhida numa viagem ou carga — frota, usuários e limite de veículos
+            continuam compartilhados por toda a empresa.
+        </p>
+        @if($empresa->unidades->isNotEmpty())
+        <div class="table-responsive mb-3">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome</th>
+                        <th>CNPJ</th>
+                        <th>UF</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($empresa->unidades as $unidade)
+                    <tr>
+                        <td class="fw-semibold">{{ $unidade->nome }}</td>
+                        <td>{{ $unidade->cnpj ?? '-' }}</td>
+                        <td>{{ $unidade->uf ?? '-' }}</td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    data-bs-toggle="modal" data-bs-target="#editarUnidade{{ $unidade->id }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form action="{{ route('unidades.destroy', $unidade) }}" method="POST" class="d-inline"
+                                  onsubmit="return confirm('Remover a unidade {{ $unidade->nome }}?')">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <div class="modal fade" id="editarUnidade{{ $unidade->id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <form action="{{ route('unidades.update', $unidade) }}" method="POST">
+                                    @csrf @method('PATCH')
+                                    <div class="modal-header">
+                                        <h6 class="modal-title mb-0">Editar Unidade</h6>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Nome</label>
+                                                <input type="text" name="nome" class="form-control form-control-sm" value="{{ $unidade->nome }}" required>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small fw-semibold">CNPJ</label>
+                                                <input type="text" name="cnpj" class="form-control form-control-sm" value="{{ $unidade->cnpj }}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small fw-semibold">Inscrição Estadual</label>
+                                                <input type="text" name="inscricao_estadual" class="form-control form-control-sm" value="{{ $unidade->inscricao_estadual }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">CEP</label>
+                                                <input type="text" name="cep" class="form-control form-control-sm" value="{{ $unidade->cep }}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-semibold">Logradouro</label>
+                                                <input type="text" name="logradouro" class="form-control form-control-sm" value="{{ $unidade->logradouro }}">
+                                            </div>
+                                            <div class="col-md-1">
+                                                <label class="form-label small fw-semibold">Número</label>
+                                                <input type="text" name="numero" class="form-control form-control-sm" value="{{ $unidade->numero }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">Bairro</label>
+                                                <input type="text" name="bairro" class="form-control form-control-sm" value="{{ $unidade->bairro }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">Município</label>
+                                                <input type="text" name="municipio" class="form-control form-control-sm" value="{{ $unidade->municipio }}">
+                                            </div>
+                                            <div class="col-md-1">
+                                                <label class="form-label small fw-semibold">UF</label>
+                                                <input type="text" name="uf" class="form-control form-control-sm" maxlength="2" value="{{ $unidade->uf }}">
+                                            </div>
+                                            <input type="hidden" name="codigo_municipio" value="{{ $unidade->codigo_municipio }}">
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">Telefone</label>
+                                                <input type="text" name="telefone" class="form-control form-control-sm" value="{{ $unidade->telefone }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">RNTRC</label>
+                                                <input type="text" name="rntrc" class="form-control form-control-sm" value="{{ $unidade->rntrc }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">CFOP Padrão</label>
+                                                <input type="text" name="cfop_padrao" class="form-control form-control-sm" value="{{ $unidade->cfop_padrao }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">Situação Tributária ICMS</label>
+                                                <input type="text" name="icms_situacao_tributaria" class="form-control form-control-sm" value="{{ $unidade->icms_situacao_tributaria }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">Alíquota ICMS (%)</label>
+                                                <input type="number" step="0.01" min="0" max="100" name="icms_aliquota" class="form-control form-control-sm" value="{{ $unidade->icms_aliquota }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-primary btn-sm">Salvar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#novaUnidade">
+            <i class="bi bi-plus-lg me-1"></i> Nova Unidade
+        </button>
+        <div class="modal fade" id="novaUnidade" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <form action="{{ route('unidades.store', $empresa) }}" method="POST">
+                        @csrf
+                        <div class="modal-header">
+                            <h6 class="modal-title mb-0">Nova Unidade</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Nome</label>
+                                    <input type="text" name="nome" class="form-control form-control-sm" placeholder="Ex: Filial — Minas Gerais" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">CNPJ</label>
+                                    <input type="text" name="cnpj" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Inscrição Estadual</label>
+                                    <input type="text" name="inscricao_estadual" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-semibold">CEP</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" name="cep" id="unidade_cep" class="form-control" placeholder="00000-000" maxlength="9">
+                                        <button type="button" class="btn btn-outline-secondary" id="unidade_btn_cep">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Logradouro</label>
+                                    <input type="text" name="logradouro" id="unidade_logradouro" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label small fw-semibold">Número</label>
+                                    <input type="text" name="numero" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-semibold">Bairro</label>
+                                    <input type="text" name="bairro" id="unidade_bairro" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-semibold">Município</label>
+                                    <input type="text" name="municipio" id="unidade_municipio" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label small fw-semibold">UF</label>
+                                    <input type="text" name="uf" id="unidade_uf" class="form-control form-control-sm" maxlength="2">
+                                </div>
+                                <input type="hidden" name="codigo_municipio" id="unidade_codigo_municipio">
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-semibold">Telefone</label>
+                                    <input type="text" name="telefone" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-semibold">RNTRC</label>
+                                    <input type="text" name="rntrc" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-semibold">CFOP Padrão</label>
+                                    <input type="text" name="cfop_padrao" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-semibold">Situação Tributária ICMS</label>
+                                    <input type="text" name="icms_situacao_tributaria" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-semibold">Alíquota ICMS (%)</label>
+                                    <input type="number" step="0.01" min="0" max="100" name="icms_aliquota" class="form-control form-control-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary btn-sm">Adicionar Unidade</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Integração Fiscal (Focus NFe) --}}
 <div class="card mb-4" id="focus-nfe">
     <div class="card-header bg-white fw-semibold">
@@ -413,6 +627,36 @@
                         document.getElementById('empresa_municipio').value = data.localidade || '';
                         document.getElementById('empresa_uf').value = data.uf || '';
                         document.getElementById('empresa_codigo_municipio').value = data.ibge || '';
+                    }
+                })
+                .catch(() => alert('Erro ao buscar CEP.'))
+                .finally(() => {
+                    this.innerHTML = '<i class="bi bi-search"></i>';
+                });
+        });
+    }
+
+    // ── Busca CEP via ViaCEP (Nova Unidade)
+    const unidadeBtnCep = document.getElementById('unidade_btn_cep');
+    if (unidadeBtnCep) {
+        unidadeBtnCep.addEventListener('click', function () {
+            const cep = document.getElementById('unidade_cep').value.replace(/\D/g, '');
+            if (cep.length !== 8) {
+                alert('Digite um CEP válido com 8 dígitos.');
+                return;
+            }
+            this.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.erro) {
+                        alert('CEP não encontrado.');
+                    } else {
+                        document.getElementById('unidade_logradouro').value = data.logradouro || '';
+                        document.getElementById('unidade_bairro').value = data.bairro || '';
+                        document.getElementById('unidade_municipio').value = data.localidade || '';
+                        document.getElementById('unidade_uf').value = data.uf || '';
+                        document.getElementById('unidade_codigo_municipio').value = data.ibge || '';
                     }
                 })
                 .catch(() => alert('Erro ao buscar CEP.'))

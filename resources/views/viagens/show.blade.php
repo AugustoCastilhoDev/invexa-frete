@@ -342,6 +342,9 @@
                     <span>
                         <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold">{{ $carga->numero_formatado }}</span>
                         {{ $carga->cliente->nome }}
+                        @if($carga->unidade)
+                            <span class="text-muted">({{ $carga->unidade->nome }})</span>
+                        @endif
                         @if($carga->valor_frete)
                             — R$ {{ number_format($carga->valor_frete, 2, ',', '.') }}
                         @endif
@@ -391,6 +394,20 @@
                                     </div>
                                     <div class="form-text">Usado no CT-e deste cliente — pode ser diferente do valor de frete da viagem inteira.</div>
                                 </div>
+                                @if($unidades->isNotEmpty())
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">Unidade (Matriz/Filial)</label>
+                                    <select name="unidade_id" class="form-select form-select-sm">
+                                        <option value="">Selecione a unidade</option>
+                                        @foreach($unidades as $unidade)
+                                        <option value="{{ $unidade->id }}" {{ $viagem->unidade_id == $unidade->id ? 'selected' : '' }}>
+                                            {{ $unidade->nome }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="form-text">Define o CNPJ que emite o CT-e desta carga — por padrão, a mesma da viagem.</div>
+                                </div>
+                                @endif
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>

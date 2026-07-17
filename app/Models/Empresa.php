@@ -65,6 +65,14 @@ class Empresa extends Model
         return $this->hasMany(Veiculo::class);
     }
 
+    // Matriz/filiais desta empresa — cada uma com CNPJ/IE/endereço próprios
+    // pra emissão fiscal, mas compartilhando frota/usuários/limite (não são
+    // tenants separados).
+    public function unidades()
+    {
+        return $this->hasMany(Unidade::class);
+    }
+
     // null = sem limite (ilimitado)
     public function limiteVeiculosAtingido(): bool
     {

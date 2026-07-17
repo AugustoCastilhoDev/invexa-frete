@@ -113,6 +113,21 @@
                         @endforeach
                     </select>
                 </div>
+                @if($unidades->isNotEmpty())
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Unidade (Matriz/Filial)</label>
+                    <select name="unidade_id" class="form-select">
+                        <option value="">Selecione a unidade</option>
+                        @foreach($unidades as $unidade)
+                            <option value="{{ $unidade->id }}"
+                                {{ old('unidade_id') == $unidade->id ? 'selected' : '' }}>
+                                {{ $unidade->nome }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Define o CNPJ que emite o MDF-e desta viagem.</div>
+                </div>
+                @endif
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Data de Saída *</label>
                     <input type="date" name="data_saida" class="form-control"

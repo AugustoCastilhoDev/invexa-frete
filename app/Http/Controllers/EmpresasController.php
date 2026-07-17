@@ -150,7 +150,7 @@ class EmpresasController extends Controller
 
     public function show(Empresa $empresa)
     {
-        $empresa->load('criadoPor');
+        $empresa->load('criadoPor', 'unidades');
 
         $usuarios = $empresa->usuarios()->orderByDesc('role')->orderBy('name')->get();
 

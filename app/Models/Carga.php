@@ -14,6 +14,7 @@ class Carga extends Model
     protected $fillable = [
         'viagem_id',
         'cliente_id',
+        'unidade_id',
         'valor_frete',
     ];
 
@@ -29,6 +30,13 @@ class Carga extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    // Unidade (matriz/filial) que emite o CT-e desta carga — nullable, com
+    // fallback pros dados fiscais da Empresa quando não preenchida.
+    public function unidade()
+    {
+        return $this->belongsTo(Unidade::class);
     }
 
     public function documentos()

@@ -7,6 +7,7 @@ use App\Models\Cliente;
 use App\Models\Documento;
 use App\Models\Empresa;
 use App\Models\EmissaoFiscal;
+use App\Models\Unidade;
 use App\Models\User;
 use App\Models\Viagem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,6 +51,42 @@ class CargasTest extends TestCase
             'viagem_id' => $viagem->id,
             'cliente_id' => $cliente->id,
             'valor_frete' => null,
+        ]);
+    }
+
+    public function test_cria_carga_com_unidade_explicita(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+        $cliente = Cliente::factory()->create();
+        $unidade = Unidade::factory()->create();
+
+        $response = $this->post(route('cargas.store', $viagem), [
+            'cliente_id' => $cliente->id,
+            'unidade_id' => $unidade->id,
+        ]);
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $this->assertDatabaseHas('cargas', [
+            'viagem_id' => $viagem->id,
+            'unidade_id' => $unidade->id,
+        ]);
+    }
+
+    public function test_carga_herda_unidade_da_viagem_quando_nao_informada(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $unidade = Unidade::factory()->create();
+        $viagem = Viagem::factory()->create(['unidade_id' => $unidade->id]);
+        $cliente = Cliente::factory()->create();
+
+        $this->post(route('cargas.store', $viagem), [
+            'cliente_id' => $cliente->id,
+        ]);
+
+        $this->assertDatabaseHas('cargas', [
+            'viagem_id' => $viagem->id,
+            'unidade_id' => $unidade->id,
         ]);
     }
 

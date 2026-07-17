@@ -185,53 +185,53 @@ class EmissoesFiscaisController extends Controller
     /**
      * Payload plano do CT-e (uma chave por campo, com sufixo _emitente/
      * _remetente/_destinatario), conforme doc.focusnfe.com.br/reference/emitir_cte
-     * — a Focus NÃO usa objetos aninhados aqui. Remetente = a própria
-     * transportadora (simplificação: hoje não há conceito de "quem despachou
-     * a carga" separado de Empresa/Cliente no sistema). Destinatário e valores
-     * vêm da Carga (um CT-e por carga/cliente), não mais da viagem inteira.
+     * — a Focus NÃO usa objetos aninhados aqui. Remetente = o mesmo emitente
+     * (simplificação: hoje não há conceito de "quem despachou a carga"
+     * separado de Empresa/Cliente no sistema). Destinatário e valores vêm da
+     * Carga (um CT-e por carga/cliente), não mais da viagem inteira. Emitente
+     * vem da Unidade (matriz/filial) escolhida na carga quando houver, com
+     * fallback pros dados fiscais da Empresa — cobre empresas sem filial.
      */
     private function montarPayloadCte(Carga $carga): array
     {
         $viagem = $carga->viagem;
         $empresa = $viagem->empresa;
+        $emitente = $carga->unidade ?? $empresa;
         $cliente = $carga->cliente;
 
         return [
-            'cfop' => $empresa->cfop_padrao,
+            'cfop' => $emitente->cfop_padrao,
             'natureza_operacao' => 'Prestação de serviço de transporte',
             'data_emissao' => now()->toIso8601String(),
-            'codigo_municipio_envio' => $empresa->codigo_municipio,
-            'municipio_envio' => $empresa->municipio,
-            'uf_envio' => $empresa->uf,
+            'codigo_municipio_envio' => $emitente->codigo_municipio,
+            'municipio_envio' => $emitente->municipio,
+            'uf_envio' => $emitente->uf,
             'codigo_municipio_inicio' => $viagem->origem_codigo_municipio,
             'municipio_inicio' => $viagem->origem,
             'uf_inicio' => $viagem->origem_uf,
             'codigo_municipio_fim' => $viagem->destino_codigo_municipio,
             'municipio_fim' => $viagem->destino,
             'uf_fim' => $viagem->destino_uf,
-            'cnpj_emitente' => $empresa->cnpj,
-            'inscricao_estadual_emitente' => $empresa->inscricao_estadual,
-            'nome_emitente' => $empresa->nome,
-            'logradouro_emitente' => $empresa->logradouro,
-            'numero_emitente' => $empresa->numero,
-            'bairro_emitente' => $empresa->bairro,
-            'municipio_emitente' => $empresa->municipio,
-            'cep_emitente' => $empresa->cep,
-            'uf_emitente' => $empresa->uf,
-            'telefone_emitente' => $empresa->telefone,
-            // Remetente = a própria transportadora (simplificação já existente antes
-            // desta rodada — reavaliar com o contador se fizer sentido diferenciar
-            // remetente/emitente quando houver um cliente real).
-            'cnpj_remetente' => $empresa->cnpj,
-            'inscricao_estadual_remetente' => $empresa->inscricao_estadual,
-            'nome_remetente' => $empresa->nome,
-            'logradouro_remetente' => $empresa->logradouro,
-            'numero_remetente' => $empresa->numero,
-            'bairro_remetente' => $empresa->bairro,
-            'codigo_municipio_remetente' => $empresa->codigo_municipio,
-            'municipio_remetente' => $empresa->municipio,
-            'cep_remetente' => $empresa->cep,
-            'uf_remetente' => $empresa->uf,
+            'cnpj_emitente' => $emitente->cnpj,
+            'inscricao_estadual_emitente' => $emitente->inscricao_estadual,
+            'nome_emitente' => $emitente->nome,
+            'logradouro_emitente' => $emitente->logradouro,
+            'numero_emitente' => $emitente->numero,
+            'bairro_emitente' => $emitente->bairro,
+            'municipio_emitente' => $emitente->municipio,
+            'cep_emitente' => $emitente->cep,
+            'uf_emitente' => $emitente->uf,
+            'telefone_emitente' => $emitente->telefone,
+            'cnpj_remetente' => $emitente->cnpj,
+            'inscricao_estadual_remetente' => $emitente->inscricao_estadual,
+            'nome_remetente' => $emitente->nome,
+            'logradouro_remetente' => $emitente->logradouro,
+            'numero_remetente' => $emitente->numero,
+            'bairro_remetente' => $emitente->bairro,
+            'codigo_municipio_remetente' => $emitente->codigo_municipio,
+            'municipio_remetente' => $emitente->municipio,
+            'cep_remetente' => $emitente->cep,
+            'uf_remetente' => $emitente->uf,
             'cnpj_destinatario' => $cliente?->cpf_cnpj,
             'inscricao_estadual_destinatario' => $cliente?->ie,
             'nome_destinatario' => $cliente?->nome,
@@ -247,10 +247,10 @@ class EmissoesFiscaisController extends Controller
             'produto_predominante' => $viagem->descricao_carga,
             'valor_total' => (float) $carga->valor_frete,
             'valor_receber' => (float) $carga->valor_frete,
-            'icms_situacao_tributaria' => $empresa->icms_situacao_tributaria,
-            'icms_aliquota' => $empresa->icms_aliquota,
+            'icms_situacao_tributaria' => $emitente->icms_situacao_tributaria,
+            'icms_aliquota' => $emitente->icms_aliquota,
             'modal' => '01',
-            'modal_rodoviario' => ['rntrc' => $empresa->rntrc],
+            'modal_rodoviario' => ['rntrc' => $emitente->rntrc],
         ];
     }
 
@@ -264,6 +264,7 @@ class EmissoesFiscaisController extends Controller
     private function montarPayloadMdfe(Viagem $viagem): array
     {
         $empresa = $viagem->empresa;
+        $emitente = $viagem->unidade ?? $empresa;
         $veiculo = $viagem->veiculo;
         $motorista = $viagem->motorista;
 
@@ -273,7 +274,7 @@ class EmissoesFiscaisController extends Controller
 
         return [
             'data_emissao' => now()->toIso8601String(),
-            'cnpj_emitente' => $empresa->cnpj,
+            'cnpj_emitente' => $emitente->cnpj,
             'municipios_carregamento' => [
                 ['codigo' => $viagem->origem_codigo_municipio, 'nome' => $viagem->origem],
             ],
@@ -284,7 +285,7 @@ class EmissoesFiscaisController extends Controller
             'renavam_veiculo' => $veiculo?->renavam,
             'tara_veiculo' => $veiculo?->tara_kg,
             'capacidade_kg_veiculo' => $veiculo?->capacidade_kg,
-            'registro_nacional_transporte' => $empresa->rntrc,
+            'registro_nacional_transporte' => $emitente->rntrc,
             'condutores' => $motorista ? [[
                 'nome' => $motorista->nome,
                 'cpf' => preg_replace('/\D/', '', (string) $motorista->cpf),

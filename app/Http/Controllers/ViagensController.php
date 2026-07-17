@@ -9,6 +9,7 @@ use App\Models\ProgramacaoViagem;
 use App\Models\Veiculo;
 use Illuminate\Http\Request;
 use App\Models\Cliente;
+use App\Models\Unidade;
 use App\Http\Controllers\Concerns\GeraComprovanteAcerto;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -124,6 +125,7 @@ class ViagensController extends Controller
     $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
     $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
     $clientes   = Cliente::where('status', 'ativo')->orderBy('nome')->get();
+    $unidades   = Unidade::where('empresa_id', auth()->user()->empresa_id)->orderBy('nome')->get();
 
     $programacao = null;
     if ($request->filled('programacao_id')) {
@@ -135,7 +137,7 @@ class ViagensController extends Controller
         ->whereNull('encerrado_em')->with('viagem:id,veiculo_id')->get()
         ->pluck('viagem.veiculo_id')->filter()->unique();
 
-    return view('viagens.create', compact('motoristas', 'veiculos', 'clientes', 'programacao', 'veiculosBloqueados'));
+    return view('viagens.create', compact('motoristas', 'veiculos', 'clientes', 'unidades', 'programacao', 'veiculosBloqueados'));
 }
 
     public function store(Request $request)
@@ -151,6 +153,7 @@ class ViagensController extends Controller
             'destino_codigo_municipio' => 'nullable|string|max:7',
             'descricao_carga'      => 'nullable|string|max:255',
             'cliente_id'           => 'nullable|exists:clientes,id',
+            'unidade_id'           => 'nullable|exists:unidades,id',
             'data_saida'           => 'required|date',
             'km_inicial'           => 'nullable|integer|min:0',
             'valor_frete'          => 'required|numeric|min:0',
@@ -169,7 +172,7 @@ class ViagensController extends Controller
             'motorista_id', 'veiculo_id',
             'origem', 'origem_uf', 'origem_codigo_municipio',
             'destino', 'destino_uf', 'destino_codigo_municipio',
-            'descricao_carga', 'cliente_id',
+            'descricao_carga', 'cliente_id', 'unidade_id',
             'data_saida', 'km_inicial', 'valor_frete', 'percentual_motorista',
             'observacoes',
         ]);
@@ -209,8 +212,9 @@ class ViagensController extends Controller
             ->first();
 
         $clientes = Cliente::where('status', 'ativo')->orderBy('nome')->get();
+        $unidades = Unidade::where('empresa_id', $viagem->empresa_id)->orderBy('nome')->get();
 
-        return view('viagens.show', compact('viagem', 'programacaoPendente', 'clientes'));
+        return view('viagens.show', compact('viagem', 'programacaoPendente', 'clientes', 'unidades'));
     }
 
     public function edit(Viagem $viagem)
@@ -218,7 +222,8 @@ class ViagensController extends Controller
     $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
     $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
     $clientes   = Cliente::where('status', 'ativo')->orderBy('nome')->get();
-    return view('viagens.edit', compact('viagem', 'motoristas', 'veiculos', 'clientes'));
+    $unidades   = Unidade::where('empresa_id', auth()->user()->empresa_id)->orderBy('nome')->get();
+    return view('viagens.edit', compact('viagem', 'motoristas', 'veiculos', 'clientes', 'unidades'));
 }
 
     public function update(Request $request, Viagem $viagem)
@@ -234,6 +239,7 @@ class ViagensController extends Controller
             'destino_codigo_municipio' => 'nullable|string|max:7',
             'descricao_carga'      => 'nullable|string|max:255',
             'cliente_id'           => 'nullable|exists:clientes,id',
+            'unidade_id'           => 'nullable|exists:unidades,id',
             'data_saida'           => 'required|date',
             'data_retorno'         => 'nullable|date|after_or_equal:data_saida',
             'km_inicial'           => 'nullable|integer|min:0',
