@@ -122,7 +122,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Cargas**: uma viagem pode atender vários clientes/destinatários na mesma rota — cada "Carga" agrupa as NF-e's de um cliente e vira a unidade de emissão do CT-e (destinatário e valor do frete próprios); ao autorizar, o XML e o DACTE/DAMDFE são baixados dos servidores da Focus e guardados no nosso próprio storage, disponíveis para download junto com os documentos lançados manualmente
 - **Encerramento de MDF-e**: botão dedicado para encerrar o manifesto na SEFAZ ao fim da viagem — abrir uma nova viagem para um veículo com MDF-e ainda não encerrado é bloqueado; o MDF-e referencia automaticamente todos os CT-e's autorizados de todas as cargas da viagem
 - **Unidades (matriz/filial)**: uma empresa pode cadastrar filiais com CNPJ/IE/endereço fiscal próprios (mesma raiz de CNPJ, sufixo de ordem diferente); ao criar a viagem/carga dá pra escolher qual unidade emite aquele CT-e/MDF-e — frota, usuários e limite de veículos continuam compartilhados, sem duplicar tenant
-- **Tela consolidada `/emissoes-fiscais`**: todos os CT-e/MDF-e da frota num só lugar, com filtros (tipo, status, veículo, cliente, período), paginação e exportação CSV
+- **Telas separadas por tipo** — `/emissoes-fiscais/cte` e `/emissoes-fiscais/mdfe` (dois itens no menu, "CT-e" e "MDF-e"), cada uma só com os filtros/colunas que fazem sentido pra ela (Cliente e Carga só aparecem no CT-e; Encerrado em e o botão de encerrar só no MDF-e), paginação e exportação CSV própria por tipo
 - Webhook (`/webhooks/focus-nfe`, protegido por token) atualiza o status de cada emissão — nunca desativa a empresa nem toma nenhuma ação automática sozinho
 
 ### 👥 Usuários & Permissões
@@ -164,6 +164,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Modo claro/escuro (alternância pelo card de usuário no sidebar), preferência salva no navegador
 - Relógio/data ao vivo no sidebar
 - Sidebar off-canvas e tabelas com rolagem horizontal em telas de celular (abaixo de 992px)
+- Menu lateral agrupado por uso: **Principal** (Dashboard, Viagens, Programação de Frota, Acertos) e **Cadastros**/**Fiscal** ficam visíveis a todo usuário; itens restritos a admin (Financeiro, DRE, Despesas Gerais, Usuários) ficam consolidados num único bloco **Administração**, mais abaixo — quem é operador não vê nenhum item que não pode acessar
 
 ### 🔒 Segurança & LGPD
 - Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, por serem documentos de identificação assinados)
@@ -177,7 +178,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 436+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso e emissão/encerramento de CT-e/MDF-e
+- 437+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso e emissão/encerramento de CT-e/MDF-e
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -201,7 +202,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (436+ testes) |
+| Testes | PHPUnit (437+ testes) |
 | CI | GitHub Actions |
 
 ---
@@ -389,31 +390,38 @@ app/
 │   └── ExpurgarLogsAcesso.php         # comando lgpd:expurgar-logs-acesso
 ├── Http/Controllers/
 │   ├── AcertosController.php
+│   ├── CargasController.php            # agrupa NF-e por cliente dentro de uma viagem (unidade de emissão do CT-e)
 │   ├── ClientesController.php
 │   ├── DashboardController.php
 │   ├── DescontosController.php
 │   ├── DespesasGeraisController.php
 │   ├── DocumentosController.php
 │   ├── DreController.php
+│   ├── EmissoesFiscaisController.php   # telas /emissoes-fiscais/cte e /mdfe + emissão/encerramento via Focus NFe
 │   ├── EmpresasController.php          # CRUD de empresas (tenants), restrito ao super admin
 │   ├── LancamentosController.php
 │   ├── ManutencoesController.php
 │   ├── MotoristaPortalAccessController.php  # admin libera/revoga acesso do motorista ao portal
 │   ├── MotoristasController.php
 │   ├── NotificacoesController.php
+│   ├── ProfileController.php
 │   ├── ProgramacoesViagemController.php # programação de frota (próxima viagem planejada)
 │   ├── RelatorioController.php
+│   ├── UnidadesController.php          # matriz/filial (CNPJ/IE/endereço próprios por unidade)
 │   ├── UsersController.php
 │   ├── VeiculosController.php
 │   ├── ViagensController.php
 │   ├── Auth/                           # login, 2FA, reset de senha (admin)
 │   ├── Concerns/
 │   │   └── GeraComprovanteAcerto.php   # PDF do comprovante, reaproveitado pelo admin e pelo portal
-│   └── Portal/                         # controllers exclusivos do Portal do Motorista
-│       ├── PortalAuthController.php
-│       ├── PortalLancamentosController.php
-│       ├── PortalSenhaController.php
-│       └── PortalViagensController.php
+│   ├── Portal/                         # controllers exclusivos do Portal do Motorista
+│   │   ├── PortalAuthController.php
+│   │   ├── PortalLancamentosController.php
+│   │   ├── PortalSenhaController.php
+│   │   └── PortalViagensController.php
+│   └── Webhooks/
+│       ├── AsaasWebhookController.php       # status de cobrança recorrente
+│       └── FocusNfeWebhookController.php    # status de emissão de CT-e/MDF-e
 ├── Http/Middleware/
 │   ├── EnsureUserIsAdmin.php
 │   ├── EnsureUserIsSuperAdmin.php      # restringe telas de gestão de empresas ao super admin
@@ -422,21 +430,31 @@ app/
 │   └── TenantContext.php               # resolve a empresa do usuário/motorista autenticado no momento
 ├── Listeners/
 │   └── LogAcessoListener.php          # grava IP/data-hora a cada login (Marco Civil, Art. 15)
+├── Services/
+│   ├── Asaas/
+│   │   ├── AsaasClient.php             # cobrança recorrente (assinatura por empresa)
+│   │   └── PlanoPricing.php            # tabela de planos/valores
+│   └── FocusNfe/
+│       └── FocusNfeClient.php          # emissão/consulta/encerramento de CT-e/MDF-e
 ├── Models/
 │   ├── Concerns/
 │   │   ├── BelongsToEmpresa.php       # escopo global + preenchimento automático de empresa_id
 │   │   ├── TracksUser.php             # created_by / updated_by automáticos (guard "web")
 │   │   ├── TracksDeletingUser.php     # deleted_by automático (guard "web")
 │   │   └── HasUploadedFile.php        # URL do arquivo, assinada se o disco for a nuvem
+│   ├── Carga.php                      # agrupamento de NF-e por cliente (unidade de emissão do CT-e)
 │   ├── Cliente.php
 │   ├── Desconto.php
 │   ├── DespesaGeral.php
 │   ├── Documento.php
+│   ├── EmissaoFiscal.php              # emissão real de CT-e/MDF-e via Focus NFe
 │   ├── Empresa.php                    # tenant — empresa cliente da plataforma
 │   ├── Lancamento.php
 │   ├── LogAcesso.php                  # registro de login (IP, data/hora) para conformidade LGPD
 │   ├── Manutencao.php
 │   ├── Motorista.php                  # Authenticatable — guard próprio do Portal
+│   ├── ProgramacaoViagem.php          # próxima viagem planejada (Programação de Frota)
+│   ├── Unidade.php                    # matriz/filial — CNPJ/IE/endereço fiscal próprios
 │   ├── User.php
 │   ├── Veiculo.php
 │   └── Viagem.php
@@ -449,23 +467,34 @@ config/
 resources/
 └── views/
 ├── acertos/
+├── auth/
 ├── clientes/
+├── components/                          # inputs/botões reaproveitados nos formulários de auth/portal
 ├── despesas-gerais/
 ├── dre/
-├── empresas/                            # telas de gestão de empresas (super admin)
-├── layouts/                            # app.blade.php (admin), guest.blade.php (auth), portal.blade.php
+├── emissoes-fiscais/                    # telas /cte e /mdfe (mesma view, parametrizada por tipo)
+├── empresas/                            # telas de gestão de empresas (super admin), inclui Unidades
+├── layouts/                             # app.blade.php (admin), guest.blade.php (auth), portal.blade.php
+├── legal/                               # termos de uso, política de privacidade
+├── manutencoes/
 ├── motoristas/
-├── portal/                             # auth/, viagens/, senha/ — telas do motorista
+├── portal/                              # auth/, viagens/, senha/ — telas do motorista
+├── profile/
+├── programacoes/                        # Programação de Frota
 ├── relatorios/
 ├── users/
 ├── veiculos/
-└── viagens/
+├── viagens/                              # inclui os blocos de Carga na tela de detalhe
+├── dashboard.blade.php
+└── landing.blade.php
 database/
 └── migrations/
 tests/
 ├── Unit/Models/
 └── Feature/
-    ├── Empresas/                        # testes do CRUD de empresas
+    ├── Empresas/                        # testes do CRUD de empresas, Dados Fiscais, Unidades
+    ├── EmissoesFiscais/                 # testes das telas /cte e /mdfe
+    ├── Viagens/                         # inclui Cargas, Documentos, Emissões Fiscais
     ├── MultiTenantIsolationTest.php     # garante que uma empresa não vê dados de outra
     └── Portal/                          # testes do guard/isolamento do Portal do Motorista
 routes/
