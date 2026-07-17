@@ -124,9 +124,29 @@ class EmissoesFiscaisController extends Controller
         );
     }
 
-    public function index(Request $request)
+    public function cte(Request $request)
     {
-        $query = $this->emissoesFiltradas($request);
+        return $this->listar($request, 'cte');
+    }
+
+    public function mdfe(Request $request)
+    {
+        return $this->listar($request, 'mdfe');
+    }
+
+    public function csvCte(Request $request): StreamedResponse
+    {
+        return $this->exportarCsv($request, 'cte');
+    }
+
+    public function csvMdfe(Request $request): StreamedResponse
+    {
+        return $this->exportarCsv($request, 'mdfe');
+    }
+
+    private function listar(Request $request, string $tipo)
+    {
+        $query = $this->emissoesFiltradas($request, $tipo);
 
         $totalRegistros = (clone $query)->count();
 
@@ -134,47 +154,56 @@ class EmissoesFiscaisController extends Controller
             ->paginate(15)->withQueryString();
 
         $veiculos = Veiculo::orderBy('placa')->get();
-        $clientes = Cliente::orderBy('nome')->get();
+        $clientes = $tipo === 'cte' ? Cliente::orderBy('nome')->get() : collect();
 
-        return view('emissoes-fiscais.index', compact('emissoes', 'veiculos', 'clientes', 'totalRegistros'));
+        return view('emissoes-fiscais.index', compact('emissoes', 'veiculos', 'clientes', 'totalRegistros', 'tipo'));
     }
 
-    public function csv(Request $request): StreamedResponse
+    private function exportarCsv(Request $request, string $tipo): StreamedResponse
     {
-        $emissoes = $this->emissoesFiltradas($request)->orderByDesc('created_at')->get();
+        $emissoes = $this->emissoesFiltradas($request, $tipo)->orderByDesc('created_at')->get();
 
-        return response()->streamDownload(function () use ($emissoes) {
+        $colunas = $tipo === 'cte'
+            ? ['Viagem', 'Veículo', 'Motorista', 'Cliente', 'Número', 'Série', 'Status', 'Emitido em']
+            : ['Viagem', 'Veículo', 'Motorista', 'Número', 'Série', 'Status', 'Emitido em', 'Encerrado em'];
+
+        return response()->streamDownload(function () use ($emissoes, $colunas, $tipo) {
             $saida = fopen('php://output', 'w');
             fwrite($saida, "\xEF\xBB\xBF");
 
-            fputcsv($saida, [
-                'Viagem', 'Veículo', 'Motorista', 'Cliente', 'Tipo', 'Número', 'Série',
-                'Status', 'Emitido em', 'Encerrado em',
-            ], ';');
+            fputcsv($saida, $colunas, ';');
 
             foreach ($emissoes as $emissao) {
-                fputcsv($saida, [
+                $linha = [
                     $emissao->viagem_id,
                     $emissao->viagem?->veiculo?->placa,
                     $emissao->viagem?->motorista?->nome,
-                    $emissao->carga?->cliente?->nome,
-                    $emissao->tipo_formatado,
-                    $emissao->numero,
-                    $emissao->serie,
-                    ucfirst(str_replace('_', ' ', $emissao->status)),
-                    $emissao->created_at->format('d/m/Y H:i'),
-                    optional($emissao->encerrado_em)->format('d/m/Y H:i'),
-                ], ';');
+                ];
+
+                if ($tipo === 'cte') {
+                    $linha[] = $emissao->carga?->cliente?->nome;
+                }
+
+                $linha[] = $emissao->numero;
+                $linha[] = $emissao->serie;
+                $linha[] = ucfirst(str_replace('_', ' ', $emissao->status));
+                $linha[] = $emissao->created_at->format('d/m/Y H:i');
+
+                if ($tipo === 'mdfe') {
+                    $linha[] = optional($emissao->encerrado_em)->format('d/m/Y H:i');
+                }
+
+                fputcsv($saida, $linha, ';');
             }
 
             fclose($saida);
-        }, 'emissoes-fiscais.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+        }, "emissoes-fiscais-{$tipo}.csv", ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
-    private function emissoesFiltradas(Request $request)
+    private function emissoesFiltradas(Request $request, string $tipo)
     {
         return EmissaoFiscal::with(['viagem.veiculo', 'viagem.motorista', 'carga.cliente'])
-            ->when($request->input('tipo'), fn ($q, $v) => $q->where('tipo', $v))
+            ->where('tipo', $tipo)
             ->when($request->input('status'), fn ($q, $v) => $q->where('status', $v))
             ->when($request->input('veiculo_id'), fn ($q, $v) => $q->whereHas('viagem', fn ($qq) => $qq->where('veiculo_id', $v)))
             ->when($request->input('cliente_id'), fn ($q, $v) => $q->whereHas('carga', fn ($qq) => $qq->where('cliente_id', $v)))

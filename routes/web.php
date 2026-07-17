@@ -222,10 +222,14 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         ->name('cargas.emitir-cte');
     Route::post('viagens/{viagem}/mdfe', [EmissoesFiscaisController::class, 'emitirMdfe'])
         ->name('viagens.emitir-mdfe');
-    Route::get('emissoes-fiscais', [EmissoesFiscaisController::class, 'index'])
-        ->name('emissoes-fiscais.index');
-    Route::get('emissoes-fiscais/csv', [EmissoesFiscaisController::class, 'csv'])
-        ->name('emissoes-fiscais.csv');
+    Route::get('emissoes-fiscais/cte', [EmissoesFiscaisController::class, 'cte'])
+        ->name('emissoes-fiscais.cte');
+    Route::get('emissoes-fiscais/cte/csv', [EmissoesFiscaisController::class, 'csvCte'])
+        ->name('emissoes-fiscais.cte.csv');
+    Route::get('emissoes-fiscais/mdfe', [EmissoesFiscaisController::class, 'mdfe'])
+        ->name('emissoes-fiscais.mdfe');
+    Route::get('emissoes-fiscais/mdfe/csv', [EmissoesFiscaisController::class, 'csvMdfe'])
+        ->name('emissoes-fiscais.mdfe.csv');
     Route::post('emissoes-fiscais/{emissaoFiscal}/atualizar-status', [EmissoesFiscaisController::class, 'atualizarStatus'])
         ->name('emissoes-fiscais.atualizar-status');
     Route::post('emissoes-fiscais/{emissaoFiscal}/encerrar', [EmissoesFiscaisController::class, 'encerrar'])

@@ -346,9 +346,13 @@
 
     <div class="nav-section">Fiscal</div>
     <nav class="nav flex-column">
-        <a class="nav-link {{ request()->routeIs('emissoes-fiscais.*') ? 'active' : '' }}"
-           href="{{ route('emissoes-fiscais.index') }}">
-            <i class="bi bi-file-earmark-check"></i> Emissões Fiscais
+        <a class="nav-link {{ request()->routeIs('emissoes-fiscais.cte*') ? 'active' : '' }}"
+           href="{{ route('emissoes-fiscais.cte') }}">
+            <i class="bi bi-file-earmark-text"></i> CT-e
+        </a>
+        <a class="nav-link {{ request()->routeIs('emissoes-fiscais.mdfe*') ? 'active' : '' }}"
+           href="{{ route('emissoes-fiscais.mdfe') }}">
+            <i class="bi bi-file-earmark-check"></i> MDF-e
         </a>
     </nav>
 

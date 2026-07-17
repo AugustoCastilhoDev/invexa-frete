@@ -1,15 +1,17 @@
 @extends('layouts.app')
-@section('title', 'Emissões Fiscais')
+@section('title', $tipo === 'cte' ? 'CT-e' : 'MDF-e')
 
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Emissões Fiscais</h4>
-        <small class="text-muted">Todos os CT-e e MDF-e emitidos pela frota, em um só lugar</small>
+        <h4 class="mb-0">{{ $tipo === 'cte' ? "CT-e's emitidos" : "MDF-e's emitidos" }}</h4>
+        <small class="text-muted">
+            {{ $tipo === 'cte' ? 'Todos os CT-e emitidos pela frota, em um só lugar' : 'Todos os MDF-e emitidos pela frota, em um só lugar' }}
+        </small>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('emissoes-fiscais.csv', request()->query()) }}" class="btn btn-outline-success">
+        <a href="{{ route('emissoes-fiscais.'.$tipo.'.csv', request()->query()) }}" class="btn btn-outline-success">
             <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar CSV
         </a>
     </div>
@@ -18,25 +20,21 @@
 {{-- ── Filtros ── --}}
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" action="{{ route('emissoes-fiscais.index') }}">
+        <form method="GET" action="{{ route('emissoes-fiscais.'.$tipo) }}">
             <div class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold small">Tipo</label>
-                    <select name="tipo" class="form-select form-select-sm">
-                        <option value="">Todos</option>
-                        <option value="cte" {{ request('tipo') === 'cte' ? 'selected' : '' }}>CT-e</option>
-                        <option value="mdfe" {{ request('tipo') === 'mdfe' ? 'selected' : '' }}>MDF-e</option>
-                    </select>
-                </div>
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Status</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">Todos</option>
                         <option value="processando_autorizacao" {{ request('status') === 'processando_autorizacao' ? 'selected' : '' }}>Processando</option>
                         <option value="autorizado" {{ request('status') === 'autorizado' ? 'selected' : '' }}>Autorizado</option>
+                        @if($tipo === 'mdfe')
                         <option value="encerrado" {{ request('status') === 'encerrado' ? 'selected' : '' }}>Encerrado</option>
+                        @endif
                         <option value="erro_autorizacao" {{ request('status') === 'erro_autorizacao' ? 'selected' : '' }}>Erro na autorização</option>
+                        @if($tipo === 'mdfe')
                         <option value="erro_encerramento" {{ request('status') === 'erro_encerramento' ? 'selected' : '' }}>Erro no encerramento</option>
+                        @endif
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -51,6 +49,7 @@
                         @endforeach
                     </select>
                 </div>
+                @if($tipo === 'cte')
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Cliente</label>
                     <select name="cliente_id" class="form-select form-select-sm">
@@ -63,6 +62,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endif
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Data Início</label>
                     <input type="date" name="data_inicio" class="form-control form-control-sm"
@@ -98,7 +98,7 @@
 {{-- ── Listagem ── --}}
 <div class="card border-start border-secondary border-3">
     <div class="card-header bg-white fw-semibold">
-        <i class="bi bi-file-earmark-check me-2 text-primary"></i>Emissões
+        <i class="bi bi-file-earmark-check me-2 text-primary"></i>{{ $tipo === 'cte' ? 'CT-e' : 'MDF-e' }}
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -106,12 +106,15 @@
             <thead class="table-light">
                 <tr>
                     <th class="ps-3">Viagem</th>
+                    @if($tipo === 'cte')
                     <th>Carga / Cliente</th>
-                    <th>Tipo</th>
+                    @endif
                     <th>Número / Série</th>
                     <th>Status</th>
                     <th>Emitido em</th>
+                    @if($tipo === 'mdfe')
                     <th>Encerrado em</th>
+                    @endif
                     <th></th>
                 </tr>
             </thead>
@@ -128,6 +131,7 @@
                             {{ $emissao->viagem?->motorista?->nome ?? '-' }}
                         </small>
                     </td>
+                    @if($tipo === 'cte')
                     <td class="small">
                         @if($emissao->carga)
                             <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold">{{ $emissao->carga->numero_formatado }}</span>
@@ -136,11 +140,7 @@
                             -
                         @endif
                     </td>
-                    <td>
-                        <span class="badge {{ $emissao->tipo === 'mdfe' ? 'bg-info text-dark' : 'bg-primary' }} bg-opacity-10 text-{{ $emissao->tipo === 'mdfe' ? 'info' : 'primary' }}">
-                            {{ $emissao->tipo_formatado }}
-                        </span>
-                    </td>
+                    @endif
                     <td>{{ $emissao->numero ?? '-' }} @if($emissao->serie) / {{ $emissao->serie }} @endif</td>
                     <td>
                         @php
@@ -156,9 +156,11 @@
                         </span>
                     </td>
                     <td class="small text-muted">{{ $emissao->created_at->format('d/m/Y H:i') }}</td>
+                    @if($tipo === 'mdfe')
                     <td class="small text-muted">
                         {{ $emissao->encerrado_em?->format('d/m/Y H:i') ?? '-' }}
                     </td>
+                    @endif
                     <td>
                         <div class="d-flex gap-1">
                             @unless($emissao->isFinal())
@@ -217,8 +219,8 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-4">
-                        Nenhuma emissão fiscal encontrada.
+                    <td colspan="6" class="text-center text-muted py-4">
+                        {{ $tipo === 'cte' ? 'Nenhum CT-e encontrado.' : 'Nenhum MDF-e encontrado.' }}
                     </td>
                 </tr>
                 @endforelse
