@@ -191,6 +191,8 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 ### ✅ Qualidade
 - 451+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, emissão/encerramento de CT-e/MDF-e, diagnóstico do sistema e a API REST
 - CI no GitHub Actions rodando a suíte a cada push/PR
+- **Teste de volume de dados**: importação CSV validada localmente até 20.000 linhas numa importação só (5.000 em ~17s), depois do fix que envolve o processo inteiro numa transação — evita timeout do PHP deixar dado pela metade num import grande
+- **Teste de carga e concorrência em produção (2026-07-18)**: leitura simultânea estável até ~450 requisições sem erro na tela mais pesada do painel (Dashboard); escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados — número específico da VPS atual, ver [ROADMAP.md](ROADMAP.md) para o relatório completo
 
 ---
 
