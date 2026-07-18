@@ -42,6 +42,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Adiantamento ao motorista (com opção de desconto ou não)
 - Descontos (vale, multa, adiantamento, outros) e **Bonificação** (diária, prêmio — soma ao saldo do motorista em vez de subtrair)
 - Documentos fiscais (CT-e, MDF-e, NF-e), com botão para verificar a autenticidade direto no portal público oficial da SEFAZ pela chave de acesso — gratuito, sem certificado digital (MDF-e pede login gov.br do próprio usuário, os demais só captcha); documento sem chave mostra um aviso, e a chave pode ser adicionada/editada depois sem precisar excluir e relançar
+- Upload de comprovante (jpg/png/pdf) direto no formulário de lançamento na tela da viagem, tanto pelo motorista (Portal) quanto pelo operador
 - Impressão de comprovante de acerto em PDF
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 - Avanço de status direto na tela da viagem, sem precisar abrir a edição; não permite pular etapas
@@ -108,6 +109,10 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Limite de veículos por plano**: cada empresa pode ter um teto de veículos configurado pelo super admin (ex.: plano até 5 veículos); tentar cadastrar acima do limite é bloqueado com uma mensagem clara, e tanto o painel de suporte quanto a própria tela de Veículos do cliente mostram "X / Y veículos" cadastrados
 - E-mail, CPF, placa e CNPJ continuam únicos em todo o sistema — login por e-mail/CPF não precisa saber a qual empresa a conta pertence
 
+### 🩺 Diagnóstico do Sistema (super admin)
+- Tela `/diagnostico`, restrita ao super admin: saúde do servidor (uptime, carga de CPU, memória e disco usados) e saúde da aplicação (usuários online, empresas ativas, tamanho do banco, volume de veículos/motoristas/clientes/viagens de todas as empresas)
+- Métricas de servidor lidas nativamente pelo PHP (`/proc`, `sys_getloadavg()`, `disk_free_space()`), sem depender de `shell_exec`
+
 ### 💳 Cobrança recorrente (Asaas)
 - Ao cadastrar a empresa, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual) — o sistema cria automaticamente o cliente e a assinatura recorrente no [Asaas](https://www.asaas.com/), com 14 dias de trial antes da primeira cobrança
 - Plano Enterprise fica de fora da automação (sempre negociado manualmente)
@@ -134,6 +139,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Autenticação em Dois Fatores (2FA) opcional via TOTP, com QR Code, confirmação obrigatória antes de ativar e códigos de recuperação de uso único
 - Telas de login, recuperação de senha e desafio de 2FA com identidade visual própria (logo, cores da marca)
 - Botão para mostrar/esconder a senha digitada no login
+- Alternância entre o login de Operador/Admin e o Portal do Motorista direto na tela, nos dois sentidos
 
 ### 🔔 Notificações
 - E-mail automático para admins ativos quando uma viagem entra em "aguardando acerto"
@@ -178,7 +184,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 437+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso e emissão/encerramento de CT-e/MDF-e
+- 440+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, emissão/encerramento de CT-e/MDF-e e diagnóstico do sistema
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -202,7 +208,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (437+ testes) |
+| Testes | PHPUnit (440+ testes) |
 | CI | GitHub Actions |
 
 ---
@@ -395,6 +401,7 @@ app/
 │   ├── DashboardController.php
 │   ├── DescontosController.php
 │   ├── DespesasGeraisController.php
+│   ├── DiagnosticoController.php       # saúde do servidor + aplicação, restrito ao super admin
 │   ├── DocumentosController.php
 │   ├── DreController.php
 │   ├── EmissoesFiscaisController.php   # telas /emissoes-fiscais/cte e /mdfe + emissão/encerramento via Focus NFe
@@ -427,7 +434,8 @@ app/
 │   ├── EnsureUserIsSuperAdmin.php      # restringe telas de gestão de empresas ao super admin
 │   └── EnsureUserIsNotSuperAdmin.php   # super admin não acessa telas operacionais (são por empresa)
 ├── Support/
-│   └── TenantContext.php               # resolve a empresa do usuário/motorista autenticado no momento
+│   ├── TenantContext.php               # resolve a empresa do usuário/motorista autenticado no momento
+│   └── CsvImporter.php                 # importação em massa (motoristas/veículos/clientes), transacional
 ├── Listeners/
 │   └── LogAcessoListener.php          # grava IP/data-hora a cada login (Marco Civil, Art. 15)
 ├── Services/
@@ -471,6 +479,7 @@ resources/
 ├── clientes/
 ├── components/                          # inputs/botões reaproveitados nos formulários de auth/portal
 ├── despesas-gerais/
+├── diagnostico/                          # tela de saúde do servidor/aplicação (super admin)
 ├── dre/
 ├── emissoes-fiscais/                    # telas /cte e /mdfe (mesma view, parametrizada por tipo)
 ├── empresas/                            # telas de gestão de empresas (super admin), inclui Unidades

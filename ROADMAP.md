@@ -15,6 +15,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Busca por nome, CPF ou telefone
 - CPF e CNH mascarados na interface (`123.***.***-01`), com botão para revelar o valor completo
 - **Importação em massa via CSV**: cadastra vários motoristas de uma vez a partir de uma planilha, com modelo para baixar; linhas com erro (CPF duplicado, data inválida etc.) não travam as demais — ficam listadas com o número da linha e o motivo, para corrigir e reenviar só o que faltou
+- **Fix crítico de robustez do importador (2026-07-18)**: `CsvImporter` (compartilhado por motoristas, veículos e clientes) rodava cada linha como um `create()` isolado, sem transação — um arquivo grande o suficiente (~1000 linhas) estourava os 30s padrão de execução do PHP no meio do processo, deixando parte da planilha gravada e a outra parte perdida, sem nenhum aviso claro pro operador. Corrigido envolvendo o processamento inteiro numa única transação de banco (uma falha catastrófica no meio desfaz tudo, em vez de importar pela metade) e elevando o limite de execução (`set_time_limit(300)`). Efeito colateral: eliminar o commit por linha também deixou a importação **~14x mais rápida** — testado localmente com 5.000 linhas em 17s e 20.000 em ~1min, sem erro. Nginx (`client_max_body_size`, `fastcgi_read_timeout`) e PHP-FPM (`upload_max_filesize`, `post_max_size`) da VPS ajustados em conjunto — ver seção "Deploy em produção"
 
 ### Veículos
 - Cadastro completo da frota (placa, modelo, marca, ano, tipo, RENAVAM, chassi, validade do documento/CRLV, capacidade)
@@ -29,7 +30,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Data/KM da próxima manutenção prevista
 - Registrar manutenção "em andamento" move o veículo para status "manutenção" automaticamente; concluir devolve para "ativo" (se não houver outra manutenção em aberto)
 - Histórico e total gasto por veículo na tela de detalhe
-- **Histórico consolidado (`/manutencoes`)**: todas as manutenções da frota numa única tela, sem precisar abrir veículo por veículo — filtros (veículo/tipo/status/período), paginação de 10 por página e exportação CSV; item "Histórico de Manutenções" no menu lateral, abaixo de Veículos
+- **Histórico consolidado (`/manutencoes`)**: todas as manutenções da frota numa única tela, sem precisar abrir veículo por veículo — filtros (veículo/tipo/status/período), paginação de 10 por página e exportação CSV; item "Histórico de Manutenções" no menu lateral, abaixo de Clientes
+- Fix: badge do Tipo (Preventiva/Corretiva), tanto na tela do veículo quanto no histórico consolidado, usava `bg-opacity-10` combinado com cor de texto conflitante — ficava com contraste ruim contra o tema escuro. Simplificado para `bg-info`/`bg-danger` sólidos (2026-07-18)
 
 ### Clientes
 - Cadastro de Pessoa Física e Jurídica
@@ -54,6 +56,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Assinatura digital do motorista**: captura a assinatura por canvas na tela da viagem (aguardando acerto ou encerrada), sem depender de app externo; a assinatura sai embutida no comprovante em PDF, com data/hora do momento em que foi coletada
 - **Controle de recebimento do frete** (contas a receber do cliente): na listagem de todas as viagens, botão de um clique para confirmar/desfazer o recebimento do frete, com data registrada automaticamente; filtro por recebido/pendente e exportação em CSV (com as mesmas colunas do relatório + status e data de recebimento)
 - **Faturamento reconhecido no Dashboard e no Relatório Financeiro mesmo antes da viagem encerrar**: assim que o recebimento do frete é confirmado, ele já entra no faturamento/lucro do mês e nos gráficos, sem esperar o acerto fechar. Reconhecido pela data do recebimento quando confirmado, senão pela data de encerramento — cada viagem cai em um único período e nunca é somada duas vezes, mesmo que acabe encerrada depois de já ter sido marcada como recebida
+- **Upload de comprovante em Lançamentos pelo operador (2026-07-18)**: campo de arquivo (jpg/png/pdf) no próprio formulário de lançamento na tela da viagem — antes só o motorista, pelo Portal, tinha essa opção; agora o operador também consegue anexar o comprovante quando o envio precisar ser feito por ele
 
 ### Programação de Frota
 - Tela dedicada (`/programacoes`) para planejar o motorista/veículo/cliente da próxima viagem antes de encerrar a atual — pedido comum de transportadoras de cavalo/carreta para não deixar veículo parado entre viagens
@@ -114,6 +117,13 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Conjunto cavalo + carreta**: uma carreta pode ser vinculada a um cavalo mecânico (campo simples na tela de cadastro/edição); enquanto vinculada, conta como parte do mesmo conjunto no limite do plano (1 conjunto = 1 veículo cobrado); uma carreta avulsa, sem cavalo vinculado, volta a contar separadamente
 - Fix: login real do motorista (via sessão/cookie, diferente do `actingAs` usado nos testes) causava erro 500 por recursão infinita — resolver a empresa do guard `motorista` consultava o próprio model `Motorista`, escopado pela mesma empresa que ainda não tinha sido resolvida. Corrigido com uma trava de reentrância no `TenantContext`
 - Fix: o card "Frota / Motoristas" do Dashboard contava um conjunto cavalo + carreta vinculada como 2 veículos, divergindo do "X / Y" da tela de Veículos (que já aplicava a regra de contar como 1). Corrigido aplicando o mesmo scope `contamParaLimite()` no Dashboard
+
+### Diagnóstico do Sistema (super admin) — 2026-07-18
+- Tela `/diagnostico`, restrita ao super admin (mesmo middleware que já protege `/empresas`), acessível pelo menu "Plataforma" — motivada por um teste de volume de dados (cadastro em massa de veículos/motoristas/clientes) para entender o que a VPS aguenta
+- **Saúde do servidor**: uptime, carga de CPU (1/5/15 min), memória e disco usados — lidos direto de `/proc/meminfo`/`/proc/uptime` e das funções nativas do PHP (`sys_getloadavg()`, `disk_total_space()`/`disk_free_space()`), sem `shell_exec` — não depende de `disable_functions` estar liberado na VPS. Em ambiente sem `/proc` (ex.: Windows local) os cards mostram "—" graciosamente
+- **Saúde da aplicação**: usuários online (15 min) e ativos (24h) via tabela `sessions`, empresas ativas, tamanho do banco (MySQL `information_schema`, condicional ao driver para não quebrar nos testes em SQLite) e contagem total de veículos/motoristas/clientes/viagens de todas as empresas
+- Validado em produção comparando lado a lado com o painel da Hostinger (CPU/memória/disco batendo, só a diferença esperada de GB decimal vs. GiB binário)
+- Coberto por teste de feature (`DiagnosticoTest`): visitante redireciona pro login, admin comum recebe 403, super admin vê a tela
 
 ### Cobrança recorrente (Asaas)
 - Ao cadastrar uma empresa nova, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual); o limite de veículos é preenchido automaticamente pelo plano, mas continua editável para casos negociados à parte
@@ -195,9 +205,13 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Componentes que usavam cores fixas (`bg-white`, `table-light`, `btn-outline-dark`, gradientes inline) e não reagiam ao tema escuro foram corrigidos com overrides globais, conforme encontrados — cabeçalhos de card, cabeçalhos de tabela, botões de exportar PDF e os cards de saldo em Acertos
 - Favicon próprio (caminhão sobre o gradiente laranja da marca) em todas as telas — o `favicon.ico` do scaffold original estava vazio (0 bytes)
 - **Menu lateral reagrupado por uso (2026-07-16)**: itens restritos a admin (Financeiro, DRE, Despesas Gerais, Usuários) estavam espalhados dentro de "Relatórios"/"Cadastros" junto com itens que todo operador acessa — consolidados num único bloco "Administração", mais abaixo no menu; "Principal"/"Cadastros"/"Fiscal" ficam só com o que é 100% operacional. Verificado visualmente logando como admin e como operador (curl com sessão autenticada, sem navegador)
+- **Ordem do menu "Cadastros" ajustada (2026-07-18)**: Clientes passou para antes de Histórico de Manutenções (Motoristas → Veículos → Clientes → Histórico de Manutenções), agrupando os três cadastros principais antes do item de acompanhamento
+- **Cards com realce colorido nas telas de Veículos, Clientes e Motoristas (2026-07-18)**: borda lateral colorida (`border-start`) replicada das telas de listagem para as telas de detalhe (Dados do Veículo/Cliente/Motorista, Endereço, Histórico de Viagens), mesmo padrão já usado em Manutenções/Emissões Fiscais/Acertos
+- **Dashboard no modo claro com o mesmo realce do modo escuro (2026-07-18)**: cards com apenas borda lateral colorida ficavam "sumidos" no modo claro (cartão branco sobre fundo quase branco), mas saltavam à vista no escuro (cartão escuro sobre fundo ainda mais escuro). Resolvido estendendo a técnica de gradiente de fundo por cor — já usada só nos cards de saldo da tela de Acertos — para 5 classes de uso geral (`card-accent-blue/purple/green/orange/gray`), com uma variante para cada tema; aplicada nos 6 cards de resumo do Dashboard
+- **Alternância entre login de Operador/Admin e Portal do Motorista (2026-07-18)**: abas no topo das duas telas de login (`/login` e portal), levando de uma para a outra sem precisar saber a URL de cor
 
 ### Infraestrutura de qualidade
-- 437 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial) e o portal do motorista
+- 440 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista e a tela de diagnóstico do sistema
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 - **Varredura de saúde do código (2026-07-16)**: removidos 9 arquivos do scaffold original do Laravel Breeze nunca usados (`welcome.blade.php`, `layouts/navigation.blade.php` e os componentes exclusivos dela — a navegação real é `layouts/app.blade.php`, escrita do zero); adicionadas ao `.env.example` as 4 chaves de `config/lgpd.php` que não estavam documentadas (tinham default seguro no código, mas não apareciam pra quem fosse configurar um deploy novo). Nenhum bug funcional encontrado — suíte completa, `route:list` e uma checagem estática de toda chamada `route('...')` contra as rotas registradas confirmaram consistência
 
@@ -208,6 +222,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - `.env` de produção configurado: Resend (e-mail transacional), Cloudflare R2 (armazenamento de arquivos), Asaas em modo produção (chave real + webhook cadastrado e validado)
 - Cron do Laravel ativo (`* * * * * php artisan schedule:run`) para as tarefas mensais de LGPD (anonimização + expurgo de logs de acesso)
 - Super admin da plataforma (`ac.castilho87@gmail.com`) com acesso reivindicado via "esqueci minha senha" após o primeiro `migrate --force`
+- **Ajuste de upload/timeout para planilhas grandes (2026-07-18)**: Nginx não tinha `client_max_body_size` nem `fastcgi_read_timeout` configurados — usava os padrões (1MB e 60s), mais restritivos que o próprio PHP; um CSV de poucos milhares de linhas já era rejeitado com 413 antes de chegar no PHP. Adicionado `client_max_body_size 25M;` e `fastcgi_read_timeout 300s;` em `/etc/nginx/sites-available/invexafrete`, e alinhado `upload_max_filesize`/`post_max_size` do PHP-FPM (8M → 25M/30M) — testado depois com importação de CSV de 10.000 e 20.000 linhas (ver "Importação em massa via CSV" em Motoristas)
+- "Empresa Padrão" (dado fictício, criado localmente antes do multi-tenant existir) removida do banco de produção via `tinker`, restando só empresas reais (a de teste do próprio fundador e uma segunda criada para um possível sócio avaliar a plataforma)
 
 ---
 
