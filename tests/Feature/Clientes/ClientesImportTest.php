@@ -25,8 +25,8 @@ class ClientesImportTest extends TestCase
         $response = $this->post(route('clientes.importar.store'), ['arquivo' => $arquivo]);
 
         $response->assertRedirect(route('clientes.index'));
-        $this->assertDatabaseHas('clientes', ['cpf_cnpj' => '12.345.678/0001-90']);
-        $this->assertDatabaseHas('clientes', ['cpf_cnpj' => '111.222.333-44']);
+        $this->assertDatabaseHas('clientes', ['cpf_cnpj_hash' => Cliente::hashDocumento('12.345.678/0001-90')]);
+        $this->assertDatabaseHas('clientes', ['cpf_cnpj_hash' => Cliente::hashDocumento('111.222.333-44')]);
         $this->assertSame(2, session('importacao')['importados']);
     }
 
@@ -34,6 +34,21 @@ class ClientesImportTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
         Cliente::factory()->create(['cpf_cnpj' => '12.345.678/0001-90']);
+
+        $csv = "tipo_pessoa;nome;cpf_cnpj;status\njuridica;Transportes Exemplo;12.345.678/0001-90;ativo\n";
+        $arquivo = UploadedFile::fake()->createWithContent('clientes.csv', $csv);
+
+        $this->post(route('clientes.importar.store'), ['arquivo' => $arquivo]);
+
+        $resultado = session('importacao');
+        $this->assertSame(0, $resultado['importados']);
+        $this->assertCount(1, $resultado['erros']);
+    }
+
+    public function test_documento_duplicado_com_formatacao_diferente_e_reportado_como_erro(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Cliente::factory()->create(['cpf_cnpj' => '12345678000190']);
 
         $csv = "tipo_pessoa;nome;cpf_cnpj;status\njuridica;Transportes Exemplo;12.345.678/0001-90;ativo\n";
         $arquivo = UploadedFile::fake()->createWithContent('clientes.csv', $csv);

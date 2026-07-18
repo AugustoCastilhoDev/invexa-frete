@@ -16,7 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class EmpresasController extends Controller
@@ -26,8 +25,14 @@ class EmpresasController extends Controller
         $busca = $request->input('busca');
 
         $empresas = Empresa::when($busca, function ($query) use ($busca) {
-                $query->where('nome', 'like', "%{$busca}%")
-                    ->orWhere('cnpj', 'like', "%{$busca}%");
+                $query->where('nome', 'like', "%{$busca}%");
+
+                // cnpj é cifrado (IV aleatório por gravação) — não dá pra
+                // fazer LIKE nele; busca por CNPJ passa a exigir o valor
+                // completo (com ou sem pontuação), comparado pelo hash.
+                if ($hash = Empresa::hashDocumento($busca)) {
+                    $query->orWhere('cnpj_hash', $hash);
+                }
             })
             ->withCount('usuarios')
             ->orderBy('nome')
@@ -46,7 +51,7 @@ class EmpresasController extends Controller
     {
         $request->validate([
             'nome'                 => 'required|string|max:255',
-            'cnpj'                 => 'nullable|string|max:20|unique:empresas,cnpj',
+            'cnpj'                 => 'nullable|string|max:20',
             'limite_veiculos'      => 'nullable|integer|min:1',
             'plano'                => 'required|in:starter,pro,business,enterprise',
             'ciclo_cobranca'       => 'required_unless:plano,enterprise|in:mensal,anual',
@@ -54,6 +59,14 @@ class EmpresasController extends Controller
             'admin_email'          => 'required|email|unique:users,email',
             'admin_password'       => ['required', 'confirmed', Password::defaults()],
         ]);
+
+        // cnpj é cifrado — a checagem de unicidade do Laravel (unique:empresas,cnpj)
+        // não funciona mais contra a coluna; passa a comparar pelo hash determinístico.
+        if ($hash = Empresa::hashDocumento($request->cnpj)) {
+            if (Empresa::where('cnpj_hash', $hash)->exists()) {
+                return back()->withErrors(['cnpj' => 'Já existe uma empresa cadastrada com este CNPJ.'])->withInput();
+            }
+        }
 
         $empresa = Empresa::create([
             'nome'            => $request->nome,
@@ -179,9 +192,15 @@ class EmpresasController extends Controller
     {
         $request->validate([
             'nome'            => 'required|string|max:255',
-            'cnpj'            => ['nullable', 'string', 'max:20', Rule::unique('empresas', 'cnpj')->ignore($empresa->id)],
+            'cnpj'            => 'nullable|string|max:20',
             'limite_veiculos' => 'nullable|integer|min:1',
         ]);
+
+        if ($hash = Empresa::hashDocumento($request->cnpj)) {
+            if (Empresa::where('cnpj_hash', $hash)->where('id', '!=', $empresa->id)->exists()) {
+                return back()->withErrors(['cnpj' => 'Já existe uma empresa cadastrada com este CNPJ.'])->withInput();
+            }
+        }
 
         $empresa->update($request->only('nome', 'cnpj', 'limite_veiculos'));
 

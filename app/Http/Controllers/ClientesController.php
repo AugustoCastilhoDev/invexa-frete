@@ -15,9 +15,15 @@ class ClientesController extends Controller
         $clientes = Cliente::when($busca, function ($query) use ($busca) {
                 $query->where('nome', 'like', "%{$busca}%")
                     ->orWhere('razao_social', 'like', "%{$busca}%")
-                    ->orWhere('cpf_cnpj', 'like', "%{$busca}%")
                     ->orWhere('cidade', 'like', "%{$busca}%")
                     ->orWhere('telefone', 'like', "%{$busca}%");
+
+                // cpf_cnpj é cifrado (IV aleatório por gravação) — não dá pra
+                // fazer LIKE nele; busca por documento passa a exigir o valor
+                // completo (com ou sem pontuação), comparado pelo hash.
+                if ($hash = Cliente::hashDocumento($busca)) {
+                    $query->orWhere('cpf_cnpj_hash', $hash);
+                }
             })
             ->orderBy('nome')
             ->paginate(15)
@@ -37,7 +43,7 @@ class ClientesController extends Controller
             'tipo_pessoa'  => 'required|in:fisica,juridica',
             'nome'         => 'required|string|max:255',
             'razao_social' => 'nullable|string|max:255',
-            'cpf_cnpj'     => 'required|string|max:20|unique:clientes',
+            'cpf_cnpj'     => 'required|string|max:20',
             'ie'           => 'nullable|string|max:20',
             'email'        => 'nullable|email',
             'telefone'     => 'nullable|string|max:20',
@@ -55,6 +61,12 @@ class ClientesController extends Controller
             'observacoes'  => 'nullable|string',
             'status'       => 'required|in:ativo,inativo',
         ]);
+
+        // cpf_cnpj é cifrado — a checagem de unicidade do Laravel (unique:clientes)
+        // não funciona mais contra a coluna; passa a comparar pelo hash determinístico.
+        if (Cliente::where('cpf_cnpj_hash', Cliente::hashDocumento($request->cpf_cnpj))->exists()) {
+            return back()->withErrors(['cpf_cnpj' => 'Já existe um cliente cadastrado com este CPF/CNPJ.'])->withInput();
+        }
 
         Cliente::create($request->all());
 
@@ -85,7 +97,7 @@ class ClientesController extends Controller
             'tipo_pessoa'  => 'required|in:fisica,juridica',
             'nome'         => 'required|string|max:255',
             'razao_social' => 'nullable|string|max:255',
-            'cpf_cnpj'     => 'required|string|max:20|unique:clientes,cpf_cnpj,' . $cliente->id,
+            'cpf_cnpj'     => 'required|string|max:20',
             'ie'           => 'nullable|string|max:20',
             'email'        => 'nullable|email',
             'telefone'     => 'nullable|string|max:20',
@@ -103,6 +115,12 @@ class ClientesController extends Controller
             'observacoes'  => 'nullable|string',
             'status'       => 'required|in:ativo,inativo',
         ]);
+
+        if (Cliente::where('cpf_cnpj_hash', Cliente::hashDocumento($request->cpf_cnpj))
+            ->where('id', '!=', $cliente->id)
+            ->exists()) {
+            return back()->withErrors(['cpf_cnpj' => 'Já existe um cliente cadastrado com este CPF/CNPJ.'])->withInput();
+        }
 
         $cliente->update($request->all());
 
@@ -156,7 +174,7 @@ class ClientesController extends Controller
                 'tipo_pessoa' => 'required|in:fisica,juridica',
                 'nome' => 'required|string|max:255',
                 'razao_social' => 'nullable|string|max:255',
-                'cpf_cnpj' => 'required|string|max:20|unique:clientes',
+                'cpf_cnpj' => 'required|string|max:20',
                 'email' => 'nullable|email',
                 'telefone' => 'nullable|string|max:20',
                 'celular' => 'nullable|string|max:20',
@@ -165,7 +183,17 @@ class ClientesController extends Controller
                 'tabela_frete' => 'nullable|numeric|min:0',
                 'status' => 'required|in:ativo,inativo',
             ],
-            fn (array $dados) => Cliente::create($dados)
+            function (array $dados) {
+                // cpf_cnpj é cifrado — a regra "unique" do Validator não
+                // funciona mais contra a coluna; checagem manual pelo hash
+                // (cobre tanto duplicata já no banco quanto duas linhas
+                // repetidas dentro do mesmo CSV).
+                if (Cliente::where('cpf_cnpj_hash', Cliente::hashDocumento($dados['cpf_cnpj']))->exists()) {
+                    throw new \RuntimeException('Já existe um cliente cadastrado com este CPF/CNPJ.');
+                }
+
+                Cliente::create($dados);
+            }
         );
 
         return redirect()->route('clientes.index')->with('importacao', $resultado);

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
+use App\Models\Concerns\HasDocumentoHash;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cliente extends Model
 {
-    use BelongsToEmpresa, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
+    use BelongsToEmpresa, HasDocumentoHash, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $fillable = [
         'tipo_pessoa',
@@ -39,7 +40,17 @@ class Cliente extends Model
     protected $casts = [
         'tabela_frete' => 'decimal:2',
         'anonymized_at' => 'datetime',
+        'cpf_cnpj' => 'encrypted',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $cliente) {
+            if ($cliente->isDirty('cpf_cnpj')) {
+                $cliente->cpf_cnpj_hash = static::hashDocumento($cliente->cpf_cnpj);
+            }
+        });
+    }
 
     // Cliente tem muitas viagens
     public function viagens()

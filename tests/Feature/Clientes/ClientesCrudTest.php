@@ -23,7 +23,7 @@ class ClientesCrudTest extends TestCase
         ]);
 
         $response->assertRedirect(route('clientes.index'));
-        $this->assertDatabaseHas('clientes', ['cpf_cnpj' => '12345678000199']);
+        $this->assertDatabaseHas('clientes', ['cpf_cnpj_hash' => Cliente::hashDocumento('12345678000199')]);
     }
 
     public function test_nao_permite_cpf_cnpj_duplicado(): void
@@ -54,6 +54,42 @@ class ClientesCrudTest extends TestCase
         $response->assertViewHas('clientes', function ($clientes) use ($encontrado) {
             return $clientes->total() === 1 && $clientes->first()->is($encontrado);
         });
+    }
+
+    // cpf_cnpj é cifrado (não dá pra fazer LIKE); a busca por documento
+    // completo passa a funcionar via hash determinístico, comparando o
+    // valor digitado (com ou sem pontuação) normalizado.
+    public function test_busca_por_documento_completo_encontra_cliente(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $encontrado = Cliente::factory()->create(['cpf_cnpj' => '12345678000199']);
+        Cliente::factory()->create(['cpf_cnpj' => '98765432000111']);
+
+        $response = $this->get(route('clientes.index', ['busca' => '12.345.678/0001-99']));
+
+        $response->assertOk();
+        $response->assertViewHas('clientes', function ($clientes) use ($encontrado) {
+            return $clientes->total() === 1 && $clientes->first()->is($encontrado);
+        });
+    }
+
+    // O índice único antigo comparava a string literal — dois registros com o
+    // mesmo documento só formatado diferente ("com pontuação" vs "só dígitos")
+    // passavam. O hash normaliza antes de comparar, então agora pega esse caso.
+    public function test_nao_permite_cpf_cnpj_duplicado_com_formatacao_diferente(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Cliente::factory()->create(['cpf_cnpj' => '99988877000166']);
+
+        $response = $this->post(route('clientes.store'), [
+            'tipo_pessoa' => 'juridica',
+            'nome'        => 'Outra Empresa',
+            'cpf_cnpj'    => '99.988.877/0001-66',
+            'status'      => 'ativo',
+        ]);
+
+        $response->assertSessionHasErrors('cpf_cnpj');
     }
 
     public function test_exclusao_e_soft_delete(): void

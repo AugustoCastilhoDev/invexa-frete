@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDocumentoHash;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Empresa extends Model
 {
-    use HasFactory, TracksUser;
+    use HasDocumentoHash, HasFactory, TracksUser;
 
     protected $fillable = [
         'nome',
@@ -53,7 +54,17 @@ class Empresa extends Model
         'focus_nfe_certificado_senha' => 'encrypted',
         'focus_nfe_certificado_validade' => 'date',
         'icms_aliquota' => 'decimal:2',
+        'cnpj' => 'encrypted',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $empresa) {
+            if ($empresa->isDirty('cnpj')) {
+                $empresa->cnpj_hash = static::hashDocumento($empresa->cnpj);
+            }
+        });
+    }
 
     public function usuarios()
     {

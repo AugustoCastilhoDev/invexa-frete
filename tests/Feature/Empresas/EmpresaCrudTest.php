@@ -76,6 +76,51 @@ class EmpresaCrudTest extends TestCase
             'role'       => 'admin',
             'empresa_id' => $empresa->id,
         ]);
+        $this->assertSame('11.222.333/0001-44', $empresa->fresh()->cnpj);
+    }
+
+    // cnpj é cifrado (IV aleatório por gravação); a unicidade passa a
+    // depender do hash determinístico — mesmo com formatação diferente do
+    // já cadastrado, precisa ser barrado.
+    public function test_nao_permite_cnpj_duplicado(): void
+    {
+        $this->actingAs(User::factory()->superAdmin()->create());
+        Empresa::factory()->create(['cnpj' => '11.222.333/0001-44']);
+
+        $response = $this->post(route('empresas.store'), [
+            'nome'                          => 'Transportadora Duplicada',
+            'cnpj'                          => '11222333000144',
+            'plano'                         => 'starter',
+            'ciclo_cobranca'                => 'mensal',
+            'admin_name'                    => 'Admin Duplicada',
+            'admin_email'                   => 'admin@duplicada.com',
+            'admin_password'                => 'senha12345',
+            'admin_password_confirmation'   => 'senha12345',
+        ]);
+
+        $response->assertSessionHasErrors('cnpj');
+        $this->assertDatabaseMissing('empresas', ['nome' => 'Transportadora Duplicada']);
+    }
+
+    // Duas empresas sem CNPJ não podem ser tratadas como "duplicata" uma da
+    // outra — nullable continua permitindo múltiplos nulos, como antes.
+    public function test_permite_criar_mais_de_uma_empresa_sem_cnpj(): void
+    {
+        $this->actingAs(User::factory()->superAdmin()->create());
+        Empresa::factory()->create(['cnpj' => null]);
+
+        $response = $this->post(route('empresas.store'), [
+            'nome'                          => 'Transportadora Sem CNPJ',
+            'plano'                         => 'starter',
+            'ciclo_cobranca'                => 'mensal',
+            'admin_name'                    => 'Admin Sem CNPJ',
+            'admin_email'                   => 'admin@semcnpj.com',
+            'admin_password'                => 'senha12345',
+            'admin_password_confirmation'   => 'senha12345',
+        ]);
+
+        $response->assertRedirect(route('empresas.index'));
+        $this->assertDatabaseHas('empresas', ['nome' => 'Transportadora Sem CNPJ']);
     }
 
     public function test_super_admin_pode_visualizar_detalhes_de_uma_empresa(): void
