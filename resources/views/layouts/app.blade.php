@@ -349,13 +349,13 @@
            href="{{ route('veiculos.index') }}">
             <i class="bi bi-car-front"></i> Veículos
         </a>
-        <a class="nav-link {{ request()->routeIs('manutencoes.index') ? 'active' : '' }}"
-           href="{{ route('manutencoes.index') }}">
-            <i class="bi bi-tools"></i> Histórico de Manutenções
-        </a>
         <a class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}"
             href="{{ route('clientes.index') }}">
             <i class="bi bi-building"></i> Clientes
+        </a>
+        <a class="nav-link {{ request()->routeIs('manutencoes.index') ? 'active' : '' }}"
+           href="{{ route('manutencoes.index') }}">
+            <i class="bi bi-tools"></i> Histórico de Manutenções
         </a>
     </nav>
 
