@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class CsvImporter
@@ -20,6 +21,14 @@ class CsvImporter
      */
     public static function importar(UploadedFile $arquivo, array $colunas, array $regras, callable $criar): array
     {
+        // Planilhas grandes (centenas de linhas) podem passar dos 30s padrão do
+        // PHP — cada linha faz sua própria validação "unique" (consulta ao banco).
+        // Sem isso, o processo morre no meio e a exceção nem chega a ser
+        // registrada como erro de linha.
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(300);
+        }
+
         $conteudo = file_get_contents($arquivo->getRealPath());
         $conteudo = preg_replace('/^\x{FEFF}/u', '', $conteudo);
 
@@ -45,42 +54,47 @@ class CsvImporter
         $importados = 0;
         $erros = [];
 
-        foreach ($linhas as $i => $linha) {
-            $valores = str_getcsv($linha, $delimitador);
+        // Tudo numa única transação: se o processo cair no meio (timeout,
+        // conexão derrubada etc.), o MySQL desfaz sozinho ao fechar a conexão
+        // em vez de deixar só uma parte da planilha gravada no banco.
+        DB::transaction(function () use ($linhas, $indices, $regras, $delimitador, $criar, &$importados, &$erros) {
+            foreach ($linhas as $i => $linha) {
+                $valores = str_getcsv($linha, $delimitador);
 
-            $dados = [];
-            foreach ($indices as $campoSistema => $posicao) {
-                $dados[$campoSistema] = isset($valores[$posicao]) ? trim($valores[$posicao]) : null;
-            }
-            $dados = array_map(function ($v) {
-                if ($v === '') {
-                    return null;
+                $dados = [];
+                foreach ($indices as $campoSistema => $posicao) {
+                    $dados[$campoSistema] = isset($valores[$posicao]) ? trim($valores[$posicao]) : null;
+                }
+                $dados = array_map(function ($v) {
+                    if ($v === '') {
+                        return null;
+                    }
+
+                    // Datas no formato brasileiro (dd/mm/aaaa) não são reconhecidas
+                    // pela regra "date" do Laravel — normaliza para aaaa-mm-dd antes de validar.
+                    if (is_string($v) && preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $v, $m)) {
+                        return "{$m[3]}-{$m[2]}-{$m[1]}";
+                    }
+
+                    return $v;
+                }, $dados);
+
+                $validator = Validator::make($dados, $regras);
+
+                if ($validator->fails()) {
+                    $erros[] = ['linha' => $i + 2, 'mensagens' => $validator->errors()->all()];
+
+                    continue;
                 }
 
-                // Datas no formato brasileiro (dd/mm/aaaa) não são reconhecidas
-                // pela regra "date" do Laravel — normaliza para aaaa-mm-dd antes de validar.
-                if (is_string($v) && preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $v, $m)) {
-                    return "{$m[3]}-{$m[2]}-{$m[1]}";
+                try {
+                    $criar($validator->validated());
+                    $importados++;
+                } catch (\RuntimeException $e) {
+                    $erros[] = ['linha' => $i + 2, 'mensagens' => [$e->getMessage()]];
                 }
-
-                return $v;
-            }, $dados);
-
-            $validator = Validator::make($dados, $regras);
-
-            if ($validator->fails()) {
-                $erros[] = ['linha' => $i + 2, 'mensagens' => $validator->errors()->all()];
-
-                continue;
             }
-
-            try {
-                $criar($validator->validated());
-                $importados++;
-            } catch (\RuntimeException $e) {
-                $erros[] = ['linha' => $i + 2, 'mensagens' => [$e->getMessage()]];
-            }
-        }
+        });
 
         return ['importados' => $importados, 'erros' => $erros];
     }
