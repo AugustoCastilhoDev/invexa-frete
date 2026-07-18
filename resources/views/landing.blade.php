@@ -190,13 +190,13 @@
             </div>
 
             <p class="text-white/35" style="font-size:.8rem; margin-top:20px">
-                <i class="bi bi-check-circle me-1"></i>Teste grátis por 14 dias
+                <span class="text-nowrap"><i class="bi bi-check-circle me-1"></i>Teste grátis por 14 dias</span>
                 <span class="mx-2">·</span>
-                <i class="bi bi-shield-lock me-1"></i>Dados isolados e criptografados
+                <span class="text-nowrap"><i class="bi bi-shield-lock me-1"></i>Dados isolados e criptografados</span>
                 <span class="mx-2">·</span>
-                <i class="bi bi-file-earmark-lock me-1"></i>Conformidade com a LGPD
+                <span class="text-nowrap"><i class="bi bi-file-earmark-lock me-1"></i>Conformidade com a LGPD</span>
                 <span class="mx-2">·</span>
-                <i class="bi bi-cloud-check me-1"></i>Backup diário automático
+                <span class="text-nowrap"><i class="bi bi-cloud-check me-1"></i>Backup diário automático</span>
             </p>
         </div>
     </section>
