@@ -22,6 +22,7 @@ use App\Http\Controllers\DreController;
 use App\Http\Controllers\MotoristaPortalAccessController;
 use App\Http\Controllers\NotificacoesController;
 use App\Http\Controllers\EmpresasController;
+use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\EmissoesFiscaisController;
 use App\Http\Controllers\Webhooks\AsaasWebhookController;
 use App\Http\Controllers\Webhooks\FocusNfeWebhookController;
@@ -76,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
 
 // Gestão de empresas (tenants) — restrita ao super admin da plataforma
 Route::middleware(['auth', 'super_admin'])->group(function () {
+    Route::get('diagnostico', [DiagnosticoController::class, 'index'])->name('diagnostico.index');
     Route::resource('empresas', EmpresasController::class)->except(['destroy']);
     Route::patch('empresas/{empresa}/status', [EmpresasController::class, 'toggleStatus'])
         ->name('empresas.toggle-status');

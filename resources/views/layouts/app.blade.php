@@ -317,6 +317,10 @@
         href="{{ route('empresas.index') }}">
             <i class="bi bi-buildings"></i> Empresas
         </a>
+        <a class="nav-link {{ request()->routeIs('diagnostico.*') ? 'active' : '' }}"
+        href="{{ route('diagnostico.index') }}">
+            <i class="bi bi-activity"></i> Diagnóstico
+        </a>
     </nav>
     @else
     <div class="nav-section">Principal</div>
