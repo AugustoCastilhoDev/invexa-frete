@@ -404,6 +404,10 @@
            href="{{ route('profile.edit') }}">
             <i class="bi bi-person-circle"></i> Meu Perfil
         </a>
+        <a class="nav-link {{ request()->routeIs('api-tokens.*') ? 'active' : '' }}"
+           href="{{ route('api-tokens.index') }}">
+            <i class="bi bi-key"></i> Tokens de API
+        </a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">

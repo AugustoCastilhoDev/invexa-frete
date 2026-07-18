@@ -125,6 +125,15 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Validado em produção comparando lado a lado com o painel da Hostinger (CPU/memória/disco batendo, só a diferença esperada de GB decimal vs. GiB binário)
 - Coberto por teste de feature (`DiagnosticoTest`): visitante redireciona pro login, admin comum recebe 403, super admin vê a tela
 
+### API REST (v1) — 2026-07-18, Fase 1 (leitura)
+- Primeira fase de uma API pra integrar o Invexa Frete com sistemas externos (parceiros, contabilidade, um futuro app nativo do motorista) — decisão de escopo: começar só por leitura, sem depender de infraestrutura nova (fila), deixando escrita e webhooks de saída para as próximas fases (ver Roadmap)
+- **Autenticação via Laravel Sanctum** (tokens, não OAuth completo — mais simples pro caso de uso): tela `/tokens-api` (menu "Conta", ao lado de "Meu Perfil") onde qualquer usuário gera um token nomeado (mostrado em texto puro só uma vez, como no GitHub), lista os próprios tokens (criado em / último uso) e revoga a qualquer momento — só o dono revoga o próprio token
+- **Token herda a empresa automaticamente**: `TenantContext` passou a reconhecer também o guard `sanctum`, então uma requisição autenticada por token já sai escopada pela empresa do usuário dono do token, exatamente como uma sessão web — nenhuma mudança nos models nem nos escopos globais existentes
+- Endpoints versionados `/api/v1/{viagens,motoristas,veiculos,clientes}` (index paginado 20/página + show), somente leitura, serializados via API Resources próprios (não expõem campos internos) — protegidos por `auth:sanctum` + rate limit de 60 requisições/minuto por token
+- Fix: `Route::apiResource('viagens', ...)` gerava o parâmetro `{viagen}` — `Str::singular()` do Laravel não reconhece português e cortou o "m" de "viagem". Corrigido fixando o nome do parâmetro explicitamente (`->parameters(['viagens' => 'viagem'])`); os demais recursos (motoristas/veículos/clientes) singularizam certo sem ajuste
+- Validado localmente com token real de ponta a ponta via `curl` (não só o helper de teste `Sanctum::actingAs`): sem token → 401; com token, lista e mostra só dados da própria empresa; tentar ver um recurso de outra empresa por ID → 404, nunca um 403 que confirmaria a existência do dado de outro tenant
+- Coberto por 11 testes de feature (`ApiTokensTest`, `ApiV1Test`): geração/revogação de token, isolamento multi-tenant tanto em listagem quanto em consulta individual
+
 ### Cobrança recorrente (Asaas)
 - Ao cadastrar uma empresa nova, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual); o limite de veículos é preenchido automaticamente pelo plano, mas continua editável para casos negociados à parte
 - Cria automaticamente o cliente e a assinatura recorrente no Asaas (sandbox ou produção, via `ASAAS_ENV`), com 14 dias de trial antes da primeira cobrança — plano Enterprise fica de fora (sempre negociado manualmente, sem assinatura automática)
@@ -211,7 +220,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Alternância entre login de Operador/Admin e Portal do Motorista (2026-07-18)**: abas no topo das duas telas de login (`/login` e portal), levando de uma para a outra sem precisar saber a URL de cor
 
 ### Infraestrutura de qualidade
-- 440 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista e a tela de diagnóstico do sistema
+- 451 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA, notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista, a tela de diagnóstico do sistema e a API REST (autenticação por token e isolamento multi-tenant)
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 - **Varredura de saúde do código (2026-07-16)**: removidos 9 arquivos do scaffold original do Laravel Breeze nunca usados (`welcome.blade.php`, `layouts/navigation.blade.php` e os componentes exclusivos dela — a navegação real é `layouts/app.blade.php`, escrita do zero); adicionadas ao `.env.example` as 4 chaves de `config/lgpd.php` que não estavam documentadas (tinham default seguro no código, mas não apareciam pra quem fosse configurar um deploy novo). Nenhum bug funcional encontrado — suíte completa, `route:list` e uma checagem estática de toda chamada `route('...')` contra as rotas registradas confirmaram consistência
 
@@ -234,7 +243,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Revisar prazos de retenção da LGPD** (`config/lgpd.php`) com jurídico/contábil, agora que o expurgo automático mensal já roda de verdade em produção (cron ativo)
 
 ### Médio prazo
-- **API REST** para um futuro app nativo do motorista (o Portal do Motorista via navegador já cobre o uso do dia a dia pelo celular; API só valeria a pena se um app nativo entrar em pauta)
+- **API REST — Fase 2 (escrita seletiva)**: hoje a API só lê (ver seção "API REST (v1)"); endpoints de criação (ex.: lançar despesa/combustível via API) ficam para quando um sistema parceiro real definir o que precisa enviar
+- **API REST — Fase 3 (webhooks de saída)**: empresa cadastra uma URL + segredo (assinatura HMAC) e o sistema dispara nos mesmos gatilhos que já mandam e-mail hoje (viagem encerrada, aguardando acerto, frete recebido). Pré-requisito de infraestrutura: hoje `QUEUE_CONNECTION=database` está configurado mas **nenhum worker de fila roda em produção** (tudo é síncrono, inclusive a emissão de CT-e/MDF-e, de propósito) — entrega confiável de webhook com retry precisa de um `queue:work` permanente via supervisor na VPS
 - **Portal do cliente**: mesma ideia do portal do motorista, mas para o cliente acompanhar suas próprias viagens/documentos
 - **Fluxo de caixa**: complementar ao DRE (que é por competência); acompanharia entradas/saídas reais de caixa por data de pagamento — avaliado e não priorizado por ora, já que o DRE atual cobre bem a necessidade atual
 

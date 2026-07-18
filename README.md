@@ -113,6 +113,11 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Tela `/diagnostico`, restrita ao super admin: saúde do servidor (uptime, carga de CPU, memória e disco usados) e saúde da aplicação (usuários online, empresas ativas, tamanho do banco, volume de veículos/motoristas/clientes/viagens de todas as empresas)
 - Métricas de servidor lidas nativamente pelo PHP (`/proc`, `sys_getloadavg()`, `disk_free_space()`), sem depender de `shell_exec`
 
+### 🔌 API REST (v1)
+- Autenticação por token ([Laravel Sanctum](https://laravel.com/docs/sanctum)): qualquer usuário gera o próprio token em `/tokens-api` (mostrado uma única vez, como no GitHub), lista e revoga quando quiser — o token herda automaticamente a empresa do usuário, com o mesmo isolamento multi-tenant do painel
+- Endpoints de leitura versionados (`/api/v1/viagens`, `/motoristas`, `/veiculos`, `/clientes`), paginados, com rate limit por token — pensada para integração com sistemas externos (parceiros, contabilidade, um futuro app nativo do motorista)
+- Escrita e webhooks de saída ainda não implementados — ver [ROADMAP.md](ROADMAP.md)
+
 ### 💳 Cobrança recorrente (Asaas)
 - Ao cadastrar a empresa, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual) — o sistema cria automaticamente o cliente e a assinatura recorrente no [Asaas](https://www.asaas.com/), com 14 dias de trial antes da primeira cobrança
 - Plano Enterprise fica de fora da automação (sempre negociado manualmente)
@@ -184,7 +189,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 440+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, emissão/encerramento de CT-e/MDF-e e diagnóstico do sistema
+- 451+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, emissão/encerramento de CT-e/MDF-e, diagnóstico do sistema e a API REST
 - CI no GitHub Actions rodando a suíte a cada push/PR
 
 ---
@@ -198,6 +203,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | Build | Vite 5.x |
 | Banco de dados | MySQL 8.0 |
 | Autenticação | Laravel Breeze (customizado, com papéis admin/operador) |
+| API | Laravel Sanctum (tokens) |
 | 2FA | pragmarx/google2fa-laravel + bacon/bacon-qr-code |
 | PDF | barryvdh/laravel-dompdf |
 | E-mail | Resend (resend/resend-php) |
@@ -208,7 +214,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (440+ testes) |
+| Testes | PHPUnit (451+ testes) |
 | CI | GitHub Actions |
 
 ---
@@ -396,6 +402,7 @@ app/
 │   └── ExpurgarLogsAcesso.php         # comando lgpd:expurgar-logs-acesso
 ├── Http/Controllers/
 │   ├── AcertosController.php
+│   ├── ApiTokensController.php         # tela /tokens-api (gerar/listar/revogar tokens Sanctum)
 │   ├── CargasController.php            # agrupa NF-e por cliente dentro de uma viagem (unidade de emissão do CT-e)
 │   ├── ClientesController.php
 │   ├── DashboardController.php
@@ -426,9 +433,19 @@ app/
 │   │   ├── PortalLancamentosController.php
 │   │   ├── PortalSenhaController.php
 │   │   └── PortalViagensController.php
+│   ├── Api/V1/                         # API REST pública (auth:sanctum), só leitura por enquanto
+│   │   ├── ViagensController.php
+│   │   ├── MotoristasController.php
+│   │   ├── VeiculosController.php
+│   │   └── ClientesController.php
 │   └── Webhooks/
 │       ├── AsaasWebhookController.php       # status de cobrança recorrente
 │       └── FocusNfeWebhookController.php    # status de emissão de CT-e/MDF-e
+├── Http/Resources/                     # serialização JSON da API (não expõem campos internos)
+│   ├── ViagemResource.php
+│   ├── MotoristaResource.php
+│   ├── VeiculoResource.php
+│   └── ClienteResource.php
 ├── Http/Middleware/
 │   ├── EnsureUserIsAdmin.php
 │   ├── EnsureUserIsSuperAdmin.php      # restringe telas de gestão de empresas ao super admin
@@ -475,6 +492,7 @@ config/
 resources/
 └── views/
 ├── acertos/
+├── api-tokens/                           # tela de gestão de tokens de API (/tokens-api)
 ├── auth/
 ├── clientes/
 ├── components/                          # inputs/botões reaproveitados nos formulários de auth/portal
@@ -501,6 +519,7 @@ database/
 tests/
 ├── Unit/Models/
 └── Feature/
+    ├── Api/                              # tokens de API e endpoints /api/v1 (auth, isolamento multi-tenant)
     ├── Empresas/                        # testes do CRUD de empresas, Dados Fiscais, Unidades
     ├── EmissoesFiscais/                 # testes das telas /cte e /mdfe
     ├── Viagens/                         # inclui Cargas, Documentos, Emissões Fiscais
@@ -508,6 +527,7 @@ tests/
     └── Portal/                          # testes do guard/isolamento do Portal do Motorista
 routes/
 ├── web.php
+├── api.php                              # API REST v1 (auth:sanctum)
 ├── auth.php                             # login/2FA/reset de senha (admin)
 └── portal.php                           # login e rotas do Portal do Motorista
 

@@ -23,6 +23,7 @@ use App\Http\Controllers\MotoristaPortalAccessController;
 use App\Http\Controllers\NotificacoesController;
 use App\Http\Controllers\EmpresasController;
 use App\Http\Controllers\DiagnosticoController;
+use App\Http\Controllers\ApiTokensController;
 use App\Http\Controllers\EmissoesFiscaisController;
 use App\Http\Controllers\Webhooks\AsaasWebhookController;
 use App\Http\Controllers\Webhooks\FocusNfeWebhookController;
@@ -63,6 +64,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('two-factor.disable');
     Route::post('/user/two-factor-recovery-codes', [TwoFactorAuthenticationController::class, 'regenerateRecoveryCodes'])
         ->name('two-factor.recovery-codes');
+
+    // Tokens de API (integração com sistemas externos)
+    Route::get('tokens-api', [ApiTokensController::class, 'index'])->name('api-tokens.index');
+    Route::post('tokens-api', [ApiTokensController::class, 'store'])->name('api-tokens.store');
+    Route::delete('tokens-api/{tokenId}', [ApiTokensController::class, 'destroy'])->name('api-tokens.destroy');
 
     // Notificações
     Route::post('notificacoes/{notificacao}/ler', [NotificacoesController::class, 'marcarComoLida'])

@@ -18,7 +18,9 @@ class TenantContext
     private static bool $resolving = false;
 
     /**
-     * Empresa do usuário autenticado no momento (guard web ou motorista).
+     * Empresa do usuário autenticado no momento (guard web, motorista ou a
+     * API via token Sanctum — mesmo model/provider do guard web, então
+     * herda a empresa do usuário dono do token automaticamente).
      * Sem ninguém autenticado (comandos artisan, seeders, login antes de
      * autenticar), retorna null — o que faz o escopo global não filtrar nada.
      */
@@ -37,6 +39,10 @@ class TenantContext
 
             if (Auth::guard('motorista')->check()) {
                 return Auth::guard('motorista')->user()->empresa_id;
+            }
+
+            if (Auth::guard('sanctum')->check()) {
+                return Auth::guard('sanctum')->user()->empresa_id;
             }
 
             return static::$forcedId;
