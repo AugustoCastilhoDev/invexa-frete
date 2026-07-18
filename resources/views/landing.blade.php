@@ -69,12 +69,17 @@
             box-shadow: 0 30px 60px -20px rgba(22, 33, 62, .3);
         }
         .invexa-mockup-navitem {
-            display: flex; align-items: center; gap: 10px;
-            padding: 9px 14px; border-radius: 8px;
-            color: rgba(255,255,255,.55); font-size: .82rem;
+            display: flex; align-items: center; gap: 9px;
+            padding: 6px 12px; border-radius: 8px;
+            color: rgba(255,255,255,.55); font-size: .74rem;
         }
         .invexa-mockup-navitem.is-active {
             background: rgba(249,115,22,.15); color: #fff; font-weight: 600;
+        }
+        .invexa-mockup-navsection {
+            color: rgba(255,255,255,.3); font-size: .6rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .05em;
+            padding: 10px 12px 3px;
         }
         .invexa-mockup-kpi {
             border: 1px solid #eef0f3; border-radius: 12px; padding: 14px 16px;
@@ -242,6 +247,9 @@
                 <button type="button" class="invexa-mockup-tab" data-target="mockup-acerto">
                     <i class="bi bi-cash-coin me-1"></i>Acerto
                 </button>
+                <button type="button" class="invexa-mockup-tab" data-target="mockup-fiscal">
+                    <i class="bi bi-file-earmark-check me-1"></i>CT-e/MDF-e
+                </button>
                 <button type="button" class="invexa-mockup-tab" data-target="mockup-portal">
                     <i class="bi bi-phone me-1"></i>Portal do Motorista
                 </button>
@@ -260,25 +268,36 @@
                     </div>
 
                     <div class="d-flex" style="min-height:420px">
-                        <div class="d-none d-md-flex flex-column" style="width:190px; flex-shrink:0; background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%); padding:18px 12px">
-                            <div class="d-flex align-items-center gap-2" style="padding:0 6px 18px">
-                                <div class="invexa-logo-badge rounded-2 d-flex align-items-center justify-content-center" style="width:26px;height:26px;flex-shrink:0">
-                                    <i class="bi bi-truck-front-fill text-white" style="font-size:.7rem"></i>
-                                </div>
-                                <span class="text-white fw-bold" style="font-size:.85rem">Invexa Frete</span>
-                            </div>
-                            <div class="invexa-mockup-navitem is-active"><i class="bi bi-speedometer2"></i>Dashboard</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-truck"></i>Viagens</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-person-badge"></i>Motoristas</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-car-front"></i>Veículos</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-cash-coin"></i>Financeiro</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-phone"></i>Portal do Motorista</div>
-                        </div>
+                        @include('partials.landing-mockup-sidebar', ['active' => 'dashboard'])
 
                         <div style="flex:1; padding:22px 24px; background:#fbfbfc; min-width:0">
                             <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap:8px; margin-bottom:16px">
                                 <span class="fw-bold" style="font-size:1.05rem; color:#16213e">Dashboard</span>
                                 <span class="text-muted" style="font-size:.75rem">Julho de 2026</span>
+                            </div>
+
+                            <div class="rounded-3" style="border:1px solid #fecaca; background:#fff; margin-bottom:18px">
+                                <div class="d-flex align-items-center justify-content-between" style="padding:10px 14px; border-bottom:1px solid #fef2f2">
+                                    <span class="fw-semibold" style="font-size:.78rem; color:#16213e"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Pendências</span>
+                                    <span class="badge rounded-pill text-white" style="background:#dc2626; font-size:.65rem">4</span>
+                                </div>
+                                <div class="d-flex flex-wrap" style="gap:0">
+                                    @php
+                                        $pendenciasDemo = [
+                                            ['icon' => 'bi-person-badge', 'label' => 'CNH vencendo', 'valor' => '1'],
+                                            ['icon' => 'bi-car-front', 'label' => 'Em manutenção', 'valor' => '1'],
+                                            ['icon' => 'bi-file-earmark-text', 'label' => 'Docs. fiscais pendentes', 'valor' => '2'],
+                                            ['icon' => 'bi-tools', 'label' => 'Manut. preventiva vencendo', 'valor' => '0'],
+                                        ];
+                                    @endphp
+                                    @foreach($pendenciasDemo as $i => $p)
+                                    <div style="flex:1 1 130px; padding:10px 14px; {{ $i > 0 ? 'border-left:1px solid #f1f3f5' : '' }}">
+                                        <i class="bi {{ $p['icon'] }} text-muted" style="font-size:.85rem"></i>
+                                        <div class="fw-bold" style="font-size:1rem; color:#16213e">{{ $p['valor'] }}</div>
+                                        <div class="text-muted" style="font-size:.66rem">{{ $p['label'] }}</div>
+                                    </div>
+                                    @endforeach
+                                </div>
                             </div>
 
                             <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:20px">
@@ -352,20 +371,7 @@
                     </div>
 
                     <div class="d-flex" style="min-height:420px">
-                        <div class="d-none d-md-flex flex-column" style="width:190px; flex-shrink:0; background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%); padding:18px 12px">
-                            <div class="d-flex align-items-center gap-2" style="padding:0 6px 18px">
-                                <div class="invexa-logo-badge rounded-2 d-flex align-items-center justify-content-center" style="width:26px;height:26px;flex-shrink:0">
-                                    <i class="bi bi-truck-front-fill text-white" style="font-size:.7rem"></i>
-                                </div>
-                                <span class="text-white fw-bold" style="font-size:.85rem">Invexa Frete</span>
-                            </div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-speedometer2"></i>Dashboard</div>
-                            <div class="invexa-mockup-navitem is-active"><i class="bi bi-truck"></i>Viagens</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-person-badge"></i>Motoristas</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-car-front"></i>Veículos</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-cash-coin"></i>Financeiro</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-phone"></i>Portal do Motorista</div>
-                        </div>
+                        @include('partials.landing-mockup-sidebar', ['active' => 'viagens'])
 
                         <div style="flex:1; padding:22px 24px; background:#fbfbfc; min-width:0">
                             <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap:8px; margin-bottom:14px">
@@ -386,17 +392,18 @@
                                             <th style="padding:8px 12px; text-align:left">Rota</th>
                                             <th style="padding:8px 12px; text-align:left">Saída</th>
                                             <th style="padding:8px 12px; text-align:left">Frete</th>
+                                            <th style="padding:8px 12px; text-align:left">Recebido</th>
                                             <th style="padding:8px 12px; text-align:left">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @php
                                             $viagensLista = [
-                                                ['motorista' => 'Carlos Silva', 'veiculo' => 'ABC-1234', 'rota' => 'BH → SP', 'saida' => '02/07', 'frete' => '3.200,00', 'status' => 'Em andamento', 'cor' => '#f59e0b'],
-                                                ['motorista' => 'João Pereira', 'veiculo' => 'XYZ-9988', 'rota' => 'RJ → SP', 'saida' => '03/07', 'frete' => '1.850,00', 'status' => 'Aguard. acerto', 'cor' => '#8b5cf6'],
-                                                ['motorista' => 'Marcos Souza', 'veiculo' => 'JKL-4521', 'rota' => 'Curitiba → Joinville', 'saida' => '30/06', 'frete' => '980,00', 'status' => 'Encerrada', 'cor' => '#10b981'],
-                                                ['motorista' => 'Roberto Lima', 'veiculo' => 'QWE-7788', 'rota' => 'Uberlândia → Goiânia', 'saida' => '01/07', 'frete' => '2.400,00', 'status' => 'Aberta', 'cor' => '#3b82f6'],
-                                                ['motorista' => 'Ana Costa', 'veiculo' => 'RTY-3345', 'rota' => 'BH → Vitória', 'saida' => '28/06', 'frete' => '1.560,00', 'status' => 'Encerrada', 'cor' => '#10b981'],
+                                                ['motorista' => 'Carlos Silva', 'veiculo' => 'ABC-1234', 'rota' => 'BH → SP', 'saida' => '02/07', 'frete' => '3.200,00', 'recebido' => false, 'status' => 'Em andamento', 'cor' => '#f59e0b'],
+                                                ['motorista' => 'João Pereira', 'veiculo' => 'XYZ-9988', 'rota' => 'RJ → SP', 'saida' => '03/07', 'frete' => '1.850,00', 'recebido' => true, 'status' => 'Aguard. acerto', 'cor' => '#8b5cf6'],
+                                                ['motorista' => 'Marcos Souza', 'veiculo' => 'JKL-4521', 'rota' => 'Curitiba → Joinville', 'saida' => '30/06', 'frete' => '980,00', 'recebido' => true, 'status' => 'Encerrada', 'cor' => '#10b981'],
+                                                ['motorista' => 'Roberto Lima', 'veiculo' => 'QWE-7788', 'rota' => 'Uberlândia → Goiânia', 'saida' => '01/07', 'frete' => '2.400,00', 'recebido' => false, 'status' => 'Aberta', 'cor' => '#3b82f6'],
+                                                ['motorista' => 'Ana Costa', 'veiculo' => 'RTY-3345', 'rota' => 'BH → Vitória', 'saida' => '28/06', 'frete' => '1.560,00', 'recebido' => true, 'status' => 'Encerrada', 'cor' => '#10b981'],
                                             ];
                                         @endphp
                                         @foreach($viagensLista as $i => $v)
@@ -406,6 +413,13 @@
                                             <td style="padding:9px 12px">{{ $v['rota'] }}</td>
                                             <td style="padding:9px 12px">{{ $v['saida'] }}</td>
                                             <td style="padding:9px 12px">R$ {{ $v['frete'] }}</td>
+                                            <td style="padding:9px 12px">
+                                                @if($v['recebido'])
+                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                @else
+                                                    <i class="bi bi-dash-circle text-muted"></i>
+                                                @endif
+                                            </td>
                                             <td style="padding:9px 12px">
                                                 <span class="badge rounded-pill text-white" style="background:{{ $v['cor'] }}; font-size:.65rem">{{ $v['status'] }}</span>
                                             </td>
@@ -432,20 +446,7 @@
                     </div>
 
                     <div class="d-flex" style="min-height:420px">
-                        <div class="d-none d-md-flex flex-column" style="width:190px; flex-shrink:0; background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%); padding:18px 12px">
-                            <div class="d-flex align-items-center gap-2" style="padding:0 6px 18px">
-                                <div class="invexa-logo-badge rounded-2 d-flex align-items-center justify-content-center" style="width:26px;height:26px;flex-shrink:0">
-                                    <i class="bi bi-truck-front-fill text-white" style="font-size:.7rem"></i>
-                                </div>
-                                <span class="text-white fw-bold" style="font-size:.85rem">Invexa Frete</span>
-                            </div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-speedometer2"></i>Dashboard</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-truck"></i>Viagens</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-person-badge"></i>Motoristas</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-car-front"></i>Veículos</div>
-                            <div class="invexa-mockup-navitem is-active"><i class="bi bi-cash-coin"></i>Financeiro</div>
-                            <div class="invexa-mockup-navitem"><i class="bi bi-phone"></i>Portal do Motorista</div>
-                        </div>
+                        @include('partials.landing-mockup-sidebar', ['active' => 'acertos'])
 
                         <div style="flex:1; padding:22px 24px; background:#fbfbfc; min-width:0">
                             <div class="fw-bold" style="font-size:1.05rem; color:#16213e; margin-bottom:14px">Acerto do Motorista</div>
@@ -519,6 +520,76 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Painel: Fiscal (CT-e/MDF-e) --}}
+            <div id="mockup-fiscal" class="invexa-mockup-panel">
+                <div class="invexa-mockup-frame rounded-4 bg-white overflow-hidden">
+                    <div class="d-flex align-items-center" style="gap:8px; padding:10px 16px; background:#eef0f3; border-bottom:1px solid #e2e5e9">
+                        <span style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+                        <span style="width:10px;height:10px;border-radius:50%;background:#febc2e;display:inline-block"></span>
+                        <span style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block"></span>
+                        <span class="mx-auto d-none d-sm-inline-block text-muted" style="font-size:.72rem; background:#fff; border:1px solid #e2e5e9; border-radius:6px; padding:3px 14px">
+                            <i class="bi bi-lock-fill me-1" style="font-size:.65rem"></i>app.invexafrete.com.br/emissoes-fiscais/mdfe
+                        </span>
+                    </div>
+
+                    <div class="d-flex" style="min-height:420px">
+                        @include('partials.landing-mockup-sidebar', ['active' => 'mdfe'])
+
+                        <div style="flex:1; padding:22px 24px; background:#fbfbfc; min-width:0">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap:8px; margin-bottom:14px">
+                                <span class="fw-bold" style="font-size:1.05rem; color:#16213e">MDF-e's emitidos</span>
+                                <div class="d-flex flex-wrap" style="gap:8px">
+                                    <span class="invexa-mockup-chip">Status: Todos</span>
+                                    <span class="invexa-mockup-chip"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar CSV</span>
+                                </div>
+                            </div>
+
+                            <div class="rounded-3" style="border:1px solid #eef0f3; overflow-x:auto">
+                                <table class="invexa-mockup-table" style="width:100%; border-collapse:collapse">
+                                    <thead>
+                                        <tr>
+                                            <th style="padding:8px 12px; text-align:left">Viagem</th>
+                                            <th style="padding:8px 12px; text-align:left">Número / Série</th>
+                                            <th style="padding:8px 12px; text-align:left">Status</th>
+                                            <th style="padding:8px 12px; text-align:left">Emitido em</th>
+                                            <th style="padding:8px 12px; text-align:left"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            $mdfeLinhas = [
+                                                ['viagem' => 'BH → SP', 'numero' => '000123 / 1', 'status' => 'Autorizado', 'cor' => '#10b981', 'emitido' => '02/07', 'acao' => 'encerrar'],
+                                                ['viagem' => 'RJ → SP', 'numero' => '000122 / 1', 'status' => 'Encerrado', 'cor' => '#6c757d', 'emitido' => '28/06', 'acao' => null],
+                                                ['viagem' => 'Uberlândia → Goiânia', 'numero' => '000121 / 1', 'status' => 'Processando', 'cor' => '#f59e0b', 'emitido' => '01/07', 'acao' => null],
+                                            ];
+                                        @endphp
+                                        @foreach($mdfeLinhas as $i => $m)
+                                        <tr style="{{ $i > 0 ? 'border-top:1px solid #f1f3f5' : '' }}">
+                                            <td style="padding:9px 12px; font-weight:600; color:#16213e">{{ $m['viagem'] }}</td>
+                                            <td style="padding:9px 12px">{{ $m['numero'] }}</td>
+                                            <td style="padding:9px 12px">
+                                                <span class="badge rounded-pill text-white" style="background:{{ $m['cor'] }}; font-size:.65rem">{{ $m['status'] }}</span>
+                                            </td>
+                                            <td style="padding:9px 12px">{{ $m['emitido'] }}</td>
+                                            <td style="padding:9px 12px">
+                                                @if($m['acao'] === 'encerrar')
+                                                    <span class="invexa-mockup-chip" style="color:#b45309; border-color:#fde68a; background:#fffbeb"><i class="bi bi-flag-fill me-1"></i>Encerrar</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <p class="text-muted" style="font-size:.7rem; margin-top:12px">
+                                <i class="bi bi-shield-check me-1"></i>Autenticidade verificável direto no portal oficial da SEFAZ pela chave de acesso.
+                            </p>
                         </div>
                     </div>
                 </div>
