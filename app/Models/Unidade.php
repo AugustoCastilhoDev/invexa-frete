@@ -31,6 +31,7 @@ class Unidade extends Model
 
     protected $casts = [
         'icms_aliquota' => 'decimal:2',
+        'cnpj' => 'encrypted',
     ];
 
     public function empresa()

@@ -37,6 +37,7 @@ class Motorista extends Model implements AuthenticatableContract
         'percentual_comissao' => 'decimal:2',
         'anonymized_at' => 'datetime',
         'portal_ativo' => 'boolean',
+        'cnh' => 'encrypted',
     ];
 
     public function hasPortalAtivo(): bool
