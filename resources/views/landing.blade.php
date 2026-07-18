@@ -192,7 +192,7 @@
             <p class="text-white/35" style="font-size:.8rem; margin-top:20px">
                 <i class="bi bi-check-circle me-1"></i>Teste grátis por 14 dias
                 <span class="mx-2">·</span>
-                <i class="bi bi-shield-lock me-1"></i>Dados isolados por empresa
+                <i class="bi bi-shield-lock me-1"></i>Dados isolados e criptografados
                 <span class="mx-2">·</span>
                 <i class="bi bi-file-earmark-lock me-1"></i>Conformidade com a LGPD
                 <span class="mx-2">·</span>
@@ -602,7 +602,7 @@
                     $recursos = [
                         ['icon' => 'bi-truck', 'titulo' => 'Gestão de Viagens', 'texto' => 'Do status Aberta até Encerrada, com lançamentos, descontos, adiantamento e assinatura digital do motorista no comprovante.'],
                         ['icon' => 'bi-bar-chart-line', 'titulo' => 'Financeiro & DRE', 'texto' => 'Relatórios por período, acertos por motorista, despesas gerais e DRE simplificado — receita, custos e resultado líquido.'],
-                        ['icon' => 'bi-building-lock', 'titulo' => 'Multiempresa & Segurança', 'texto' => 'Cada transportadora com os dados totalmente isolados, autenticação em dois fatores e mascaramento de CPF/CNH.'],
+                        ['icon' => 'bi-building-lock', 'titulo' => 'Multiempresa & Segurança', 'texto' => 'Cada transportadora com os dados totalmente isolados e criptografados, autenticação em dois fatores e mascaramento de CPF/CNH.'],
                         ['icon' => 'bi-phone', 'titulo' => 'Portal do Motorista', 'texto' => 'O motorista acompanha as próprias viagens e lança combustível/manutenção com foto, direto do celular, sem instalar app.'],
                         ['icon' => 'bi-file-earmark-check', 'titulo' => 'Documentos Fiscais', 'texto' => 'CT-e, MDF-e e NF-e com verificação de autenticidade direto no portal oficial da SEFAZ pela chave de acesso.'],
                         ['icon' => 'bi-car-front', 'titulo' => 'Frota Completa', 'texto' => 'Veículos, manutenção preventiva/corretiva e conjunto cavalo + carreta contando como uma única unidade no plano.'],
