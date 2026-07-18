@@ -14,8 +14,14 @@ class MotoristasController extends Controller
 
     $motoristas = Motorista::when($busca, function ($query) use ($busca) {
             $query->where('nome', 'like', "%{$busca}%")
-                  ->orWhere('cpf', 'like', "%{$busca}%")
                   ->orWhere('telefone', 'like', "%{$busca}%");
+
+            // cpf é cifrado (IV aleatório por gravação) — não dá pra fazer
+            // LIKE nele; busca por CPF passa a exigir o valor completo (com
+            // ou sem pontuação), comparado pelo hash.
+            if ($hash = Motorista::hashDocumento($busca)) {
+                $query->orWhere('cpf_hash', $hash);
+            }
         })
         ->orderBy('nome')
         ->paginate(15)
@@ -33,7 +39,7 @@ class MotoristasController extends Controller
     {
         $request->validate([
             'nome'                => 'required|string|max:255',
-            'cpf'                 => 'required|string|max:14|unique:motoristas',
+            'cpf'                 => 'required|string|max:14',
             'cnh'                 => 'nullable|string|max:20',
             'categoria_cnh'       => 'nullable|string|max:5',
             'validade_cnh'        => 'nullable|date',
@@ -42,6 +48,12 @@ class MotoristasController extends Controller
             'percentual_comissao' => 'required|numeric|min:0|max:100',
             'status'              => 'required|in:ativo,inativo',
         ]);
+
+        // cpf é cifrado — a checagem de unicidade do Laravel (unique:motoristas)
+        // não funciona mais contra a coluna; passa a comparar pelo hash determinístico.
+        if (Motorista::where('cpf_hash', Motorista::hashDocumento($request->cpf))->exists()) {
+            return back()->withErrors(['cpf' => 'Já existe um motorista cadastrado com este CPF.'])->withInput();
+        }
 
         Motorista::create($request->all());
 
@@ -65,7 +77,7 @@ class MotoristasController extends Controller
     {
         $request->validate([
             'nome'                => 'required|string|max:255',
-            'cpf'                 => 'required|string|max:14|unique:motoristas,cpf,' . $motorista->id,
+            'cpf'                 => 'required|string|max:14',
             'cnh'                 => 'nullable|string|max:20',
             'categoria_cnh'       => 'nullable|string|max:5',
             'validade_cnh'        => 'nullable|date',
@@ -74,6 +86,12 @@ class MotoristasController extends Controller
             'percentual_comissao' => 'required|numeric|min:0|max:100',
             'status'              => 'required|in:ativo,inativo',
         ]);
+
+        if (Motorista::where('cpf_hash', Motorista::hashDocumento($request->cpf))
+            ->where('id', '!=', $motorista->id)
+            ->exists()) {
+            return back()->withErrors(['cpf' => 'Já existe um motorista cadastrado com este CPF.'])->withInput();
+        }
 
         $motorista->update($request->all());
 
@@ -123,7 +141,7 @@ class MotoristasController extends Controller
             ],
             [
                 'nome' => 'required|string|max:255',
-                'cpf' => 'required|string|max:14|unique:motoristas',
+                'cpf' => 'required|string|max:14',
                 'cnh' => 'nullable|string|max:20',
                 'categoria_cnh' => 'nullable|string|max:5',
                 'validade_cnh' => 'nullable|date',
@@ -132,7 +150,17 @@ class MotoristasController extends Controller
                 'percentual_comissao' => 'required|numeric|min:0|max:100',
                 'status' => 'required|in:ativo,inativo',
             ],
-            fn (array $dados) => Motorista::create($dados)
+            function (array $dados) {
+                // cpf é cifrado — a regra "unique" do Validator não funciona
+                // mais contra a coluna; checagem manual pelo hash (cobre
+                // tanto duplicata já no banco quanto duas linhas repetidas
+                // dentro do mesmo CSV).
+                if (Motorista::where('cpf_hash', Motorista::hashDocumento($dados['cpf']))->exists()) {
+                    throw new \RuntimeException('Já existe um motorista cadastrado com este CPF.');
+                }
+
+                Motorista::create($dados);
+            }
         );
 
         return redirect()->route('motoristas.index')->with('importacao', $resultado);

@@ -35,6 +35,50 @@ class PortalAuthTest extends TestCase
         $this->assertAuthenticatedAs($motorista, 'motorista');
     }
 
+    // Mesmo teste que o de cima, mas no sentido inverso: CPF gravado sem
+    // pontuação, digitado com pontuação no login — cobre os dois lados da
+    // normalização usada no hash (cadastro e login precisam concordar).
+    public function test_login_funciona_com_cpf_pontuado_quando_gravado_sem_pontuacao(): void
+    {
+        $motorista = Motorista::factory()->comAcessoPortal('minha-senha')->create(['cpf' => '12345678910']);
+
+        $response = $this->post(route('portal.login'), [
+            'cpf'      => '123.456.789-10',
+            'password' => 'minha-senha',
+        ]);
+
+        $this->assertAuthenticatedAs($motorista, 'motorista');
+    }
+
+    public function test_cpf_inexistente_nao_loga_e_nao_quebra(): void
+    {
+        Motorista::factory()->comAcessoPortal('minha-senha')->create(['cpf' => '123.456.789-10']);
+
+        $response = $this->post(route('portal.login'), [
+            'cpf'      => '999.888.777-66',
+            'password' => 'minha-senha',
+        ]);
+
+        $this->assertGuest('motorista');
+        $response->assertSessionHasErrors('cpf');
+    }
+
+    // Garante que o login continua achando o motorista certo mesmo com
+    // vários cadastrados (o hash precisa ser exato, não parcial).
+    public function test_login_encontra_motorista_certo_entre_varios_cadastrados(): void
+    {
+        Motorista::factory()->comAcessoPortal('senha-a')->create(['cpf' => '111.111.111-11']);
+        $alvo = Motorista::factory()->comAcessoPortal('senha-b')->create(['cpf' => '222.222.222-22']);
+        Motorista::factory()->comAcessoPortal('senha-c')->create(['cpf' => '333.333.333-33']);
+
+        $response = $this->post(route('portal.login'), [
+            'cpf'      => '222.222.222-22',
+            'password' => 'senha-b',
+        ]);
+
+        $this->assertAuthenticatedAs($alvo, 'motorista');
+    }
+
     public function test_senha_incorreta_nao_loga(): void
     {
         Motorista::factory()->comAcessoPortal('minha-senha')->create(['cpf' => '123.456.789-10']);

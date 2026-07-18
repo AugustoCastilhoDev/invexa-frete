@@ -35,10 +35,11 @@ class PortalLoginRequest extends FormRequest
 
         $cpfDigits = preg_replace('/\D/', '', (string) $this->input('cpf'));
 
-        $motorista = Motorista::whereRaw(
-            "REPLACE(REPLACE(cpf, '.', ''), '-', '') = ?",
-            [$cpfDigits]
-        )->first();
+        // cpf é cifrado (IV aleatório por gravação) — não dá pra comparar em
+        // SQL direto; o login passa a localizar o motorista pelo hash
+        // determinístico do CPF normalizado (mesma lógica de unicidade/busca
+        // usada no cadastro).
+        $motorista = Motorista::where('cpf_hash', Motorista::hashDocumento($cpfDigits))->first();
 
         if (! $motorista || ! $motorista->password || ! Hash::check($this->input('password'), $motorista->password)) {
             RateLimiter::hit($this->throttleKey());

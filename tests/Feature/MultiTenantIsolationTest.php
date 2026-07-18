@@ -29,7 +29,7 @@ class MultiTenantIsolationTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('motoristas', [
-            'cpf'        => '111.111.111-11',
+            'cpf_hash'   => Motorista::hashDocumento('111.111.111-11'),
             'empresa_id' => $empresaA->id,
         ]);
     }

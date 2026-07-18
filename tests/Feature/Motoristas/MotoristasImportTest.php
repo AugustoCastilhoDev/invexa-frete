@@ -25,8 +25,8 @@ class MotoristasImportTest extends TestCase
         $response = $this->post(route('motoristas.importar.store'), ['arquivo' => $arquivo]);
 
         $response->assertRedirect(route('motoristas.index'));
-        $this->assertDatabaseHas('motoristas', ['cpf' => '111.111.111-11', 'nome' => 'João da Silva']);
-        $this->assertDatabaseHas('motoristas', ['cpf' => '222.222.222-22']);
+        $this->assertDatabaseHas('motoristas', ['cpf_hash' => Motorista::hashDocumento('111.111.111-11'), 'nome' => 'João da Silva']);
+        $this->assertDatabaseHas('motoristas', ['cpf_hash' => Motorista::hashDocumento('222.222.222-22')]);
         $this->assertSame(2, session('importacao')['importados']);
     }
 
@@ -34,6 +34,23 @@ class MotoristasImportTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
         Motorista::factory()->create(['cpf' => '111.111.111-11']);
+
+        $csv = "nome;cpf;percentual_comissao;status\n"
+            . "João da Silva;111.111.111-11;10;ativo\n";
+
+        $arquivo = UploadedFile::fake()->createWithContent('motoristas.csv', $csv);
+
+        $this->post(route('motoristas.importar.store'), ['arquivo' => $arquivo]);
+
+        $resultado = session('importacao');
+        $this->assertSame(0, $resultado['importados']);
+        $this->assertCount(1, $resultado['erros']);
+    }
+
+    public function test_linha_com_cpf_duplicado_com_formatacao_diferente_e_reportada_como_erro(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Motorista::factory()->create(['cpf' => '11111111111']);
 
         $csv = "nome;cpf;percentual_comissao;status\n"
             . "João da Silva;111.111.111-11;10;ativo\n";

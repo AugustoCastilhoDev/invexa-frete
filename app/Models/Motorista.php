@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
+use App\Models\Concerns\HasDocumentoHash;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Motorista extends Model implements AuthenticatableContract
 {
-    use Authenticatable, BelongsToEmpresa, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
+    use Authenticatable, BelongsToEmpresa, HasDocumentoHash, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $fillable = [
         'nome',
@@ -38,7 +39,17 @@ class Motorista extends Model implements AuthenticatableContract
         'anonymized_at' => 'datetime',
         'portal_ativo' => 'boolean',
         'cnh' => 'encrypted',
+        'cpf' => 'encrypted',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $motorista) {
+            if ($motorista->isDirty('cpf')) {
+                $motorista->cpf_hash = static::hashDocumento($motorista->cpf);
+            }
+        });
+    }
 
     public function hasPortalAtivo(): bool
     {
