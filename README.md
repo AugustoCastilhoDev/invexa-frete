@@ -178,6 +178,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Menu lateral agrupado por uso: **Principal** (Dashboard, Viagens, Programação de Frota, Acertos) e **Cadastros**/**Fiscal** ficam visíveis a todo usuário; itens restritos a admin (Financeiro, DRE, Despesas Gerais, Usuários) ficam consolidados num único bloco **Administração**, mais abaixo — quem é operador não vê nenhum item que não pode acessar
 
 ### 🔒 Segurança & LGPD
+- **Criptografia em repouso** dos documentos pessoais/fiscais mais sensíveis (CPF e CNH de motorista, CPF/CNPJ de cliente, CNPJ de empresa e de unidade) — cast `encrypted` do Laravel (AES-256 via a `APP_KEY`); busca e checagem de unicidade continuam funcionando através de um hash determinístico (HMAC-SHA256) guardado numa coluna separada, já que o valor cifrado muda a cada gravação
 - Mascaramento de CPF/CNH na interface (comprovantes em PDF continuam completos, por serem documentos de identificação assinados)
 - Política de retenção de dados configurável (`config/lgpd.php`)
 - Comando `lgpd:anonimizar` que expurga dados pessoais de registros excluídos há mais tempo que o prazo configurado, preservando o histórico financeiro
@@ -189,7 +190,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 451+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, emissão/encerramento de CT-e/MDF-e, diagnóstico do sistema e a API REST
+- 462+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, emissão/encerramento de CT-e/MDF-e, diagnóstico do sistema e a API REST
 - CI no GitHub Actions rodando a suíte a cada push/PR
 - **Teste de volume de dados**: importação CSV validada localmente até 20.000 linhas numa importação só (5.000 em ~17s), depois do fix que envolve o processo inteiro numa transação — evita timeout do PHP deixar dado pela metade num import grande
 - **Teste de carga e concorrência em produção (2026-07-18)**: leitura simultânea estável até ~450 requisições sem erro na tela mais pesada do painel (Dashboard); escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados — número específico da VPS atual, ver [ROADMAP.md](ROADMAP.md) para o relatório completo
@@ -216,7 +217,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (451+ testes) |
+| Testes | PHPUnit (462+ testes) |
 | CI | GitHub Actions |
 
 ---
