@@ -69,7 +69,7 @@
 
             <div class="alert alert-info py-2 mb-4" id="aviso-asaas" style="display:none">
                 <i class="bi bi-info-circle me-1"></i>
-                Ao salvar, uma assinatura recorrente é criada automaticamente no Asaas, com 14 dias de trial antes da primeira cobrança.
+                Ao salvar, uma assinatura recorrente é criada automaticamente no Asaas, com 30 dias de trial antes da primeira cobrança.
             </div>
 
             <h6 class="fw-semibold mb-3">Administrador inicial</h6>

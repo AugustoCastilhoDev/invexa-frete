@@ -190,12 +190,12 @@
                 </a>
                 <a href="#planos" class="no-underline rounded-full font-semibold text-white"
                    style="padding:14px 30px; font-size:.95rem; border:1px solid rgba(255,255,255,.25)">
-                    Ver planos e preços
+                    Conheça nossos planos
                 </a>
             </div>
 
             <p class="text-white/35" style="font-size:.8rem; margin-top:20px">
-                <span class="text-nowrap"><i class="bi bi-check-circle me-1"></i>Teste grátis por 14 dias</span>
+                <span class="text-nowrap"><i class="bi bi-check-circle me-1"></i>Teste grátis, sem cartão</span>
                 <span class="mx-2">·</span>
                 <span class="text-nowrap"><i class="bi bi-shield-lock me-1"></i>Dados isolados e criptografados</span>
                 <span class="mx-2">·</span>
@@ -697,108 +697,35 @@
 
     {{-- ── Planos ── --}}
     <section id="planos" style="padding:80px 24px; background:#f1f3f6">
-        <div class="mx-auto" style="max-width:1180px">
-            <div class="text-center" style="max-width:620px; margin:0 auto 12px">
-                <h2 class="font-extrabold" style="font-size:1.9rem; color:#16213e">Planos por tamanho de frota</h2>
-                <p class="text-muted" style="margin-top:10px">
-                    Cavalo mecânico + carreta vinculada contam como um único veículo no limite do plano.
-                    Preço fixo por faixa — sem cobrança por veículo cadastrado.
-                </p>
-            </div>
+        <div class="mx-auto text-center" style="max-width:640px">
+            <h2 class="font-extrabold" style="font-size:1.9rem; color:#16213e">Planos sob medida para o tamanho da sua frota</h2>
+            <p class="text-muted" style="margin-top:10px">
+                Cavalo mecânico + carreta vinculada contam como um único veículo. Sem cobrança por veículo
+                cadastrado — o plano é ajustado ao porte da sua transportadora.
+            </p>
 
-            <p class="text-center" style="font-size:.85rem; margin-bottom:40px">
+            <p style="font-size:.85rem; margin:24px 0 32px">
                 <span class="badge rounded-pill text-white" style="background:#16a34a; padding:7px 16px">
-                    <i class="bi bi-gift me-1"></i>14 dias grátis para testar, sem cartão
+                    <i class="bi bi-gift me-1"></i>Teste grátis, sem cartão
                 </span>
             </p>
 
-            <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(255px, 1fr)); gap:22px">
-                @php
-                    $planos = [
-                        [
-                            'nome' => 'Starter', 'limite' => 'até 5 veículos',
-                            'mensal' => '639', 'anual' => '533',
-                            'destaque' => false,
-                        ],
-                        [
-                            'nome' => 'Pro', 'limite' => 'até 15 veículos',
-                            'mensal' => '1.339', 'anual' => '1.116',
-                            'destaque' => true,
-                        ],
-                        [
-                            'nome' => 'Business', 'limite' => 'até 30 veículos',
-                            'mensal' => '2.249', 'anual' => '1.874',
-                            'destaque' => false,
-                        ],
-                    ];
-                @endphp
-
-                @foreach($planos as $p)
-                <div class="invexa-plan-card rounded-4 bg-white {{ $p['destaque'] ? 'is-featured' : '' }}" style="padding:32px 26px; position:relative">
-                    @if($p['destaque'])
-                    <span class="badge rounded-pill text-white" style="background:#f97316; position:absolute; top:-12px; left:50%; transform:translateX(-50%); padding:5px 16px; font-size:.72rem">
-                        MAIS ESCOLHIDO
-                    </span>
-                    @endif
-
-                    <div class="text-center">
-                        <div class="fw-bold" style="font-size:1.2rem; color:#16213e">Plano {{ $p['nome'] }}</div>
-                        <div class="text-muted" style="font-size:.85rem; margin-top:2px">{{ $p['limite'] }}</div>
-
-                        <div style="margin-top:20px">
-                            <span class="fw-bold" style="font-size:2.1rem; color:#16213e">R$ {{ $p['mensal'] }}</span>
-                            <span class="text-muted" style="font-size:.85rem">/mês</span>
-                        </div>
-                        <div class="text-muted" style="font-size:.78rem; margin-top:4px">
-                            ou R$ {{ $p['anual'] }}/mês no plano anual
-                        </div>
-                    </div>
-
-                    <ul class="list-unstyled" style="margin-top:24px; font-size:.87rem; color:#495057">
-                        <li style="padding:6px 0"><i class="bi bi-check-lg text-success me-2"></i>Viagens, financeiro e DRE completos</li>
-                        <li style="padding:6px 0"><i class="bi bi-check-lg text-success me-2"></i>Portal do Motorista incluído</li>
-                        <li style="padding:6px 0"><i class="bi bi-check-lg text-success me-2"></i>Usuários ilimitados da equipe</li>
-                        <li style="padding:6px 0"><i class="bi bi-check-lg text-success me-2"></i>Suporte via WhatsApp</li>
-                    </ul>
-
-                    <a href="https://wa.me/5532999669302?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20Plano%20{{ $p['nome'] }}%20da%20Invexa%20Frete"
-                       target="_blank" rel="noopener noreferrer"
-                       class="{{ $p['destaque'] ? 'invexa-btn-primary text-white' : 'text-orange-600' }} d-block text-center no-underline fw-semibold rounded-3"
-                       style="margin-top:24px; padding:12px; {{ $p['destaque'] ? '' : 'border:1px solid #f97316' }}">
-                        Falar com Vendas
-                    </a>
+            <div class="invexa-plan-card rounded-4 bg-white" style="padding:40px 32px">
+                <i class="bi bi-chat-dots" style="font-size:2rem; color:#f97316"></i>
+                <div class="fw-bold" style="font-size:1.3rem; color:#16213e; margin-top:12px">
+                    Está interessado?
                 </div>
-                @endforeach
+                <p class="text-muted" style="margin-top:8px">
+                    Entre em contato e conheça nossos planos para sua frota.
+                </p>
 
-                {{-- Enterprise --}}
-                <div class="invexa-plan-card rounded-4 bg-white" style="padding:32px 26px">
-                    <div class="text-center">
-                        <div class="fw-bold" style="font-size:1.2rem; color:#16213e">Plano Enterprise</div>
-                        <div class="text-muted" style="font-size:.85rem; margin-top:2px">acima de 30 veículos</div>
-                        <div style="margin-top:20px">
-                            <span class="fw-bold" style="font-size:1.5rem; color:#16213e">Sob consulta</span>
-                        </div>
-                        <div class="text-muted" style="font-size:.78rem; margin-top:4px">condições negociadas</div>
-                    </div>
-
-                    <ul class="list-unstyled" style="margin-top:24px; font-size:.87rem; color:#495057">
-                        <li style="padding:6px 0"><i class="bi bi-check-lg text-success me-2"></i>Tudo do plano Business</li>
-                        <li style="padding:6px 0"><i class="bi bi-check-lg text-success me-2"></i>Frota sem limite fixo</li>
-                        <li style="padding:6px 0"><i class="bi bi-check-lg text-success me-2"></i>Atendimento dedicado</li>
-                    </ul>
-
-                    <a href="https://wa.me/5532999669302?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20Plano%20Enterprise%20da%20Invexa%20Frete"
-                       target="_blank" rel="noopener noreferrer"
-                       class="text-orange-600 d-block text-center no-underline fw-semibold rounded-3"
-                       style="margin-top:24px; padding:12px; border:1px solid #f97316">
-                        Falar com Vendas
-                    </a>
-                </div>
+                <a href="https://wa.me/5532999669302?text=Ol%C3%A1%2C%20quero%20conhecer%20os%20planos%20da%20Invexa%20Frete"
+                   target="_blank" rel="noopener noreferrer"
+                   class="invexa-btn-primary text-white d-inline-block no-underline fw-semibold rounded-3"
+                   style="margin-top:20px; padding:12px 32px">
+                    <i class="bi bi-whatsapp me-2"></i>Falar com Vendas
+                </a>
             </div>
-
-            <p class="text-center text-muted" style="font-size:.8rem; margin-top:32px">
-                Taxa de implantação única de R$ 490 (grátis para quem assina o plano anual).
-            </p>
         </div>
     </section>
 
@@ -809,7 +736,7 @@
                 Pronto para profissionalizar a gestão da sua transportadora?
             </h2>
             <p class="text-white/60" style="margin-top:12px">
-                Fale com a gente e comece o teste grátis de 14 dias hoje mesmo.
+                Fale com a gente e comece seu teste grátis hoje mesmo.
             </p>
 
             <div class="flex items-center justify-center flex-wrap" style="gap:14px; margin-top:26px">

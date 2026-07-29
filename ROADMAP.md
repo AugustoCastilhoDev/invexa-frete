@@ -136,7 +136,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 ### Cobrança recorrente (Asaas)
 - Ao cadastrar uma empresa nova, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual); o limite de veículos é preenchido automaticamente pelo plano, mas continua editável para casos negociados à parte
-- Cria automaticamente o cliente e a assinatura recorrente no Asaas (sandbox ou produção, via `ASAAS_ENV`), com 14 dias de trial antes da primeira cobrança — plano Enterprise fica de fora (sempre negociado manualmente, sem assinatura automática)
+- Cria automaticamente o cliente e a assinatura recorrente no Asaas (sandbox ou produção, via `ASAAS_ENV`), com 30 dias de trial antes da primeira cobrança — plano Enterprise fica de fora (sempre negociado manualmente, sem assinatura automática)
 - Resiliente à ausência de credencial: sem `ASAAS_API_KEY` configurada (ou se a chamada à API falhar), o cadastro da empresa continua funcionando normalmente — só fica sem o vínculo de cobrança, visível na tela de detalhe da empresa com um aviso
 - Webhook (`POST /webhooks/asaas`, protegido por token) recebe os eventos de pagamento e só registra o status/data do último evento na empresa — a suspensão por inadimplência continua manual, decisão do super admin pela tela (não desativa sozinho)
 - **Criar assinatura retroativamente**: empresa sem vínculo de cobrança (criada antes dessa feature, Enterprise que virou plano padrão, ou falha na chamada original) mostra um formulário na própria tela de detalhe para escolher/reescolher plano e ciclo e tentar de novo, sem precisar recriar a empresa

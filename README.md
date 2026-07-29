@@ -119,7 +119,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Escrita e webhooks de saída ainda não implementados — ver [ROADMAP.md](ROADMAP.md)
 
 ### 💳 Cobrança recorrente (Asaas)
-- Ao cadastrar a empresa, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual) — o sistema cria automaticamente o cliente e a assinatura recorrente no [Asaas](https://www.asaas.com/), com 14 dias de trial antes da primeira cobrança
+- Ao cadastrar a empresa, o super admin escolhe o plano (Starter/Pro/Business/Enterprise) e o ciclo (mensal/anual) — o sistema cria automaticamente o cliente e a assinatura recorrente no [Asaas](https://www.asaas.com/), com 30 dias de trial antes da primeira cobrança
 - Plano Enterprise fica de fora da automação (sempre negociado manualmente)
 - Sem `ASAAS_API_KEY` configurada, ou se a chamada à API falhar, o cadastro da empresa continua funcionando normalmente — só fica sem o vínculo de cobrança, sinalizado na tela de detalhe
 - Webhook (`/webhooks/asaas`, protegido por token) registra o status de cada evento de pagamento na empresa — suspensão por inadimplência continua sendo uma decisão manual do super admin

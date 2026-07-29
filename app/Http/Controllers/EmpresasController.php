@@ -98,7 +98,7 @@ class EmpresasController extends Controller
 
     /**
      * Cria o cliente e a assinatura recorrente no Asaas para o plano escolhido,
-     * com 14 dias de trial (primeira cobrança só depois desse prazo). Falhas
+     * com 30 dias de trial (primeira cobrança só depois desse prazo). Falhas
      * aqui não impedem o cadastro da empresa — só ficam sem o vínculo de
      * cobrança até serem resolvidas manualmente (ex.: chave da API ausente).
      */
@@ -117,7 +117,7 @@ class EmpresasController extends Controller
         $subscriptionId = $asaas->criarAssinatura($customerId, [
             'valor' => PlanoPricing::valor($plano, $ciclo),
             'ciclo' => $ciclo === 'anual' ? 'YEARLY' : 'MONTHLY',
-            'proxima_cobranca' => now()->addDays(14)->format('Y-m-d'),
+            'proxima_cobranca' => now()->addDays(30)->format('Y-m-d'),
             'descricao' => "Invexa Frete — Plano " . ucfirst($plano),
         ]);
 
