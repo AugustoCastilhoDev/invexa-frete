@@ -311,12 +311,9 @@
                     <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#novaCarga">
                         <i class="bi bi-plus-lg me-1"></i>Nova Carga
                     </button>
-                    <form action="{{ route('viagens.emitir-mdfe', $viagem) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="bi bi-send me-1"></i>Emitir MDF-e
-                        </button>
-                    </form>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalEmitirMdfe">
+                        <i class="bi bi-send me-1"></i>Emitir MDF-e
+                    </button>
                     @endif
                     <span class="badge bg-secondary">{{ $viagem->documentos->count() }}</span>
                 </div>
@@ -412,6 +409,52 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
                                 <button type="submit" class="btn btn-primary btn-sm">Adicionar Carga</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modalEmitirMdfe" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="{{ route('viagens.emitir-mdfe', $viagem) }}" method="POST">
+                            @csrf
+                            <div class="modal-header">
+                                <h6 class="modal-title mb-0">Emitir MDF-e</h6>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="text-muted small">
+                                    Desde 01/06/2026 a SEFAZ exige informar o CIOT no MDF-e para transporte por conta
+                                    de terceiros mediante remuneração. O Invexa Frete não gera o CIOT — informe aqui
+                                    um código já obtido numa instituição autorizada pela ANTT, se você tiver um.
+                                </p>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">CIOT (opcional)</label>
+                                    <input type="text" name="ciot" class="form-control form-control-sm"
+                                           value="{{ $viagem->ciot }}" maxlength="12" pattern="\d{12}"
+                                           placeholder="12 dígitos">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">Responsável pelo CIOT</label>
+                                    <div class="d-flex gap-2">
+                                        <select name="ciot_tipo_responsavel" class="form-select form-select-sm" style="max-width:110px">
+                                            <option value="cpf" {{ $viagem->ciot_cpf_responsavel ? 'selected' : '' }}>CPF</option>
+                                            <option value="cnpj" {{ $viagem->ciot_cnpj_responsavel ? 'selected' : '' }}>CNPJ</option>
+                                        </select>
+                                        <input type="text" name="ciot_documento_responsavel" class="form-control form-control-sm"
+                                               value="{{ $viagem->ciot_cpf_responsavel ?? $viagem->ciot_cnpj_responsavel }}"
+                                               placeholder="Só números">
+                                    </div>
+                                    <div class="form-text">Obrigatório só se o CIOT acima for preenchido.</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-send me-1"></i>Emitir MDF-e
+                                </button>
                             </div>
                         </form>
                     </div>

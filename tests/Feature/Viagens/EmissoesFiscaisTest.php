@@ -97,6 +97,97 @@ class EmissoesFiscaisTest extends TestCase
         ]);
     }
 
+    public function test_emitir_mdfe_com_ciot_salva_na_viagem_e_no_payload(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+
+        Http::fake(['*/v2/mdfe*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $response = $this->post(route('viagens.emitir-mdfe', $viagem), [
+            'ciot' => '123456789012',
+            'ciot_tipo_responsavel' => 'cpf',
+            'ciot_documento_responsavel' => '123.456.789-00',
+        ]);
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+
+        $viagem->refresh();
+        $this->assertSame('123456789012', $viagem->ciot);
+        $this->assertSame('12345678900', $viagem->ciot_cpf_responsavel);
+        $this->assertNull($viagem->ciot_cnpj_responsavel);
+
+        $emissao = EmissaoFiscal::firstOrFail();
+        $this->assertSame([[
+            'ciot' => '123456789012',
+            'cpf_responsavel' => '12345678900',
+        ]], $emissao->payload_enviado['ciot']);
+    }
+
+    public function test_emitir_mdfe_com_ciot_cnpj_salva_no_campo_correto(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+
+        Http::fake(['*/v2/mdfe*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('viagens.emitir-mdfe', $viagem), [
+            'ciot' => '123456789012',
+            'ciot_tipo_responsavel' => 'cnpj',
+            'ciot_documento_responsavel' => '12.345.678/0001-90',
+        ]);
+
+        $viagem->refresh();
+        $this->assertSame('12345678000190', $viagem->ciot_cnpj_responsavel);
+        $this->assertNull($viagem->ciot_cpf_responsavel);
+    }
+
+    public function test_emitir_mdfe_sem_ciot_nao_inclui_a_chave_no_payload(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+
+        Http::fake(['*/v2/mdfe*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('viagens.emitir-mdfe', $viagem));
+
+        $emissao = EmissaoFiscal::firstOrFail();
+        $this->assertArrayNotHasKey('ciot', $emissao->payload_enviado);
+    }
+
+    public function test_emitir_mdfe_com_ciot_sem_documento_do_responsavel_e_rejeitado(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+
+        $response = $this->post(route('viagens.emitir-mdfe', $viagem), [
+            'ciot' => '123456789012',
+        ]);
+
+        $response->assertSessionHasErrors(['ciot_tipo_responsavel', 'ciot_documento_responsavel']);
+        $this->assertSame(0, EmissaoFiscal::count());
+    }
+
+    public function test_emitir_mdfe_com_documento_de_tamanho_errado_para_o_tipo_e_rejeitado(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+
+        $response = $this->post(route('viagens.emitir-mdfe', $viagem), [
+            'ciot' => '123456789012',
+            'ciot_tipo_responsavel' => 'cpf',
+            'ciot_documento_responsavel' => '123', // CPF precisa de 11 dígitos
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertSame(0, EmissaoFiscal::count());
+    }
+
     public function test_falha_de_transporte_marca_emissao_com_erro(): void
     {
         $this->ativarFocusNfeNaEmpresaDeTeste();

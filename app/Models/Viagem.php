@@ -78,6 +78,9 @@ class Viagem extends Model
         'lucro_transportadora',
         'status',
         'observacoes',
+        'ciot',
+        'ciot_cpf_responsavel',
+        'ciot_cnpj_responsavel',
     ];
 
     protected $casts = [

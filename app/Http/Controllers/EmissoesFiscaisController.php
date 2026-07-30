@@ -43,6 +43,32 @@ class EmissoesFiscaisController extends Controller
 
         abort_unless($empresa->focus_nfe_ativo, 403, 'Emissão fiscal não está habilitada para esta empresa.');
 
+        $dados = $request->validate([
+            'ciot' => 'nullable|digits:12',
+            'ciot_tipo_responsavel' => 'nullable|required_with:ciot|in:cpf,cnpj',
+            'ciot_documento_responsavel' => 'nullable|required_with:ciot|string',
+        ]);
+
+        // CIOT é opcional por enquanto (obrigatório desde 01/06/2026 só para
+        // transporte por conta de terceiros mediante remuneração — ainda não
+        // dá pra garantir que todo cliente real se enquadra nessa regra).
+        if (! empty($dados['ciot'])) {
+            $documento = preg_replace('/\D/', '', $dados['ciot_documento_responsavel'] ?? '');
+            $ehCpf = $dados['ciot_tipo_responsavel'] === 'cpf';
+
+            abort_unless(
+                $ehCpf ? strlen($documento) === 11 : strlen($documento) === 14,
+                422,
+                'Documento do responsável pelo CIOT inválido para o tipo selecionado.'
+            );
+
+            $viagem->forceFill([
+                'ciot' => $dados['ciot'],
+                'ciot_cpf_responsavel' => $ehCpf ? $documento : null,
+                'ciot_cnpj_responsavel' => $ehCpf ? null : $documento,
+            ])->save();
+        }
+
         $emissao = EmissaoFiscal::create([
             'viagem_id'  => $viagem->id,
             'tipo'       => 'mdfe',
@@ -339,7 +365,7 @@ class EmissoesFiscaisController extends Controller
             ->where('tipo', 'cte')
             ->where('status', 'autorizado');
 
-        return [
+        $payload = [
             'data_emissao' => now()->toIso8601String(),
             'cnpj_emitente' => $emitente->cnpj,
             'municipios_carregamento' => [
@@ -362,5 +388,20 @@ class EmissoesFiscaisController extends Controller
                 ->values()
                 ->all(),
         ];
+
+        // Confirmado com o suporte da Focus NFe (2026-07-30) + doc oficial
+        // (campos.focusnfe.com.br/mdfe/TransporteRodoviarioXML.html): "ciot" é
+        // uma coleção no payload do MDF-e, cada item com "ciot" + "cpf_responsavel"
+        // OU "cnpj_responsavel" (excludentes). A Focus não gera o CIOT — só aceita
+        // um código já obtido numa instituição autorizada pela ANTT.
+        if ($viagem->ciot) {
+            $payload['ciot'] = [array_filter([
+                'ciot' => $viagem->ciot,
+                'cpf_responsavel' => $viagem->ciot_cpf_responsavel,
+                'cnpj_responsavel' => $viagem->ciot_cnpj_responsavel,
+            ])];
+        }
+
+        return $payload;
     }
 }
