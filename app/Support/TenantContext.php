@@ -52,10 +52,32 @@ class TenantContext
     }
 
     /**
-     * Só para testes: simula um tenant corrente quando não há autenticação.
+     * Simula um tenant corrente quando não há autenticação. Usado nos testes
+     * e também como base de runAs() — deixa setado até algo redefinir, então
+     * fora de teste prefira runAs() para não vazar o valor entre chamadas.
      */
     public static function forceId(?int $id): void
     {
         static::$forcedId = $id;
+    }
+
+    /**
+     * Executa $callback como se a empresa $empresaId estivesse autenticada,
+     * restaurando o valor anterior de forcedId no final (mesmo se $callback
+     * lançar). Existe para Jobs de fila: sem sessão HTTP, id() não tem como
+     * resolver a empresa sozinho, e um worker roda vários jobs de empresas
+     * diferentes no mesmo processo — sem o finally aqui, o tenant de um job
+     * vazaria pro próximo.
+     */
+    public static function runAs(?int $empresaId, callable $callback): mixed
+    {
+        $anterior = static::$forcedId;
+        static::$forcedId = $empresaId;
+
+        try {
+            return $callback();
+        } finally {
+            static::$forcedId = $anterior;
+        }
     }
 }

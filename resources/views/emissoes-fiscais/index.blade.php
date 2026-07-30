@@ -26,6 +26,7 @@
                     <label class="form-label fw-semibold small">Status</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">Todos</option>
+                        <option value="na_fila" {{ request('status') === 'na_fila' ? 'selected' : '' }}>Na fila</option>
                         <option value="processando_autorizacao" {{ request('status') === 'processando_autorizacao' ? 'selected' : '' }}>Processando</option>
                         <option value="autorizado" {{ request('status') === 'autorizado' ? 'selected' : '' }}>Autorizado</option>
                         @if($tipo === 'mdfe')
@@ -147,6 +148,7 @@
                             $corStatus = match($emissao->status) {
                                 'autorizado' => 'success',
                                 'encerrado' => 'secondary',
+                                'na_fila' => 'info',
                                 'processando_autorizacao' => 'warning',
                                 default => 'danger',
                             };

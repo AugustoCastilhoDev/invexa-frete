@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\EmitirDocumentoFiscalJob;
 use App\Models\Carga;
 use App\Models\Cliente;
 use App\Models\EmissaoFiscal;
@@ -13,7 +14,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmissoesFiscaisController extends Controller
 {
-    public function emitirCte(Request $request, Carga $carga, FocusNfeClient $focusNfe)
+    public function emitirCte(Request $request, Carga $carga)
     {
         $viagem = $carga->viagem;
         $empresa = $viagem->empresa;
@@ -25,31 +26,18 @@ class EmissoesFiscaisController extends Controller
             'carga_id'   => $carga->id,
             'tipo'       => 'cte',
             'referencia' => "invexa-{$viagem->id}-cte-carga{$carga->id}-" . now()->timestamp,
-            'status'     => 'processando_autorizacao',
+            'status'     => 'na_fila',
         ]);
 
-        $payload = $this->montarPayloadCte($carga);
-        $emissao->update(['payload_enviado' => $payload]);
+        $emissao->update(['payload_enviado' => $this->montarPayloadCte($carga)]);
 
-        $resposta = $focusNfe->emitirCte($empresa, $emissao->referencia, $payload);
-
-        if (! $resposta) {
-            $emissao->update([
-                'status'        => 'erro_autorizacao',
-                'mensagem_erro' => 'Não foi possível iniciar a emissão — veja os logs da aplicação.',
-            ]);
-
-            return redirect()->route('viagens.show', $viagem)
-                ->with('error', 'Não foi possível iniciar a emissão do CT-e.');
-        }
-
-        $emissao->aplicarRespostaFocus($resposta);
+        EmitirDocumentoFiscalJob::dispatch($emissao);
 
         return redirect()->route('viagens.show', $viagem)
-            ->with('success', 'CT-e enviado para autorização.');
+            ->with('success', 'CT-e enviado para a fila de emissão.');
     }
 
-    public function emitirMdfe(Request $request, Viagem $viagem, FocusNfeClient $focusNfe)
+    public function emitirMdfe(Request $request, Viagem $viagem)
     {
         $empresa = $viagem->empresa;
 
@@ -59,28 +47,15 @@ class EmissoesFiscaisController extends Controller
             'viagem_id'  => $viagem->id,
             'tipo'       => 'mdfe',
             'referencia' => "invexa-{$viagem->id}-mdfe-" . now()->timestamp,
-            'status'     => 'processando_autorizacao',
+            'status'     => 'na_fila',
         ]);
 
-        $payload = $this->montarPayloadMdfe($viagem);
-        $emissao->update(['payload_enviado' => $payload]);
+        $emissao->update(['payload_enviado' => $this->montarPayloadMdfe($viagem)]);
 
-        $resposta = $focusNfe->emitirMdfe($empresa, $emissao->referencia, $payload);
-
-        if (! $resposta) {
-            $emissao->update([
-                'status'        => 'erro_autorizacao',
-                'mensagem_erro' => 'Não foi possível iniciar a emissão — veja os logs da aplicação.',
-            ]);
-
-            return redirect()->route('viagens.show', $viagem)
-                ->with('error', 'Não foi possível iniciar a emissão do MDF-e.');
-        }
-
-        $emissao->aplicarRespostaFocus($resposta);
+        EmitirDocumentoFiscalJob::dispatch($emissao);
 
         return redirect()->route('viagens.show', $viagem)
-            ->with('success', 'MDF-e enviado para autorização.');
+            ->with('success', 'MDF-e enviado para a fila de emissão.');
     }
 
     public function atualizarStatus(EmissaoFiscal $emissaoFiscal, FocusNfeClient $focusNfe)

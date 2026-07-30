@@ -134,6 +134,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Unidades (matriz/filial)**: uma empresa pode cadastrar filiais com CNPJ/IE/endereço fiscal próprios (mesma raiz de CNPJ, sufixo de ordem diferente); ao criar a viagem/carga dá pra escolher qual unidade emite aquele CT-e/MDF-e — frota, usuários e limite de veículos continuam compartilhados, sem duplicar tenant
 - **Telas separadas por tipo** — `/emissoes-fiscais/cte` e `/emissoes-fiscais/mdfe` (dois itens no menu, "CT-e" e "MDF-e"), cada uma só com os filtros/colunas que fazem sentido pra ela (Cliente e Carga só aparecem no CT-e; Encerrado em e o botão de encerrar só no MDF-e), paginação e exportação CSV própria por tipo
 - Webhook (`/webhooks/focus-nfe`, protegido por token) atualiza o status de cada emissão — nunca desativa a empresa nem toma nenhuma ação automática sozinho
+- Emissão (CT-e/MDF-e) roda numa fila (`EmitirDocumentoFiscalJob`) em vez de dentro da própria requisição — clique de "emitir" só cria o registro e devolve a tela na hora; a chamada à Focus acontece no worker. Pensado para não estourar o `max_execution_time` do PHP num pico de várias emissões seguidas (ex.: fechamento de carga no fim do dia). Exige um worker (`php artisan queue:work`) rodando em produção — ver seção de Deploy
 
 ### 👥 Usuários & Permissões
 - Papéis: **super admin** (gerencia empresas clientes), **admin** (gerencia usuários da própria empresa e vê tudo dela) e **operador** (acesso operacional do dia a dia)
@@ -327,7 +328,43 @@ php artisan storage:link
 # Permissões
 chmod -R 775 storage bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
+
+# Faz o worker de fila pegar o código novo (ver seção abaixo)
+php artisan queue:restart
 ```
+
+### Worker de fila (obrigatório para emissão de CT-e/MDF-e)
+
+A emissão de CT-e/MDF-e (`EmitirDocumentoFiscalJob`) roda em fila (`QUEUE_CONNECTION=database`), não na própria
+requisição. **Sem um worker rodando, os jobs ficam parados na tabela `jobs` para sempre** — nenhuma emissão sai
+do status "Na fila". Configure como serviço systemd (roda como `www-data`, mesmo usuário do PHP-FPM, e reinicia
+sozinho se cair):
+
+```bash
+sudo tee /etc/systemd/system/invexafrete-queue-worker.service > /dev/null <<'EOF'
+[Unit]
+Description=Invexa Frete - Laravel Queue Worker
+After=network.target mysql.service
+
+[Service]
+User=www-data
+Group=www-data
+Restart=always
+RestartSec=5
+WorkingDirectory=/caminho/do/projeto
+ExecStart=/usr/bin/php /caminho/do/projeto/artisan queue:work --queue=default --tries=3 --sleep=3 --max-time=3600
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now invexafrete-queue-worker
+```
+
+**Todo deploy que altera código precisa rodar `php artisan queue:restart` no final** — o worker mantém o código
+antigo carregado em memória enquanto processa jobs; sem o restart, ele continua rodando a versão anterior mesmo
+depois do `git pull`.
 
 ### Cron do Laravel (obrigatório)
 
