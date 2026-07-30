@@ -9,6 +9,7 @@ use App\Http\Controllers\DescontosController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\ClientesController;
+use App\Http\Controllers\TabelasFreteController;
 use App\Http\Controllers\CargasController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\UnidadesController;
@@ -255,6 +256,14 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
     Route::resource('clientes', ClientesController::class)->except(['destroy']);
     Route::delete('clientes/{cliente}', [ClientesController::class, 'destroy'])
         ->middleware('admin')->name('clientes.destroy');
+
+    // Tabela de frete por cliente/rota
+    Route::post('clientes/{cliente}/tabela-frete', [TabelasFreteController::class, 'store'])
+        ->name('clientes.tabela-frete.store');
+    Route::delete('tabela-frete/{tabelaFrete}', [TabelasFreteController::class, 'destroy'])
+        ->name('tabela-frete.destroy');
+    Route::get('tabela-frete/sugestao', [TabelasFreteController::class, 'sugestao'])
+        ->name('tabela-frete.sugestao');
 
     // Acertos
     Route::get('/acertos', [AcertosController::class, 'index'])

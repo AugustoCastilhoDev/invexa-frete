@@ -103,7 +103,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Cliente</label>
-                    <select name="cliente_id" class="form-select">
+                    <select name="cliente_id" id="cliente_id" class="form-select">
                         <option value="">Selecione o cliente</option>
                         @foreach($clientes as $cliente)
                             <option value="{{ $cliente->id }}"
@@ -277,6 +277,46 @@
 
     ligarSelectCidade('origem_uf', 'origem_cidade', 'origem_codigo_municipio', @json(old('origem')), @json(old('origem_codigo_municipio')));
     ligarSelectCidade('destino_uf', 'destino_cidade', 'destino_codigo_municipio', @json(old('destino')), @json(old('destino_codigo_municipio')));
+
+    // ── Sugestão automática de valor_frete a partir da tabela de frete do cliente
+    // Só preenche enquanto o usuário não tiver digitado um valor manualmente.
+    let valorFreteEditadoManualmente = false;
+    let preenchendoValorFreteAuto = false;
+
+    document.getElementById('valor_frete').addEventListener('input', function () {
+        if (! preenchendoValorFreteAuto) valorFreteEditadoManualmente = true;
+    });
+
+    function buscarSugestaoFrete() {
+        if (valorFreteEditadoManualmente) return;
+
+        const clienteId     = document.getElementById('cliente_id').value;
+        const origemCodigo  = document.getElementById('origem_codigo_municipio').value;
+        const destinoCodigo = document.getElementById('destino_codigo_municipio').value;
+
+        if (! clienteId || ! origemCodigo || ! destinoCodigo) return;
+
+        const params = new URLSearchParams({
+            cliente_id: clienteId,
+            origem_codigo_municipio: origemCodigo,
+            destino_codigo_municipio: destinoCodigo,
+        });
+
+        fetch(`{{ route('tabela-frete.sugestao') }}?${params}`)
+            .then(r => r.json())
+            .then(({ valor }) => {
+                if (valor === null || valorFreteEditadoManualmente) return;
+                preenchendoValorFreteAuto = true;
+                document.getElementById('valor_frete').value = parseFloat(valor).toFixed(2);
+                preenchendoValorFreteAuto = false;
+                calcularMotorista();
+            })
+            .catch(() => {});
+    }
+
+    document.getElementById('cliente_id').addEventListener('change', buscarSugestaoFrete);
+    document.getElementById('origem_cidade').addEventListener('change', buscarSugestaoFrete);
+    document.getElementById('destino_cidade').addEventListener('change', buscarSugestaoFrete);
 </script>
 @endpush
 @endsection

@@ -75,7 +75,8 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 ### 🧑‍💼 Clientes
 - Cadastro de Pessoa Física e Jurídica
 - Busca automática de endereço por CEP (ViaCEP)
-- Tabela de frete padrão por cliente
+- Frete padrão por km (valor único, informativo)
+- Tabela de frete por rota: cada cliente pode ter um valor de frete específico por rota (origem/destino identificados pelo código do município do IBGE); ao abrir ou editar uma viagem, se cliente e rota baterem com uma entrada cadastrada, o valor é sugerido automaticamente — mas o campo continua editável e nunca sobrescreve o que o usuário já digitou
 - Vinculação direta às viagens
 - Busca por nome, CNPJ/CPF, cidade ou telefone
 - CPF de cliente pessoa física mascarado (CNPJ não é dado pessoal, então fica visível)

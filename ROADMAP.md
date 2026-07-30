@@ -35,7 +35,8 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 ### Clientes
 - Cadastro de Pessoa Física e Jurídica
-- Tabela de frete padrão por cliente
+- Frete padrão por km (campo único, informativo, não usado automaticamente)
+- **Tabela de frete por rota (2026-07-30)**: tela do cliente ganhou uma seção "Tabela de Frete por Rota" (`clientes/{cliente}/tabela-frete`) onde é possível cadastrar um valor específico por rota — origem/destino identificados pelo código de município do IBGE (mesmo padrão já usado no formulário de viagem), não por texto livre, evitando divergência de grafia. Ao abrir/editar uma viagem, um endpoint (`tabela-frete/sugestao`) é consultado via AJAX assim que cliente + origem + destino ficam definidos; se houver uma rota cadastrada, o valor do frete é preenchido automaticamente, mas o campo continua editável — e uma vez editado manualmente pelo usuário, a sugestão para de sobrescrever. Sem rota cadastrada, o preenchimento continua manual como sempre foi. Modelo `TabelaFrete` (tabela `tabelas_frete`), isolado por empresa como o resto do sistema; restrição de unicidade por cliente+rota. 6 testes novos (`tests/Feature/Clientes/TabelasFreteTest.php`)
 - Vinculação direta às viagens
 - Busca por nome, CNPJ/CPF, cidade ou telefone
 - CPF de cliente pessoa física mascarado (CNPJ não, pois não é dado pessoal)

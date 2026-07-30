@@ -64,6 +64,12 @@ class Cliente extends Model
         return $this->hasMany(Carga::class);
     }
 
+    // Cliente tem valores de frete cadastrados por rota (origem/destino)
+    public function tabelasFrete()
+    {
+        return $this->hasMany(TabelaFrete::class)->orderBy('origem')->orderBy('destino');
+    }
+
     // Accessor: documento formatado. Usa posição (não \d) para também suportar
     // o CNPJ alfanumérico da Receita Federal (raiz+ordem podem ter letras;
     // só os 2 dígitos verificadores finais continuam numéricos) — um CNPJ
