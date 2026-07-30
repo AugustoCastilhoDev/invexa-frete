@@ -248,7 +248,13 @@
                            value="{{ old('inscricao_estadual', $empresa->inscricao_estadual) }}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small fw-semibold">RNTRC</label>
+                    <label class="form-label small fw-semibold">
+                        RNTRC
+                        <a href="https://consultapublica.antt.gov.br/Site/ConsultaRNTRC.aspx" target="_blank"
+                           class="text-decoration-none" title="Verificar RNTRC no portal público da ANTT">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                    </label>
                     <input type="text" name="rntrc" class="form-control form-control-sm"
                            value="{{ old('rntrc', $empresa->rntrc) }}">
                 </div>
@@ -377,7 +383,13 @@
                                                 <input type="text" name="telefone" class="form-control form-control-sm" value="{{ $unidade->telefone }}">
                                             </div>
                                             <div class="col-md-2">
-                                                <label class="form-label small fw-semibold">RNTRC</label>
+                                                <label class="form-label small fw-semibold">
+                                                    RNTRC
+                                                    <a href="https://consultapublica.antt.gov.br/Site/ConsultaRNTRC.aspx" target="_blank"
+                                                       class="text-decoration-none" title="Verificar RNTRC no portal público da ANTT">
+                                                        <i class="bi bi-box-arrow-up-right"></i>
+                                                    </a>
+                                                </label>
                                                 <input type="text" name="rntrc" class="form-control form-control-sm" value="{{ $unidade->rntrc }}">
                                             </div>
                                             <div class="col-md-2">
@@ -468,7 +480,13 @@
                                     <input type="text" name="telefone" class="form-control form-control-sm">
                                 </div>
                                 <div class="col-md-2">
-                                    <label class="form-label small fw-semibold">RNTRC</label>
+                                    <label class="form-label small fw-semibold">
+                                        RNTRC
+                                        <a href="https://consultapublica.antt.gov.br/Site/ConsultaRNTRC.aspx" target="_blank"
+                                           class="text-decoration-none" title="Verificar RNTRC no portal público da ANTT">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </label>
                                     <input type="text" name="rntrc" class="form-control form-control-sm">
                                 </div>
                                 <div class="col-md-2">
