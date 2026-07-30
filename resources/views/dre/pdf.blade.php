@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>DRE</title>
+    <title>Resultado Gerencial</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'DejaVu Sans',sans-serif; font-size:10px; color:#1a1a1a; padding:20px; }
@@ -42,10 +42,10 @@
     <div class="header">
         <div>
             <div class="brand">Invexa <span>Frete</span></div>
-            <div style="font-size:9px;color:#6c757d">Demonstrativo de Resultado (DRE)</div>
+            <div style="font-size:9px;color:#6c757d">Resultado Gerencial da Operação</div>
         </div>
         <div class="doc-info">
-            <h2>DRE Simplificado</h2>
+            <h2>Resultado Gerencial</h2>
             <div>Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }}
                  a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}</div>
             <div>Emitido em {{ now()->format('d/m/Y H:i') }}</div>
@@ -95,7 +95,7 @@
     </table>
 
     <div class="footer">
-        Invexa Frete — DRE gerado em {{ now()->format('d/m/Y \à\s H:i') }}
+        Invexa Frete — Resultado Gerencial gerado em {{ now()->format('d/m/Y \à\s H:i') }}
     </div>
 
 </body>

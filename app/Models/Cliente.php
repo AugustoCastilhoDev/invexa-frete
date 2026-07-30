@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
 use App\Models\Concerns\HasDocumentoHash;
+use App\Models\Concerns\RegistraAuditoria;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cliente extends Model
 {
-    use BelongsToEmpresa, HasDocumentoHash, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
+    use BelongsToEmpresa, HasDocumentoHash, HasFactory, RegistraAuditoria, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $fillable = [
         'tipo_pessoa',
@@ -42,6 +43,11 @@ class Cliente extends Model
         'anonymized_at' => 'datetime',
         'cpf_cnpj' => 'encrypted',
     ];
+
+    protected function camposExcluidosDoLog(): array
+    {
+        return [...$this->camposPadraoExcluidosDoLog(), 'cpf_cnpj'];
+    }
 
     protected static function booted(): void
     {

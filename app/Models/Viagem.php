@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
 use App\Models\Concerns\HasUploadedFile;
+use App\Models\Concerns\RegistraAuditoria;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
 use App\Notifications\ViagemAguardandoAcertoNotification;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Notification;
 
 class Viagem extends Model
 {
-    use BelongsToEmpresa, HasFactory, HasUploadedFile, SoftDeletes, TracksUser, TracksDeletingUser;
+    use BelongsToEmpresa, HasFactory, HasUploadedFile, RegistraAuditoria, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $table = 'viagens';
 
@@ -184,6 +185,19 @@ class Viagem extends Model
     public function podeSerAssinada(): bool
     {
         return in_array($this->status, ['aguardando_acerto', 'encerrada'], true);
+    }
+
+    public function estaAssinada(): bool
+    {
+        return $this->assinatura_motorista_em !== null;
+    }
+
+    // Depois de assinada pelo motorista, valores da viagem (frete, lançamentos,
+    // descontos) ficam travados — só um admin reabrindo o acerto libera edição
+    // de novo, invalidando a assinatura anterior.
+    public function podeSerEditadaFinanceiramente(): bool
+    {
+        return $this->status !== 'encerrada' && ! $this->estaAssinada();
     }
 
     // Acessor: KM rodados

@@ -10,6 +10,8 @@ class LancamentosController extends Controller
 {
     public function store(Request $request, Viagem $viagem)
     {
+        abort_unless($viagem->podeSerEditadaFinanceiramente(), 422, 'Esta viagem está encerrada ou já foi assinada pelo motorista. Reabra o acerto para lançar.');
+
         $request->validate([
             'tipo'             => 'required|in:combustivel,manutencao,outros',
             'descricao'        => 'required|string|max:255',
@@ -40,6 +42,8 @@ class LancamentosController extends Controller
 
     public function aprovar(Lancamento $lancamento)
     {
+        abort_unless($lancamento->viagem->podeSerEditadaFinanceiramente(), 422, 'Esta viagem está encerrada ou já foi assinada pelo motorista. Reabra o acerto para aprovar lançamentos.');
+
         $lancamento->forceFill(['status' => 'aprovado'])->save();
 
         return redirect()->route('viagens.show', $lancamento->viagem)
@@ -48,6 +52,8 @@ class LancamentosController extends Controller
 
     public function rejeitar(Lancamento $lancamento)
     {
+        abort_unless($lancamento->viagem->podeSerEditadaFinanceiramente(), 422, 'Esta viagem está encerrada ou já foi assinada pelo motorista. Reabra o acerto para rejeitar lançamentos.');
+
         $lancamento->forceFill(['status' => 'rejeitado'])->save();
 
         return redirect()->route('viagens.show', $lancamento->viagem)
@@ -57,6 +63,8 @@ class LancamentosController extends Controller
     public function destroy(Lancamento $lancamento)
     {
         $viagem = $lancamento->viagem;
+        abort_unless($viagem->podeSerEditadaFinanceiramente(), 422, 'Esta viagem está encerrada ou já foi assinada pelo motorista. Reabra o acerto para remover lançamentos.');
+
         $lancamento->delete();
 
         return redirect()->route('viagens.show', $viagem)

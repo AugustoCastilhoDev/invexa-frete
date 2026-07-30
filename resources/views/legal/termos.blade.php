@@ -12,7 +12,7 @@ declaram ter lido, compreendido e aceito integralmente estes Termos.</p>
 <p>O Invexa Frete é oferecido no modelo SaaS (Software as a Service) e permite, entre outras funcionalidades:
 cadastro de motoristas, veículos e clientes; abertura, acompanhamento e encerramento de viagens; lançamentos de
 combustível e manutenção; controle de descontos, bonificações e adiantamentos; acertos financeiros com motoristas;
-relatórios e DRE; verificação de autenticidade de documentos fiscais junto aos portais públicos da SEFAZ; e um
+relatórios e resultado gerencial da operação; verificação de autenticidade de documentos fiscais junto aos portais públicos da SEFAZ; e um
 portal de acesso para o motorista. Cada Cliente contratante opera em ambiente isolado ("empresa"), sem acesso a
 dados de outras transportadoras.</p>
 

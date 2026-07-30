@@ -2,13 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RegistraAuditoria;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Unidade extends Model
 {
-    use HasFactory, TracksUser;
+    use HasFactory, RegistraAuditoria, TracksUser;
+
+    protected function camposExcluidosDoLog(): array
+    {
+        return [...$this->camposPadraoExcluidosDoLog(), 'cnpj'];
+    }
 
     protected $fillable = [
         'nome',

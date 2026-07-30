@@ -219,6 +219,8 @@ class ViagensController extends Controller
 
     public function edit(Viagem $viagem)
 {
+    abort_unless($viagem->podeSerEditadaFinanceiramente(), 422, 'Esta viagem está encerrada ou já foi assinada pelo motorista. Reabra o acerto para editar.');
+
     $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
     $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
     $clientes   = Cliente::where('status', 'ativo')->orderBy('nome')->get();
@@ -228,6 +230,8 @@ class ViagensController extends Controller
 
     public function update(Request $request, Viagem $viagem)
     {
+        abort_unless($viagem->podeSerEditadaFinanceiramente(), 422, 'Esta viagem está encerrada ou já foi assinada pelo motorista. Reabra o acerto para editar.');
+
         $request->validate([
             'motorista_id'         => 'required|exists:motoristas,id',
             'veiculo_id'           => 'required|exists:veiculos,id',
@@ -298,6 +302,7 @@ class ViagensController extends Controller
     public function assinar(Request $request, Viagem $viagem)
     {
         abort_unless($viagem->podeSerAssinada(), 400, 'Esta viagem ainda não está pronta para acerto.');
+        abort_if($viagem->estaAssinada(), 422, 'Esta viagem já foi assinada. Reabra o acerto antes de coletar uma nova assinatura.');
 
         $request->validate([
             'assinatura' => ['required', 'string', 'regex:/^data:image\/png;base64,/'],
@@ -320,12 +325,37 @@ class ViagensController extends Controller
         }
 
         $viagem->forceFill([
-            'assinatura_motorista_path' => $caminho,
-            'assinatura_motorista_em'   => now(),
+            'assinatura_motorista_path'       => $caminho,
+            'assinatura_motorista_em'         => now(),
+            'assinatura_motorista_ip'         => $request->ip(),
+            'assinatura_motorista_user_agent' => substr((string) $request->userAgent(), 0, 512),
         ])->save();
 
         return redirect()->route('viagens.show', $viagem)
             ->with('success', 'Assinatura do motorista registrada com sucesso!');
+    }
+
+    // Reabertura controlada: só admin pode invalidar uma assinatura já
+    // coletada, liberando a viagem para edição de novo. A assinatura antiga é
+    // descartada (não fica "sobrescrita" silenciosamente) — precisa assinar
+    // de novo depois de ajustar os valores.
+    public function reabrirAssinatura(Viagem $viagem)
+    {
+        abort_unless($viagem->estaAssinada(), 422, 'Esta viagem ainda não foi assinada.');
+
+        if ($viagem->assinatura_motorista_path) {
+            Storage::disk(config('filesystems.uploads_disk'))->delete($viagem->assinatura_motorista_path);
+        }
+
+        $viagem->forceFill([
+            'assinatura_motorista_path'       => null,
+            'assinatura_motorista_em'         => null,
+            'assinatura_motorista_ip'         => null,
+            'assinatura_motorista_user_agent' => null,
+        ])->save();
+
+        return redirect()->route('viagens.show', $viagem)
+            ->with('success', 'Acerto reaberto. A assinatura anterior foi invalidada — colete uma nova assinatura depois de ajustar os valores.');
     }
 
     public function imprimir(Viagem $viagem)

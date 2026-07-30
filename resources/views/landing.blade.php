@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Sistema de gestão de viagens para transportadoras: motoristas, veículos, financeiro, DRE e portal do motorista em uma única plataforma.">
+    <meta name="description" content="Sistema de gestão de viagens para transportadoras: motoristas, veículos, financeiro, resultado gerencial e portal do motorista em uma única plataforma.">
 
     <title>Invexa Frete — Gestão completa para transportadoras</title>
     <link rel="icon" href="/favicon.png" type="image/png">
@@ -177,7 +177,7 @@
             </h1>
 
             <p class="text-white/60" style="font-size:1.1rem; margin-top:18px; line-height:1.6">
-                Do cadastro do motorista ao acerto financeiro: controle viagens, aprove lançamentos, acompanhe o DRE
+                Do cadastro do motorista ao acerto financeiro: controle viagens, aprove lançamentos, acompanhe o resultado gerencial
                 e dê acesso direto ao motorista pelo celular — tudo isolado com segurança por empresa.
             </p>
 
@@ -672,7 +672,7 @@
                 @php
                     $recursos = [
                         ['icon' => 'bi-truck', 'titulo' => 'Gestão de Viagens', 'texto' => 'Do status Aberta até Encerrada, com lançamentos, descontos, adiantamento e assinatura digital do motorista no comprovante.'],
-                        ['icon' => 'bi-bar-chart-line', 'titulo' => 'Financeiro & DRE', 'texto' => 'Relatórios por período, acertos por motorista, despesas gerais e DRE simplificado — receita, custos e resultado líquido.'],
+                        ['icon' => 'bi-bar-chart-line', 'titulo' => 'Financeiro & Resultado Gerencial', 'texto' => 'Relatórios por período, acertos por motorista, despesas gerais e resultado gerencial da operação — receita, custos e resultado líquido.'],
                         ['icon' => 'bi-building-lock', 'titulo' => 'Multiempresa & Segurança', 'texto' => 'Cada transportadora com os dados totalmente isolados e criptografados, autenticação em dois fatores e mascaramento de CPF/CNH.'],
                         ['icon' => 'bi-phone', 'titulo' => 'Portal do Motorista', 'texto' => 'O motorista acompanha as próprias viagens e lança combustível/manutenção com foto, direto do celular, sem instalar app.'],
                         ['icon' => 'bi-file-earmark-check', 'titulo' => 'Documentos Fiscais', 'texto' => 'CT-e, MDF-e e NF-e com verificação de autenticidade direto no portal oficial da SEFAZ pela chave de acesso.'],

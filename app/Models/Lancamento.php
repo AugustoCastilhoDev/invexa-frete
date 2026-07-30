@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
 use App\Models\Concerns\HasUploadedFile;
+use App\Models\Concerns\RegistraAuditoria;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Lancamento extends Model
 {
-    use BelongsToEmpresa, HasFactory, HasUploadedFile, TracksUser;
+    use BelongsToEmpresa, HasFactory, HasUploadedFile, RegistraAuditoria, TracksUser;
 
     protected $fillable = [
         'viagem_id',

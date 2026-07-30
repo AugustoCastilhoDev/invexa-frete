@@ -24,7 +24,7 @@
         </div>
     </div>
     <div class="d-flex gap-2 flex-wrap justify-content-end">
-        @if($viagem->status !== 'encerrada')
+        @if($viagem->podeSerEditadaFinanceiramente())
             <a href="{{ route('viagens.edit', $viagem) }}" class="btn btn-outline-primary btn-sm">
                 <i class="bi bi-pencil me-1"></i> Editar
             </a>
@@ -246,7 +246,7 @@
                                 {{ $ehBonificacao ? '+' : '' }} R$ {{ number_format($desconto->valor, 2, ',', '.') }}
                             </td>
                             <td>
-                                @if($viagem->status !== 'encerrada' && auth()->user()?->isAdmin())
+                                @if($viagem->podeSerEditadaFinanceiramente() && auth()->user()?->isAdmin())
                                 <form action="{{ route('descontos.destroy', $desconto) }}"
                                       method="POST"
                                       onsubmit="return confirm('Remover lançamento?')">
@@ -267,7 +267,7 @@
                 </table>
                 </div>
             </div>
-            @if($viagem->status !== 'encerrada')
+            @if($viagem->podeSerEditadaFinanceiramente())
             <div class="card-footer bg-white">
                 <form action="{{ route('descontos.store', $viagem) }}" method="POST">
                     @csrf
@@ -907,7 +907,7 @@
                                     </button>
                                 </form>
                                 @endif
-                                @if($viagem->status !== 'encerrada' && auth()->user()?->isAdmin())
+                                @if($viagem->podeSerEditadaFinanceiramente() && auth()->user()?->isAdmin())
                                 <form action="{{ route('lancamentos.destroy', $lancamento) }}"
                                       method="POST" class="d-inline"
                                       onsubmit="return confirm('Remover lançamento?')">
@@ -928,7 +928,7 @@
                 </table>
                 </div>
             </div>
-            @if($viagem->status !== 'encerrada')
+            @if($viagem->podeSerEditadaFinanceiramente())
             <div class="card-footer bg-white">
                 <form action="{{ route('lancamentos.store', $viagem) }}"
                       method="POST" enctype="multipart/form-data">
@@ -1111,12 +1111,25 @@
                     <div class="text-muted small mt-2">
                         <i class="bi bi-check-circle-fill text-success me-1"></i>
                         Assinado em {{ $viagem->assinatura_motorista_em->format('d/m/Y \à\s H:i') }}
+                        @if($viagem->assinatura_motorista_ip)
+                            <br><span class="ms-3">IP: {{ $viagem->assinatura_motorista_ip }}</span>
+                        @endif
+                        @if($viagem->assinatura_motorista_user_agent)
+                            <br><span class="ms-3">Dispositivo: {{ \Illuminate\Support\Str::limit($viagem->assinatura_motorista_user_agent, 80) }}</span>
+                        @endif
                     </div>
-                    @if($viagem->podeSerAssinada())
-                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2"
-                            data-bs-toggle="modal" data-bs-target="#modalAssinatura">
-                        <i class="bi bi-arrow-repeat me-1"></i> Assinar Novamente
-                    </button>
+                    <div class="text-muted small mt-2">
+                        <i class="bi bi-lock-fill me-1"></i>
+                        Valores da viagem travados desde a assinatura.
+                    </div>
+                    @if(auth()->user()?->isAdmin())
+                    <form action="{{ route('viagens.assinatura.reabrir', $viagem) }}" method="POST"
+                          onsubmit="return confirm('Reabrir o acerto? A assinatura atual será invalidada e será preciso assinar de novo depois de ajustar os valores.')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-warning mt-2">
+                            <i class="bi bi-unlock me-1"></i> Reabrir Acerto
+                        </button>
+                    </form>
                     @endif
                 @elseif($viagem->podeSerAssinada())
                     <p class="text-muted small mb-2">O motorista ainda não assinou o comprovante de acerto desta viagem.</p>

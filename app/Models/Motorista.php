@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
 use App\Models\Concerns\HasDocumentoHash;
+use App\Models\Concerns\RegistraAuditoria;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Motorista extends Model implements AuthenticatableContract
 {
-    use Authenticatable, BelongsToEmpresa, HasDocumentoHash, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
+    use Authenticatable, BelongsToEmpresa, HasDocumentoHash, HasFactory, RegistraAuditoria, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $fillable = [
         'nome',
@@ -54,6 +55,11 @@ class Motorista extends Model implements AuthenticatableContract
     public function hasPortalAtivo(): bool
     {
         return $this->portal_ativo && $this->password !== null;
+    }
+
+    protected function camposExcluidosDoLog(): array
+    {
+        return [...$this->camposPadraoExcluidosDoLog(), 'cpf', 'cnh', 'password', 'remember_token'];
     }
 
     // Um motorista tem muitas viagens

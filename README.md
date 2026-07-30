@@ -189,14 +189,16 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Comando `lgpd:anonimizar` que expurga dados pessoais de registros excluídos há mais tempo que o prazo configurado, preservando o histórico financeiro
 - **Log de acesso à aplicação** (Marco Civil da Internet, Art. 15): todo login (painel e Portal do Motorista) grava IP e data/hora; comando `lgpd:expurgar-logs-acesso` apaga os registros com mais de 12 meses
 - **Retenção de documentos fiscais**: um `Documento` (NF-e/comprovante anexado a uma viagem) não pode ser excluído — nem por admin — antes de completar 5 anos da data de emissão (`Documento::podeExcluir()`); o botão de excluir vira um ícone de cadeado com a data em que a exclusão será liberada
-- Auditoria completa: todo registro sabe quem criou e quem alterou por último
+- **Log de auditoria** (`spatie/laravel-activitylog`): toda criação, edição ou exclusão nos cadastros e registros financeiros principais (viagens, clientes, motoristas, veículos, documentos, emissões fiscais...) fica registrada com quem fez, quando e o que mudou — consulta somente leitura em `/auditoria` (admin), retida por 5 anos, isolada por empresa; campos sensíveis (senha, CPF, token/senha do certificado fiscal) nunca entram no log
+- **Assinatura digital do motorista com trilha de evidência**: além da imagem da assinatura, grava IP e dispositivo no momento da coleta; a partir da assinatura, valores da viagem (frete, lançamentos, descontos) ficam travados — só um admin "reabrindo o acerto" libera edição de novo, invalidando a assinatura anterior (sem sobrescrita silenciosa)
+- **Exportação de dados** (`/exportar-dados`, admin): baixa um `.zip` com todo o cadastro e histórico da empresa em CSV — portabilidade LGPD (art. 18) e saída do sistema sem depender de nós
 - Proteção contra força bruta: 5 tentativas incorretas bloqueiam novas tentativas temporariamente (por e-mail/CPF + IP) no login do sistema, no do Portal do Motorista e também no desafio de código 2FA (por usuário)
 - Senha com política mínima (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa
-- **Backup automatizado** diário do banco de dados (+ uploads locais), criptografado, com cópia local e outra fora do servidor (Cloudflare R2); limpeza de backups antigos e monitoramento com alerta por e-mail se algo ficar velho ou quebrado (`spatie/laravel-backup`, ver `config/backup.php`)
+- **Backup automatizado** diário do banco de dados (+ uploads locais), criptografado, com cópia local e outra fora do servidor (Cloudflare R2); limpeza de backups antigos e monitoramento com alerta por e-mail se algo ficar velho ou quebrado (`spatie/laravel-backup`, ver `config/backup.php`) — restauração completa (dump + arquivos) testada de ponta a ponta em 2026-07-30
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 490+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, emissão/encerramento/cancelamento/carta de correção de CT-e/MDF-e, diagnóstico do sistema e a API REST
+- 510+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, resultado gerencial, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, log de auditoria, emissão/encerramento/cancelamento/carta de correção de CT-e/MDF-e, diagnóstico do sistema e a API REST
 - CI no GitHub Actions rodando a suíte a cada push/PR
 - **Teste de volume de dados**: importação CSV validada localmente até 20.000 linhas numa importação só (5.000 em ~17s), depois do fix que envolve o processo inteiro numa transação — evita timeout do PHP deixar dado pela metade num import grande
 - **Teste de carga e concorrência em produção (2026-07-18)**: leitura simultânea estável até ~450 requisições sem erro na tela mais pesada do painel (Dashboard); escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados — número específico da VPS atual, ver [ROADMAP.md](ROADMAP.md) para o relatório completo
@@ -223,7 +225,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (490+ testes) |
+| Testes | PHPUnit (510+ testes) |
 | CI | GitHub Actions |
 
 ---

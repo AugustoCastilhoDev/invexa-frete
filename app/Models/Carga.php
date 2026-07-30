@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
+use App\Models\Concerns\RegistraAuditoria;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Carga extends Model
 {
-    use BelongsToEmpresa, HasFactory, TracksUser;
+    use BelongsToEmpresa, HasFactory, RegistraAuditoria, TracksUser;
 
     protected $fillable = [
         'viagem_id',

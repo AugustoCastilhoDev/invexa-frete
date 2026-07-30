@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
+use App\Models\Concerns\RegistraAuditoria;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Veiculo extends Model
 {
-    use BelongsToEmpresa, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
+    use BelongsToEmpresa, HasFactory, RegistraAuditoria, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $fillable = [
         'placa',

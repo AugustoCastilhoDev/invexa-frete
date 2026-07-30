@@ -19,7 +19,9 @@ use App\Http\Controllers\ProgramacoesViagemController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\ManutencoesController;
 use App\Http\Controllers\DespesasGeraisController;
+use App\Http\Controllers\AuditoriaController;
 use App\Http\Controllers\DreController;
+use App\Http\Controllers\ExportacaoDadosController;
 use App\Http\Controllers\MotoristaPortalAccessController;
 use App\Http\Controllers\NotificacoesController;
 use App\Http\Controllers\EmpresasController;
@@ -172,6 +174,8 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
 
     Route::patch('viagens/{viagem}/assinatura', [ViagensController::class, 'assinar'])
         ->name('viagens.assinar');
+    Route::delete('viagens/{viagem}/assinatura', [ViagensController::class, 'reabrirAssinatura'])
+        ->middleware('admin')->name('viagens.assinatura.reabrir');
 
     Route::get('viagens/{viagem}/imprimir', [ViagensController::class, 'imprimir'])
     ->name('viagens.imprimir');
@@ -213,6 +217,13 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         // DRE (Demonstrativo de Resultado)
         Route::get('/dre', [DreController::class, 'index'])->name('dre.index');
         Route::get('/dre/pdf', [DreController::class, 'pdf'])->name('dre.pdf');
+
+        // Log de auditoria (spatie/activitylog) — consulta somente leitura
+        Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
+
+        // Exportação de dados (portabilidade LGPD / saída sem aprisionamento)
+        Route::get('/exportar-dados', [ExportacaoDadosController::class, 'index'])->name('exportacao-dados.index');
+        Route::get('/exportar-dados/baixar', [ExportacaoDadosController::class, 'exportar'])->name('exportacao-dados.baixar');
     });
 
     Route::post('viagens/{viagem}/documentos', [DocumentosController::class, 'store'])

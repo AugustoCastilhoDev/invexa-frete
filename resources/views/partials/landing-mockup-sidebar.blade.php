@@ -21,7 +21,7 @@
         ],
         'Administração' => [
             ['icon' => 'bi-bar-chart-line', 'label' => 'Financeiro', 'key' => 'financeiro'],
-            ['icon' => 'bi-clipboard-data', 'label' => 'DRE', 'key' => 'dre'],
+            ['icon' => 'bi-clipboard-data', 'label' => 'Resultado Gerencial', 'key' => 'dre'],
         ],
     ];
 @endphp

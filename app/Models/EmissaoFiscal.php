@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
+use App\Models\Concerns\RegistraAuditoria;
 use App\Models\Concerns\TracksDeletingUser;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 
 class EmissaoFiscal extends Model
 {
-    use BelongsToEmpresa, HasFactory, SoftDeletes, TracksUser, TracksDeletingUser;
+    use BelongsToEmpresa, HasFactory, RegistraAuditoria, SoftDeletes, TracksUser, TracksDeletingUser;
 
     protected $table = 'emissoes_fiscais';
 
@@ -54,6 +55,14 @@ class EmissaoFiscal extends Model
         'encerrado_em'          => 'datetime',
         'cancelado_em'          => 'datetime',
     ];
+
+    protected function camposExcluidosDoLog(): array
+    {
+        return [
+            ...$this->camposPadraoExcluidosDoLog(),
+            'payload_enviado', 'payload_resposta', 'payload_encerramento', 'payload_cancelamento',
+        ];
+    }
 
     private const STATUS_FINAIS = ['autorizado', 'cancelado', 'erro_autorizacao', 'denegado', 'encerrado'];
 

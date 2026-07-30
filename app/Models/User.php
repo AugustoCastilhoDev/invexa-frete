@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\RegistraAuditoria;
 use App\Support\TenantContext;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -18,7 +19,15 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, RegistraAuditoria, SoftDeletes;
+
+    protected function camposExcluidosDoLog(): array
+    {
+        return [
+            ...$this->camposPadraoExcluidosDoLog(),
+            'password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes',
+        ];
+    }
 
     /**
      * Propositalmente SEM escopo global de empresa aqui (diferente dos outros

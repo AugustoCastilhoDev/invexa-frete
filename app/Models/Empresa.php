@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasDocumentoHash;
+use App\Models\Concerns\RegistraAuditoria;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Empresa extends Model
 {
-    use HasDocumentoHash, HasFactory, TracksUser;
+    use HasDocumentoHash, HasFactory, RegistraAuditoria, TracksUser;
 
     protected $fillable = [
         'nome',
@@ -64,6 +65,11 @@ class Empresa extends Model
                 $empresa->cnpj_hash = static::hashDocumento($empresa->cnpj);
             }
         });
+    }
+
+    protected function camposExcluidosDoLog(): array
+    {
+        return [...$this->camposPadraoExcluidosDoLog(), 'focus_nfe_token', 'focus_nfe_certificado_senha'];
     }
 
     public function usuarios()

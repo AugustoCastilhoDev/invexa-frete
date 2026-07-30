@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToEmpresa;
+use App\Models\Concerns\RegistraAuditoria;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TabelaFrete extends Model
 {
-    use BelongsToEmpresa, HasFactory;
+    use BelongsToEmpresa, HasFactory, RegistraAuditoria;
 
     protected $table = 'tabelas_frete';
 

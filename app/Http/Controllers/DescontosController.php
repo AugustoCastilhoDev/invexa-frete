@@ -10,6 +10,8 @@ class DescontosController extends Controller
 {
     public function store(Request $request, Viagem $viagem)
     {
+        abort_unless($viagem->podeSerEditadaFinanceiramente(), 422, 'Esta viagem está encerrada ou já foi assinada pelo motorista. Reabra o acerto para lançar.');
+
         $request->validate([
             'tipo'          => 'required|in:vale,multa,adiantamento,outros,bonificacao',
             'descricao'     => 'required|string|max:255',
@@ -30,6 +32,8 @@ class DescontosController extends Controller
     public function destroy(Desconto $desconto)
     {
         $viagem = $desconto->viagem;
+        abort_unless($viagem->podeSerEditadaFinanceiramente(), 422, 'Esta viagem está encerrada ou já foi assinada pelo motorista. Reabra o acerto para remover lançamentos.');
+
         $desconto->delete();
 
         return redirect()->route('viagens.show', $viagem)

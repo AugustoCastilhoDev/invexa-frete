@@ -384,7 +384,7 @@
         </a>
         <a class="nav-link {{ request()->routeIs('dre.*') ? 'active' : '' }}"
         href="{{ route('dre.index') }}">
-            <i class="bi bi-clipboard-data"></i> DRE
+            <i class="bi bi-clipboard-data"></i> Resultado Gerencial
         </a>
         <a class="nav-link {{ request()->routeIs('despesas-gerais.*') ? 'active' : '' }}"
             href="{{ route('despesas-gerais.index') }}">
@@ -393,6 +393,14 @@
         <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
            href="{{ route('users.index') }}">
             <i class="bi bi-people"></i> Usuários
+        </a>
+        <a class="nav-link {{ request()->routeIs('auditoria.*') ? 'active' : '' }}"
+           href="{{ route('auditoria.index') }}">
+            <i class="bi bi-shield-check"></i> Auditoria
+        </a>
+        <a class="nav-link {{ request()->routeIs('exportacao-dados.*') ? 'active' : '' }}"
+           href="{{ route('exportacao-dados.index') }}">
+            <i class="bi bi-download"></i> Exportar Dados
         </a>
     </nav>
     @endif

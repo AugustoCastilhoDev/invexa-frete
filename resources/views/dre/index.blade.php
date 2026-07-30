@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('title', 'DRE')
+@section('title', 'Resultado Gerencial')
 
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Demonstrativo de Resultado (DRE)</h4>
-        <small class="text-muted">Resultado do período, considerando apenas viagens encerradas</small>
+        <h4 class="mb-0">Resultado Gerencial da Operação</h4>
+        <small class="text-muted">Resultado do período, considerando apenas viagens encerradas — não substitui uma demonstração contábil (sem plano de contas, competência ou tributos)</small>
     </div>
     <a href="{{ route('dre.pdf', request()->query()) }}" target="_blank" class="btn btn-outline-dark">
         <i class="bi bi-printer me-1"></i> Exportar PDF

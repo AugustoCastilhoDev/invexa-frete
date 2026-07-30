@@ -16,6 +16,11 @@ Schedule::command('lgpd:anonimizar')->monthly();
 // antigos que o prazo mínimo de retenção previsto em config/lgpd.php.
 Schedule::command('lgpd:expurgar-logs-acesso')->monthly();
 
+// Log de auditoria (spatie/activitylog): apaga registros mais antigos que
+// config/activitylog.php (5 anos por padrão, mesmo horizonte da retenção de
+// documentos fiscais).
+Schedule::command('activitylog:clean')->monthly();
+
 // Backup diário do banco de dados (+ uploads locais, se houver), com cópia
 // local e outra na R2 (fora do servidor). Roda de madrugada, horário de
 // menor uso; limpeza antes do backup, monitor depois pra alertar por e-mail

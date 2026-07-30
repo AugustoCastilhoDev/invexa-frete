@@ -204,7 +204,7 @@
                     <i class="bi bi-info-circle me-1"></i>
                     Só considera dados de viagem — não inclui despesas gerais nem
                     manutenções fora de viagem. Para o resultado completo da empresa,
-                    veja o <a href="{{ route('dre.index') }}">DRE</a>.
+                    veja o <a href="{{ route('dre.index') }}">Resultado Gerencial</a>.
                 </small>
             </div>
             <div class="card-body d-flex flex-column align-items-center justify-content-center">

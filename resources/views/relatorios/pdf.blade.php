@@ -95,7 +95,7 @@
     </div>
     <p style="font-size:9px;color:#6c757d;margin-top:-4px">
         Lucro da Operação considera só dados de viagem — não inclui despesas gerais
-        nem manutenções fora de viagem. Para o resultado completo da empresa, veja o DRE.
+        nem manutenções fora de viagem. Para o resultado completo da empresa, veja o Resultado Gerencial.
     </p>
 
     {{-- Por Motorista --}}
