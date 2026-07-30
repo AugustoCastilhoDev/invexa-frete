@@ -74,6 +74,25 @@ class FocusNfeClient
         return $this->consultar($empresa, "/v2/cte/{$referencia}");
     }
 
+    /**
+     * DELETE /v2/cte/{referencia} e /v2/mdfe/{referencia}, confirmado contra
+     * doc.focusnfe.com.br/reference/cancelar_cte_cte_os e /cancelar_mdfe —
+     * só aceita documento com status "autorizado" (EmissaoFiscal::podeCancelar()
+     * já garante isso antes de chamar) e justificativa de 15 a 255 caracteres.
+     * A Focus/SEFAZ decide o prazo de cancelamento (ex.: CT-e rejeitado com
+     * "autorizada há mais de 7 dias") — não replicamos essa regra aqui, só
+     * repassamos a mensagem de erro real.
+     */
+    public function cancelarCte(Empresa $empresa, string $referencia, string $justificativa): ?array
+    {
+        return $this->cancelar($empresa, "/v2/cte/{$referencia}", $justificativa);
+    }
+
+    public function cancelarMdfe(Empresa $empresa, string $referencia, string $justificativa): ?array
+    {
+        return $this->cancelar($empresa, "/v2/mdfe/{$referencia}", $justificativa);
+    }
+
     public function consultarMdfe(Empresa $empresa, string $referencia): ?array
     {
         return $this->consultar($empresa, "/v2/mdfe/{$referencia}");
@@ -127,6 +146,29 @@ class FocusNfeClient
 
         if (! $response->successful() && $response->status() !== 202) {
             Log::warning('Focus NFe: resposta de erro ao emitir documento.', ['status' => $response->status(), 'body' => $response->json()]);
+        }
+
+        return $response->json();
+    }
+
+    private function cancelar(Empresa $empresa, string $path, string $justificativa): ?array
+    {
+        if (! $empresa->focus_nfe_ativo || ! filled($empresa->focus_nfe_token)) {
+            Log::warning("Focus NFe: tentativa de cancelar documento sem a empresa #{$empresa->id} estar ativa/configurada.");
+
+            return null;
+        }
+
+        try {
+            $response = $this->http($empresa)->delete($path, ['justificativa' => $justificativa]);
+        } catch (\Throwable $e) {
+            Log::error('Focus NFe: falha de transporte ao cancelar documento.', ['erro' => $e->getMessage()]);
+
+            return null;
+        }
+
+        if (! $response->successful()) {
+            Log::warning('Focus NFe: resposta de erro ao cancelar documento.', ['status' => $response->status(), 'body' => $response->json()]);
         }
 
         return $response->json();

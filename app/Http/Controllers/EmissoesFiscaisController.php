@@ -99,6 +99,33 @@ class EmissoesFiscaisController extends Controller
         );
     }
 
+    public function cancelar(Request $request, EmissaoFiscal $emissaoFiscal, FocusNfeClient $focusNfe)
+    {
+        abort_unless($emissaoFiscal->podeCancelar(), 422, 'Este documento não pode ser cancelado agora.');
+
+        $dados = $request->validate([
+            'justificativa' => 'required|string|min:15|max:255',
+        ]);
+
+        $resposta = $emissaoFiscal->tipo === 'cte'
+            ? $focusNfe->cancelarCte($emissaoFiscal->empresa, $emissaoFiscal->referencia, $dados['justificativa'])
+            : $focusNfe->cancelarMdfe($emissaoFiscal->empresa, $emissaoFiscal->referencia, $dados['justificativa']);
+
+        if (! $resposta) {
+            return back()->with('error', 'Não foi possível cancelar o documento agora — veja os logs da aplicação.');
+        }
+
+        $emissaoFiscal->update(['justificativa_cancelamento' => $dados['justificativa']]);
+        $emissaoFiscal->aplicarCancelamento($resposta);
+
+        return back()->with(
+            $emissaoFiscal->status === 'cancelado' ? 'success' : 'error',
+            $emissaoFiscal->status === 'cancelado'
+                ? ($emissaoFiscal->tipo === 'cte' ? 'CT-e cancelado com sucesso.' : 'MDF-e cancelado com sucesso.')
+                : ('Falha ao cancelar: ' . $emissaoFiscal->mensagem_erro)
+        );
+    }
+
     public function cte(Request $request)
     {
         return $this->listar($request, 'cte');

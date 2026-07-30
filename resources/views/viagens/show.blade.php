@@ -499,6 +499,51 @@
                 @endforeach
             </div>
             @endif
+            @php
+                $emissoesCancelaveis = $viagem->emissoesFiscais->filter(fn ($e) => $e->podeCancelar());
+            @endphp
+            @if($emissoesCancelaveis->isNotEmpty())
+            <div class="card-body border-bottom py-2">
+                @foreach($emissoesCancelaveis as $emissao)
+                <div class="d-flex justify-content-between align-items-center small py-1">
+                    <span>
+                        <span class="badge bg-success">{{ $emissao->tipo_formatado }}</span>
+                        Autorizado — nº {{ $emissao->numero }}
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                            data-bs-target="#cancelarEmissao{{ $emissao->id }}">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar {{ $emissao->tipo_formatado }}
+                    </button>
+                </div>
+                <div class="modal fade" id="cancelarEmissao{{ $emissao->id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="{{ route('emissoes-fiscais.cancelar', $emissao) }}" method="POST">
+                                @csrf
+                                <div class="modal-header">
+                                    <h6 class="modal-title mb-0">Cancelar {{ $emissao->tipo_formatado }} nº {{ $emissao->numero }}</h6>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="small text-danger mb-2">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>Essa ação é definitiva e não pode ser desfeita.
+                                    </p>
+                                    <label class="form-label small fw-semibold">Justificativa do cancelamento</label>
+                                    <textarea name="justificativa" class="form-control form-control-sm" rows="3"
+                                              minlength="15" maxlength="255" required
+                                              placeholder="Mínimo de 15 caracteres"></textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Voltar</button>
+                                    <button type="submit" class="btn btn-danger btn-sm">Confirmar Cancelamento</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @endif
             <div class="card-body p-0">
                 <div class="table-responsive">
                 <table class="table table-sm table-hover mb-0">

@@ -36,6 +36,8 @@
                         @if($tipo === 'mdfe')
                         <option value="erro_encerramento" {{ request('status') === 'erro_encerramento' ? 'selected' : '' }}>Erro no encerramento</option>
                         @endif
+                        <option value="cancelado" {{ request('status') === 'cancelado' ? 'selected' : '' }}>Cancelado</option>
+                        <option value="erro_cancelamento" {{ request('status') === 'erro_cancelamento' ? 'selected' : '' }}>Erro no cancelamento</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -148,6 +150,7 @@
                             $corStatus = match($emissao->status) {
                                 'autorizado' => 'success',
                                 'encerrado' => 'secondary',
+                                'cancelado' => 'dark',
                                 'na_fila' => 'info',
                                 'processando_autorizacao' => 'warning',
                                 default => 'danger',
@@ -210,6 +213,38 @@
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
                                                 <button type="submit" class="btn btn-warning btn-sm">Encerrar MDF-e</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($emissao->podeCancelar())
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                                    data-bs-target="#cancelarEmissaoIndex{{ $emissao->id }}" title="Cancelar {{ $emissao->tipo_formatado }}">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                            <div class="modal fade" id="cancelarEmissaoIndex{{ $emissao->id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="{{ route('emissoes-fiscais.cancelar', $emissao) }}" method="POST">
+                                            @csrf
+                                            <div class="modal-header">
+                                                <h6 class="modal-title mb-0">Cancelar {{ $emissao->tipo_formatado }} nº {{ $emissao->numero }}</h6>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p class="small text-danger mb-2">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>Essa ação é definitiva e não pode ser desfeita.
+                                                </p>
+                                                <label class="form-label small fw-semibold">Justificativa do cancelamento</label>
+                                                <textarea name="justificativa" class="form-control form-control-sm" rows="3"
+                                                          minlength="15" maxlength="255" required
+                                                          placeholder="Mínimo de 15 caracteres"></textarea>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Voltar</button>
+                                                <button type="submit" class="btn btn-danger btn-sm">Confirmar Cancelamento</button>
                                             </div>
                                         </form>
                                     </div>

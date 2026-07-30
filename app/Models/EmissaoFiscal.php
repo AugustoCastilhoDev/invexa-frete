@@ -39,14 +39,20 @@ class EmissaoFiscal extends Model
         'encerrado_em',
         'protocolo_encerramento',
         'payload_encerramento',
+        'justificativa_cancelamento',
+        'cancelado_em',
+        'protocolo_cancelamento',
+        'payload_cancelamento',
     ];
 
     protected $casts = [
-        'payload_enviado'      => 'array',
-        'payload_resposta'     => 'array',
-        'payload_encerramento' => 'array',
-        'autorizado_em'        => 'datetime',
-        'encerrado_em'         => 'datetime',
+        'payload_enviado'       => 'array',
+        'payload_resposta'      => 'array',
+        'payload_encerramento'  => 'array',
+        'payload_cancelamento'  => 'array',
+        'autorizado_em'         => 'datetime',
+        'encerrado_em'          => 'datetime',
+        'cancelado_em'          => 'datetime',
     ];
 
     private const STATUS_FINAIS = ['autorizado', 'cancelado', 'erro_autorizacao', 'denegado', 'encerrado'];
@@ -76,6 +82,15 @@ class EmissaoFiscal extends Model
     public function podeEncerrar(): bool
     {
         return $this->tipo === 'mdfe' && $this->status === 'autorizado' && is_null($this->encerrado_em);
+    }
+
+    // Vale para cte e mdfe — a Focus só aceita cancelar documento com status
+    // "autorizado" (confirmado em doc.focusnfe.com.br/reference/cancelar_cte_cte_os
+    // e /cancelar_mdfe); um MDF-e já encerrado não fica mais "autorizado", então
+    // essa checagem sozinha já cobre esse caso sem precisar olhar encerrado_em.
+    public function podeCancelar(): bool
+    {
+        return $this->status === 'autorizado';
     }
 
     public function scopeMdfeAbertoDoVeiculo($query, int $veiculoId)
@@ -159,6 +174,31 @@ class EmissaoFiscal extends Model
             'payload_encerramento' => $payload,
             'encerrado_em' => $novoStatus === 'encerrado' ? now() : $this->encerrado_em,
         ]);
+    }
+
+    /**
+     * Aplica a resposta do endpoint de cancelamento (DELETE /v2/cte|mdfe/{ref})
+     * — confirmado contra doc.focusnfe.com.br/reference/cancelar_cte_cte_os e
+     * /cancelar_mdfe: mesmo shape de aplicarEncerramento() (status/status_sefaz/
+     * mensagem_sefaz/caminho_xml), não o de aplicarRespostaFocus(). O Documento
+     * vinculado (só existe depois de autorizado) acompanha o cancelamento pra
+     * não ficar mostrando "autorizado" pra um CT-e/MDF-e que a SEFAZ já invalidou.
+     */
+    public function aplicarCancelamento(array $payload): void
+    {
+        $novoStatus = $payload['status'] ?? 'erro_cancelamento';
+
+        $this->update([
+            'status' => $novoStatus,
+            'protocolo_cancelamento' => $payload['protocolo'] ?? $payload['status_sefaz'] ?? $this->protocolo_cancelamento,
+            'mensagem_erro' => $novoStatus === 'cancelado' ? null : ($payload['mensagem_sefaz'] ?? $payload['mensagem'] ?? null),
+            'payload_cancelamento' => $payload,
+            'cancelado_em' => $novoStatus === 'cancelado' ? now() : $this->cancelado_em,
+        ]);
+
+        if ($novoStatus === 'cancelado' && $this->documento_id) {
+            Documento::whereKey($this->documento_id)->update(['status' => 'cancelado']);
+        }
     }
 
     /**

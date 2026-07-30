@@ -242,6 +242,8 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         ->name('emissoes-fiscais.atualizar-status');
     Route::post('emissoes-fiscais/{emissaoFiscal}/encerrar', [EmissoesFiscaisController::class, 'encerrar'])
         ->name('emissoes-fiscais.encerrar');
+    Route::post('emissoes-fiscais/{emissaoFiscal}/cancelar', [EmissoesFiscaisController::class, 'cancelar'])
+        ->name('emissoes-fiscais.cancelar');
 
     Route::get('/dashboard/grafico', [DashboardController::class, 'grafico'])
     ->name('dashboard.grafico');

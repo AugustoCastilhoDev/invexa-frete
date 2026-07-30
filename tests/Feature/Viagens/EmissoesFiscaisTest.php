@@ -392,6 +392,145 @@ class EmissoesFiscaisTest extends TestCase
         });
     }
 
+    public function test_cancelar_cte_autorizado_com_sucesso_cancela_documento_vinculado(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+        $documento = Documento::factory()->create(['viagem_id' => $viagem->id, 'tipo' => 'cte', 'status' => 'autorizado']);
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'cte',
+            'viagem_id' => $viagem->id,
+            'documento_id' => $documento->id,
+        ]);
+
+        Http::fake([
+            '*/v2/cte/*' => Http::response([
+                'status' => 'cancelado',
+                'status_sefaz' => '135',
+                'mensagem_sefaz' => 'Evento registrado e vinculado a CT-e',
+                'caminho_xml' => 'https://focusnfe.example/arquivo.xml',
+            ], 200),
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.cancelar', $emissao), [
+            'justificativa' => 'Erro no valor do frete lançado na carga.',
+        ]);
+
+        $response->assertRedirect();
+        $emissao->refresh();
+        $this->assertSame('cancelado', $emissao->status);
+        $this->assertNotNull($emissao->cancelado_em);
+        $this->assertSame('Erro no valor do frete lançado na carga.', $emissao->justificativa_cancelamento);
+        $this->assertDatabaseHas('documentos', ['id' => $documento->id, 'status' => 'cancelado']);
+    }
+
+    public function test_cancelar_mdfe_com_rejeicao_da_focus_mantem_mensagem_de_erro(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'mdfe',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        Http::fake([
+            '*/v2/mdfe/*' => Http::response([
+                'status' => 'erro_cancelamento',
+                'status_sefaz' => '220',
+                'mensagem_sefaz' => 'Rejeicao: MDF-e autorizado ha mais de 7 dias',
+            ], 200),
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.cancelar', $emissao), [
+            'justificativa' => 'Tentativa de cancelamento fora do prazo permitido.',
+        ]);
+
+        $response->assertRedirect();
+        $emissao->refresh();
+        $this->assertSame('erro_cancelamento', $emissao->status);
+        $this->assertSame('Rejeicao: MDF-e autorizado ha mais de 7 dias', $emissao->mensagem_erro);
+        $this->assertNull($emissao->cancelado_em);
+    }
+
+    public function test_cancelar_falha_de_transporte_nao_altera_status(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'cte',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        Http::fake(function () {
+            throw new \Illuminate\Http\Client\ConnectionException('timeout');
+        });
+
+        $response = $this->post(route('emissoes-fiscais.cancelar', $emissao), [
+            'justificativa' => 'Erro no valor do frete lançado na carga.',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertSame('autorizado', $emissao->fresh()->status);
+    }
+
+    public function test_justificativa_curta_demais_falha_validacao(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'cte',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.cancelar', $emissao), [
+            'justificativa' => 'muito curta',
+        ]);
+
+        $response->assertSessionHasErrors('justificativa');
+        $this->assertSame('autorizado', $emissao->fresh()->status);
+    }
+
+    public function test_nao_permite_cancelar_documento_nao_autorizado(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+
+        $processando = EmissaoFiscal::factory()->create([
+            'tipo' => 'cte',
+            'status' => 'processando_autorizacao',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+        $jaCancelado = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'mdfe',
+            'status' => 'cancelado',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        $payload = ['justificativa' => 'Justificativa com mais de quinze caracteres.'];
+
+        $this->post(route('emissoes-fiscais.cancelar', $processando), $payload)->assertStatus(422);
+        $this->post(route('emissoes-fiscais.cancelar', $jaCancelado), $payload)->assertStatus(422);
+    }
+
+    public function test_cancelamento_de_uma_empresa_nao_e_acessivel_por_outra(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        $outraEmpresa = Empresa::factory()->focusNfeAtivo()->create();
+        $outroUsuario = User::factory()->create(['empresa_id' => $outraEmpresa->id]);
+        $this->actingAs($outroUsuario);
+
+        $response = $this->post(route('emissoes-fiscais.cancelar', $emissao), [
+            'justificativa' => 'Justificativa com mais de quinze caracteres.',
+        ]);
+
+        $response->assertNotFound();
+    }
+
     public function test_nao_permite_encerrar_cte_ou_mdfe_nao_autorizado(): void
     {
         $this->ativarFocusNfeNaEmpresaDeTeste();
