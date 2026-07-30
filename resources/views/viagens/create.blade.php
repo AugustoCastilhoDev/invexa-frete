@@ -74,7 +74,7 @@
                     <select name="origem_uf" id="origem_uf" class="form-select" required>
                         <option value="">UF</option>
                         @foreach($ufs as $uf)
-                            <option value="{{ $uf }}" {{ old('origem_uf') === $uf ? 'selected' : '' }}>{{ $uf }}</option>
+                            <option value="{{ $uf }}" {{ old('origem_uf', request('origem_uf')) === $uf ? 'selected' : '' }}>{{ $uf }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -83,14 +83,14 @@
                     <select name="origem" id="origem_cidade" class="form-select" required>
                         <option value="">Selecione a UF primeiro</option>
                     </select>
-                    <input type="hidden" name="origem_codigo_municipio" id="origem_codigo_municipio" value="{{ old('origem_codigo_municipio') }}">
+                    <input type="hidden" name="origem_codigo_municipio" id="origem_codigo_municipio" value="{{ old('origem_codigo_municipio', request('origem_codigo_municipio')) }}">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-semibold">UF Destino *</label>
                     <select name="destino_uf" id="destino_uf" class="form-select" required>
                         <option value="">UF</option>
                         @foreach($ufs as $uf)
-                            <option value="{{ $uf }}" {{ old('destino_uf') === $uf ? 'selected' : '' }}>{{ $uf }}</option>
+                            <option value="{{ $uf }}" {{ old('destino_uf', request('destino_uf')) === $uf ? 'selected' : '' }}>{{ $uf }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -99,7 +99,7 @@
                     <select name="destino" id="destino_cidade" class="form-select" required>
                         <option value="">Selecione a UF primeiro</option>
                     </select>
-                    <input type="hidden" name="destino_codigo_municipio" id="destino_codigo_municipio" value="{{ old('destino_codigo_municipio') }}">
+                    <input type="hidden" name="destino_codigo_municipio" id="destino_codigo_municipio" value="{{ old('destino_codigo_municipio', request('destino_codigo_municipio')) }}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Cliente</label>
@@ -275,8 +275,8 @@
         }
     }
 
-    ligarSelectCidade('origem_uf', 'origem_cidade', 'origem_codigo_municipio', @json(old('origem')), @json(old('origem_codigo_municipio')));
-    ligarSelectCidade('destino_uf', 'destino_cidade', 'destino_codigo_municipio', @json(old('destino')), @json(old('destino_codigo_municipio')));
+    ligarSelectCidade('origem_uf', 'origem_cidade', 'origem_codigo_municipio', @json(old('origem', request('origem'))), @json(old('origem_codigo_municipio', request('origem_codigo_municipio'))));
+    ligarSelectCidade('destino_uf', 'destino_cidade', 'destino_codigo_municipio', @json(old('destino', request('destino'))), @json(old('destino_codigo_municipio', request('destino_codigo_municipio'))));
 
     // ── Sugestão automática de valor_frete a partir da tabela de frete do cliente
     // Só preenche enquanto o usuário não tiver digitado um valor manualmente.

@@ -126,7 +126,11 @@
                                     'veiculo_id'     => $programacao->veiculo_id,
                                     'cliente_id'     => $programacao->cliente_id,
                                     'origem'         => $programacao->origem,
+                                    'origem_uf'      => $programacao->origem_uf,
+                                    'origem_codigo_municipio' => $programacao->origem_codigo_municipio,
                                     'destino'        => $programacao->destino,
+                                    'destino_uf'     => $programacao->destino_uf,
+                                    'destino_codigo_municipio' => $programacao->destino_codigo_municipio,
                                     'valor_frete'    => $programacao->valor_frete,
                                 ]) }}"
                                class="btn btn-sm btn-success" title="Confirmar e Abrir Viagem">

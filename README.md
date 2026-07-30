@@ -47,7 +47,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 - Avanço de status direto na tela da viagem, sem precisar abrir a edição; não permite pular etapas
 - Assinatura digital do motorista (captura por canvas na tela da viagem), embutida no comprovante em PDF com data/hora
-- **Programação de Frota**: planeje o motorista/veículo/cliente (e opcionalmente o valor do frete, se já negociado) da próxima viagem antes de encerrar a atual, numa tela dedicada com visão de quais veículos já têm plano definido e quais estão livres; a confirmação abre a viagem de verdade a partir dos dados programados, sem duplicar cadastro
+- **Programação de Frota**: planeje o motorista/veículo/cliente da próxima viagem antes de encerrar a atual, numa tela dedicada com visão de quais veículos já têm plano definido e quais estão livres; origem/destino são selecionados por UF+cidade (IBGE), igual ao formulário de viagem, e o valor do frete é sugerido automaticamente a partir da tabela de frete do cliente quando cliente+rota baterem com uma entrada cadastrada (editável); a confirmação abre a viagem de verdade a partir dos dados programados, sem duplicar cadastro
 - **Controle de recebimento do frete**: na listagem de viagens, confirmação com um clique de que o frete foi recebido do cliente (com data), filtro por recebido/pendente e exportação em CSV — o recebimento já entra no faturamento do Dashboard e no Relatório Financeiro mesmo antes da viagem encerrar, sem contar em duplicidade quando o acerto fecha depois
 
 ### 👤 Motoristas

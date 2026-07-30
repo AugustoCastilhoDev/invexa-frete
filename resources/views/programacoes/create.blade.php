@@ -47,22 +47,47 @@
                 </div>
             </div>
 
+            @php
+                $ufs = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+            @endphp
             <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Origem *</label>
-                    <input type="text" name="origem" class="form-control @error('origem') is-invalid @enderror"
-                           value="{{ old('origem') }}" required>
-                    @error('origem')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">UF Origem *</label>
+                    <select name="origem_uf" id="origem_uf" class="form-select" required>
+                        <option value="">UF</option>
+                        @foreach($ufs as $uf)
+                            <option value="{{ $uf }}" {{ old('origem_uf') === $uf ? 'selected' : '' }}>{{ $uf }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold">Destino *</label>
-                    <input type="text" name="destino" class="form-control @error('destino') is-invalid @enderror"
-                           value="{{ old('destino') }}" required>
+                    <label class="form-label fw-semibold">Cidade Origem *</label>
+                    <select name="origem" id="origem_cidade" class="form-select @error('origem') is-invalid @enderror" required>
+                        <option value="">Selecione a UF primeiro</option>
+                    </select>
+                    <input type="hidden" name="origem_codigo_municipio" id="origem_codigo_municipio" value="{{ old('origem_codigo_municipio') }}">
+                    @error('origem')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">UF Destino *</label>
+                    <select name="destino_uf" id="destino_uf" class="form-select" required>
+                        <option value="">UF</option>
+                        @foreach($ufs as $uf)
+                            <option value="{{ $uf }}" {{ old('destino_uf') === $uf ? 'selected' : '' }}>{{ $uf }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Cidade Destino *</label>
+                    <select name="destino" id="destino_cidade" class="form-select @error('destino') is-invalid @enderror" required>
+                        <option value="">Selecione a UF primeiro</option>
+                    </select>
+                    <input type="hidden" name="destino_codigo_municipio" id="destino_codigo_municipio" value="{{ old('destino_codigo_municipio') }}">
                     @error('destino')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Cliente</label>
-                    <select name="cliente_id" class="form-select">
+                    <select name="cliente_id" id="cliente_id" class="form-select">
                         <option value="">Selecione o cliente</option>
                         @foreach($clientes as $cliente)
                             <option value="{{ $cliente->id }}"
@@ -83,12 +108,12 @@
                     <label class="form-label fw-semibold">Valor do Frete</label>
                     <div class="input-group">
                         <span class="input-group-text">R$</span>
-                        <input type="number" name="valor_frete"
+                        <input type="number" name="valor_frete" id="valor_frete"
                                class="form-control @error('valor_frete') is-invalid @enderror"
                                value="{{ old('valor_frete') }}" step="0.01" min="0">
                         @error('valor_frete')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <small class="text-muted">Opcional — preencha se já estiver negociado</small>
+                    <small class="text-muted">Opcional — preencha se já estiver negociado, ou selecione cliente + rota para receber uma sugestão automática</small>
                 </div>
             </div>
 
@@ -105,4 +130,84 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // ── Cidade por UF (API pública do IBGE) — mesmo padrão usado em viagens/create
+    function ligarSelectCidade(ufId, cidadeId, codigoId, valorAntigo, codigoAntigo) {
+        const ufSelect = document.getElementById(ufId);
+        const cidadeSelect = document.getElementById(cidadeId);
+        const codigoInput = document.getElementById(codigoId);
+
+        function carregarCidades(ufSelecionada, selecionarCidade) {
+            if (! ufSelecionada) {
+                cidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+                return;
+            }
+            cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+            fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufSelecionada}/municipios`)
+                .then(r => r.json())
+                .then(municipios => {
+                    cidadeSelect.innerHTML = '<option value="">Selecione a cidade</option>' +
+                        municipios.map(m => `<option value="${m.nome}" data-codigo="${m.id}">${m.nome}</option>`).join('');
+                    if (selecionarCidade) {
+                        cidadeSelect.value = selecionarCidade;
+                        codigoInput.value = cidadeSelect.selectedOptions[0]?.dataset.codigo || codigoAntigo || '';
+                    }
+                })
+                .catch(() => { cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>'; });
+        }
+
+        ufSelect.addEventListener('change', function () { carregarCidades(this.value, null); });
+        cidadeSelect.addEventListener('change', function () {
+            codigoInput.value = this.selectedOptions[0]?.dataset.codigo || '';
+        });
+
+        if (ufSelect.value) {
+            carregarCidades(ufSelect.value, valorAntigo);
+        }
+    }
+
+    ligarSelectCidade('origem_uf', 'origem_cidade', 'origem_codigo_municipio', @json(old('origem')), @json(old('origem_codigo_municipio')));
+    ligarSelectCidade('destino_uf', 'destino_cidade', 'destino_codigo_municipio', @json(old('destino')), @json(old('destino_codigo_municipio')));
+
+    // ── Sugestão automática de valor_frete a partir da tabela de frete do cliente
+    let valorFreteEditadoManualmente = false;
+    let preenchendoValorFreteAuto = false;
+
+    document.getElementById('valor_frete').addEventListener('input', function () {
+        if (! preenchendoValorFreteAuto) valorFreteEditadoManualmente = true;
+    });
+
+    function buscarSugestaoFrete() {
+        if (valorFreteEditadoManualmente) return;
+
+        const clienteId     = document.getElementById('cliente_id').value;
+        const origemCodigo  = document.getElementById('origem_codigo_municipio').value;
+        const destinoCodigo = document.getElementById('destino_codigo_municipio').value;
+
+        if (! clienteId || ! origemCodigo || ! destinoCodigo) return;
+
+        const params = new URLSearchParams({
+            cliente_id: clienteId,
+            origem_codigo_municipio: origemCodigo,
+            destino_codigo_municipio: destinoCodigo,
+        });
+
+        fetch(`{{ route('tabela-frete.sugestao') }}?${params}`)
+            .then(r => r.json())
+            .then(({ valor }) => {
+                if (valor === null || valorFreteEditadoManualmente) return;
+                preenchendoValorFreteAuto = true;
+                document.getElementById('valor_frete').value = parseFloat(valor).toFixed(2);
+                preenchendoValorFreteAuto = false;
+            })
+            .catch(() => {});
+    }
+
+    document.getElementById('cliente_id').addEventListener('change', buscarSugestaoFrete);
+    document.getElementById('origem_cidade').addEventListener('change', buscarSugestaoFrete);
+    document.getElementById('destino_cidade').addEventListener('change', buscarSugestaoFrete);
+</script>
+@endpush
 @endsection
