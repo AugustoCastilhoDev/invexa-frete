@@ -60,6 +60,8 @@ class DocumentosController extends Controller
 
     public function destroy(Documento $documento)
     {
+        abort_unless($documento->podeExcluir(), 422, 'Este documento está dentro do prazo mínimo de retenção fiscal (5 anos da emissão) e não pode ser excluído.');
+
         $viagem = $documento->viagem;
         $documento->delete();
 

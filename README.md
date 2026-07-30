@@ -129,10 +129,12 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 ### 📄 Emissão de CT-e/MDF-e (Focus NFe)
 - Estrutura completa de emissão real de CT-e/MDF-e via [Focus NFe](https://focusnfe.com.br/), mas **desligada por padrão** — fica inerte para toda empresa até um super admin ativar manualmente para uma cliente específica (nenhum plano da Focus é contratado até haver demanda real; ver ROADMAP.md para o contexto)
 - Ativação em `/empresas/{id}`: upload do certificado digital A1 (.pfx) + senha, escolha de ambiente (homologação/produção) — token retornado pela Focus é guardado criptografado
+- **Alerta de certificado vencendo**: badge (Válido/Vence em breve/Vencido) na listagem de empresas e na tela de detalhe, com aviso destacado quando faltam 30 dias ou menos para o vencimento — evita que a emissão pare de funcionar silenciosamente sem ninguém perceber (`Empresa::situacaoCertificado()`)
 - Card "Dados Fiscais" na mesma tela (endereço completo com busca por CEP, IE, RNTRC, regime tributário, CFOP, ICMS) alimenta o payload real de emissão — campos ficam vazios até serem confirmados com o contador da transportadora, sem valor chutado
 - **Cargas**: uma viagem pode atender vários clientes/destinatários na mesma rota — cada "Carga" agrupa as NF-e's de um cliente e vira a unidade de emissão do CT-e (destinatário e valor do frete próprios); ao autorizar, o XML e o DACTE/DAMDFE são baixados dos servidores da Focus e guardados no nosso próprio storage, disponíveis para download junto com os documentos lançados manualmente
 - **Encerramento de MDF-e**: botão dedicado para encerrar o manifesto na SEFAZ ao fim da viagem — abrir uma nova viagem para um veículo com MDF-e ainda não encerrado é bloqueado; o MDF-e referencia automaticamente todos os CT-e's autorizados de todas as cargas da viagem
 - **Cancelamento de CT-e/MDF-e**: qualquer documento autorizado pode ser cancelado, com justificativa obrigatória (15 a 255 caracteres) — a SEFAZ, via Focus, decide o prazo permitido e rejeita fora da janela; cancelamento é definitivo e o Documento vinculado acompanha o status
+- **Carta de Correção Eletrônica (CC-e) de CT-e**: para CT-e autorizado, corrige campos sem impacto fiscal (ex.: observações, descrição da carga) sem precisar cancelar — histórico de correções (até 20 por CT-e, só a última vale) fica guardado e visível na tela; não é permitido corrigir base de cálculo, alíquota, remetente/destinatário nem datas de emissão/saída (limitação da própria SEFAZ)
 - **Unidades (matriz/filial)**: uma empresa pode cadastrar filiais com CNPJ/IE/endereço fiscal próprios (mesma raiz de CNPJ, sufixo de ordem diferente); ao criar a viagem/carga dá pra escolher qual unidade emite aquele CT-e/MDF-e — frota, usuários e limite de veículos continuam compartilhados, sem duplicar tenant
 - **Telas separadas por tipo** — `/emissoes-fiscais/cte` e `/emissoes-fiscais/mdfe` (dois itens no menu, "CT-e" e "MDF-e"), cada uma só com os filtros/colunas que fazem sentido pra ela (Cliente e Carga só aparecem no CT-e; Encerrado em e o botão de encerrar só no MDF-e), paginação e exportação CSV própria por tipo
 - Webhook (`/webhooks/focus-nfe`, protegido por token) atualiza o status de cada emissão — nunca desativa a empresa nem toma nenhuma ação automática sozinho
@@ -186,6 +188,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Política de retenção de dados configurável (`config/lgpd.php`)
 - Comando `lgpd:anonimizar` que expurga dados pessoais de registros excluídos há mais tempo que o prazo configurado, preservando o histórico financeiro
 - **Log de acesso à aplicação** (Marco Civil da Internet, Art. 15): todo login (painel e Portal do Motorista) grava IP e data/hora; comando `lgpd:expurgar-logs-acesso` apaga os registros com mais de 12 meses
+- **Retenção de documentos fiscais**: um `Documento` (NF-e/comprovante anexado a uma viagem) não pode ser excluído — nem por admin — antes de completar 5 anos da data de emissão (`Documento::podeExcluir()`); o botão de excluir vira um ícone de cadeado com a data em que a exclusão será liberada
 - Auditoria completa: todo registro sabe quem criou e quem alterou por último
 - Proteção contra força bruta: 5 tentativas incorretas bloqueiam novas tentativas temporariamente (por e-mail/CPF + IP) no login do sistema, no do Portal do Motorista e também no desafio de código 2FA (por usuário)
 - Senha com política mínima (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa
@@ -193,7 +196,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 470+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, emissão/encerramento/cancelamento de CT-e/MDF-e, diagnóstico do sistema e a API REST
+- 490+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, DRE, portal do motorista, permissões, 2FA, notificações, isolamento multi-tenant, anonimização de dados, log de acesso, emissão/encerramento/cancelamento/carta de correção de CT-e/MDF-e, diagnóstico do sistema e a API REST
 - CI no GitHub Actions rodando a suíte a cada push/PR
 - **Teste de volume de dados**: importação CSV validada localmente até 20.000 linhas numa importação só (5.000 em ~17s), depois do fix que envolve o processo inteiro numa transação — evita timeout do PHP deixar dado pela metade num import grande
 - **Teste de carga e concorrência em produção (2026-07-18)**: leitura simultânea estável até ~450 requisições sem erro na tela mais pesada do painel (Dashboard); escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados — número específico da VPS atual, ver [ROADMAP.md](ROADMAP.md) para o relatório completo
@@ -220,7 +223,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (470+ testes) |
+| Testes | PHPUnit (490+ testes) |
 | CI | GitHub Actions |
 
 ---

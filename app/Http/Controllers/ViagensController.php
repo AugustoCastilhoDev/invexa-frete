@@ -203,7 +203,7 @@ class ViagensController extends Controller
             'motorista', 'veiculo', 'cliente', 'empresa',
             'criadoPor', 'atualizadoPor',
             'lancamentos.criadoPor', 'descontos.criadoPor', 'documentos.criadoPor',
-            'emissoesFiscais',
+            'emissoesFiscais.cartasCorrecao',
             'cargas.cliente', 'cargas.documentos', 'cargas.emissoesFiscais',
         ]);
 

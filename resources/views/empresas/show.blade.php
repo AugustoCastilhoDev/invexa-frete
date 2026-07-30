@@ -515,6 +515,19 @@
             até completar o card "Dados Fiscais" acima.
         </div>
         @endif
+        @php $certificado = $empresa->situacaoCertificado(); @endphp
+        @if(in_array($certificado['label'], ['Vencido', 'Vence em breve', 'Sem validade registrada']))
+        <div class="alert {{ $certificado['label'] === 'Vencido' ? 'alert-danger' : 'alert-warning' }} py-2 small">
+            <i class="bi {{ $certificado['icone'] }} me-1"></i>
+            @if($certificado['label'] === 'Vencido')
+                Certificado digital vencido — a emissão de CT-e/MDF-e para esta empresa deve estar falhando na Focus NFe. Renove e reenvie o certificado abaixo.
+            @elseif($certificado['label'] === 'Vence em breve')
+                Certificado digital vence em breve ({{ $empresa->focus_nfe_certificado_validade->format('d/m/Y') }}) — renove antes do vencimento para não interromper a emissão.
+            @else
+                Nenhuma data de validade registrada para o certificado — confirme o vencimento e preencha ao reenviar.
+            @endif
+        </div>
+        @endif
         <div class="row g-3">
             <div class="col-md-3 col-6">
                 <div class="text-muted" style="font-size:.75rem">Status</div>
@@ -536,7 +549,14 @@
             </div>
             <div class="col-md-3 col-6">
                 <div class="text-muted" style="font-size:.75rem">Validade do certificado</div>
-                <div class="fw-semibold">{{ $empresa->focus_nfe_certificado_validade?->format('d/m/Y') ?? '-' }}</div>
+                <div class="fw-semibold">
+                    {{ $empresa->focus_nfe_certificado_validade?->format('d/m/Y') ?? '-' }}
+                    @if($empresa->focus_nfe_ativo)
+                        <span class="badge {{ $certificado['classe'] }} ms-1">
+                            <i class="bi {{ $certificado['icone'] }} me-1"></i>{{ $certificado['label'] }}
+                        </span>
+                    @endif
+                </div>
             </div>
         </div>
 

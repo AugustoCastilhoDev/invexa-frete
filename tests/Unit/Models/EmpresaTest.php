@@ -86,4 +86,54 @@ class EmpresaTest extends TestCase
             'status desconhecido' => ['ALGO_INESPERADO', 'Pendente'],
         ];
     }
+
+    public function test_situacao_certificado_inativo_quando_focus_nfe_desligado(): void
+    {
+        $empresa = Empresa::factory()->create([
+            'focus_nfe_ativo' => false,
+            'focus_nfe_certificado_validade' => now()->addDays(5),
+        ]);
+
+        $this->assertSame('Inativo', $empresa->situacaoCertificado()['label']);
+    }
+
+    public function test_situacao_certificado_sem_validade_registrada(): void
+    {
+        $empresa = Empresa::factory()->create([
+            'focus_nfe_ativo' => true,
+            'focus_nfe_certificado_validade' => null,
+        ]);
+
+        $this->assertSame('Sem validade registrada', $empresa->situacaoCertificado()['label']);
+    }
+
+    public function test_situacao_certificado_vencido(): void
+    {
+        $empresa = Empresa::factory()->create([
+            'focus_nfe_ativo' => true,
+            'focus_nfe_certificado_validade' => now()->subDay(),
+        ]);
+
+        $this->assertSame('Vencido', $empresa->situacaoCertificado()['label']);
+    }
+
+    public function test_situacao_certificado_vence_em_breve_dentro_de_30_dias(): void
+    {
+        $empresa = Empresa::factory()->create([
+            'focus_nfe_ativo' => true,
+            'focus_nfe_certificado_validade' => now()->addDays(10),
+        ]);
+
+        $this->assertSame('Vence em breve', $empresa->situacaoCertificado()['label']);
+    }
+
+    public function test_situacao_certificado_valido_fora_da_janela_de_alerta(): void
+    {
+        $empresa = Empresa::factory()->create([
+            'focus_nfe_ativo' => true,
+            'focus_nfe_certificado_validade' => now()->addDays(90),
+        ]);
+
+        $this->assertSame('Válido', $empresa->situacaoCertificado()['label']);
+    }
 }

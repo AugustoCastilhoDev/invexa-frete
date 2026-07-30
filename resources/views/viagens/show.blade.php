@@ -510,11 +510,76 @@
                         <span class="badge bg-success">{{ $emissao->tipo_formatado }}</span>
                         Autorizado — nº {{ $emissao->numero }}
                     </span>
-                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
-                            data-bs-target="#cancelarEmissao{{ $emissao->id }}">
-                        <i class="bi bi-x-circle me-1"></i>Cancelar {{ $emissao->tipo_formatado }}
-                    </button>
+                    <div class="d-flex gap-1">
+                        @if($emissao->podeEmitirCartaCorrecao())
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
+                                data-bs-target="#cartaCorrecao{{ $emissao->id }}">
+                            <i class="bi bi-pencil-square me-1"></i>Correção
+                            @if($emissao->cartasCorrecao->isNotEmpty())
+                                <span class="badge bg-secondary ms-1">{{ $emissao->cartasCorrecao->count() }}</span>
+                            @endif
+                        </button>
+                        @endif
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                                data-bs-target="#cancelarEmissao{{ $emissao->id }}">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar {{ $emissao->tipo_formatado }}
+                        </button>
+                    </div>
                 </div>
+                @if($emissao->podeEmitirCartaCorrecao())
+                <div class="modal fade" id="cartaCorrecao{{ $emissao->id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            @if($emissao->cartasCorrecao->isNotEmpty())
+                            <div class="modal-body border-bottom pb-2">
+                                <p class="small fw-semibold mb-2">Correções já emitidas</p>
+                                <ul class="list-unstyled small mb-0">
+                                    @foreach($emissao->cartasCorrecao as $carta)
+                                    <li class="mb-1">
+                                        <span class="badge bg-light text-dark border">#{{ $carta->numero_carta_correcao ?? '-' }}</span>
+                                        {{ $carta->campo_corrigido }} → "{{ $carta->valor_corrigido }}"
+                                        <span class="text-muted">({{ $carta->created_at->format('d/m/Y H:i') }})</span>
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            @endif
+                            <form action="{{ route('emissoes-fiscais.carta-correcao', $emissao) }}" method="POST">
+                                @csrf
+                                <div class="modal-header">
+                                    <h6 class="modal-title mb-0">Carta de correção — CT-e nº {{ $emissao->numero }}</h6>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="small text-muted mb-2">
+                                        Só é possível corrigir campos sem impacto fiscal (ex.: observações, descrição da carga) —
+                                        base de cálculo, alíquota, remetente/destinatário e datas não podem ser corrigidos por aqui.
+                                    </p>
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold">Campo a corrigir</label>
+                                        <input type="text" name="campo_corrigido" class="form-control form-control-sm"
+                                               placeholder="ex.: observacoes" maxlength="100" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold">Novo valor</label>
+                                        <textarea name="valor_corrigido" class="form-control form-control-sm" rows="2"
+                                                  maxlength="500" required></textarea>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold">Grupo (opcional)</label>
+                                        <input type="text" name="grupo_corrigido" class="form-control form-control-sm"
+                                               placeholder="ex.: cargas" maxlength="100">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary btn-sm">Emitir Carta de Correção</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                @endif
                 <div class="modal fade" id="cancelarEmissao{{ $emissao->id }}" tabindex="-1">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -622,14 +687,21 @@
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     @if(auth()->user()?->isAdmin())
-                                    <form action="{{ route('documentos.destroy', $doc) }}"
-                                          method="POST"
-                                          onsubmit="return confirm('Remover documento?')">
-                                        @csrf @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                        @if($doc->podeExcluir())
+                                        <form action="{{ route('documentos.destroy', $doc) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('Remover documento?')">
+                                            @csrf @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                        @else
+                                        <span class="text-muted d-inline-flex align-items-center"
+                                              title="Documento fiscal em retenção obrigatória — só pode ser excluído a partir de {{ $doc->data_liberacao_exclusao->format('d/m/Y') }} (5 anos da emissão)">
+                                            <i class="bi bi-lock"></i>
+                                        </span>
+                                        @endif
                                     @endif
                                     @endif
                                 </div>

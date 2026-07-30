@@ -126,6 +126,42 @@ class EmissoesFiscaisController extends Controller
         );
     }
 
+    public function cartaCorrecao(Request $request, EmissaoFiscal $emissaoFiscal, FocusNfeClient $focusNfe)
+    {
+        abort_unless($emissaoFiscal->podeEmitirCartaCorrecao(), 422, 'Carta de correção só pode ser emitida para CT-e autorizado.');
+
+        $dados = $request->validate([
+            'grupo_corrigido' => 'nullable|string|max:100',
+            'campo_corrigido' => 'required|string|max:100',
+            'valor_corrigido' => 'required|string|max:500',
+            'numero_item_grupo_corrigido' => 'nullable|string|max:10',
+        ]);
+
+        $resposta = $focusNfe->emitirCartaCorrecaoCte(
+            $emissaoFiscal->empresa,
+            $emissaoFiscal->referencia,
+            array_filter($dados, fn ($valor) => $valor !== null)
+        );
+
+        if (! $resposta) {
+            return back()->with('error', 'Não foi possível emitir a carta de correção agora — veja os logs da aplicação.');
+        }
+
+        if (($resposta['status'] ?? null) !== 'autorizado') {
+            $mensagem = $resposta['mensagem'] ?? 'Falha ao emitir carta de correção.';
+
+            $detalhes = collect($resposta['erros'] ?? [])
+                ->flatMap(fn ($erro) => $erro['erros'] ?? [])
+                ->implode('; ');
+
+            return back()->with('error', $detalhes ? "{$mensagem} ({$detalhes})" : $mensagem);
+        }
+
+        $emissaoFiscal->registrarCartaCorrecao($dados, $resposta);
+
+        return back()->with('success', 'Carta de correção emitida com sucesso.');
+    }
+
     public function cte(Request $request)
     {
         return $this->listar($request, 'cte');
@@ -204,7 +240,7 @@ class EmissoesFiscaisController extends Controller
 
     private function emissoesFiltradas(Request $request, string $tipo)
     {
-        return EmissaoFiscal::with(['viagem.veiculo', 'viagem.motorista', 'carga.cliente'])
+        return EmissaoFiscal::with(['viagem.veiculo', 'viagem.motorista', 'carga.cliente', 'cartasCorrecao'])
             ->where('tipo', $tipo)
             ->when($request->input('status'), fn ($q, $v) => $q->where('status', $v))
             ->when($request->input('veiculo_id'), fn ($q, $v) => $q->whereHas('viagem', fn ($qq) => $qq->where('veiculo_id', $v)))

@@ -99,4 +99,22 @@ class Documento extends Model
     {
         return $this->tipo === 'mdfe';
     }
+
+    // Prazo mínimo de guarda de documento fiscal no Brasil — nem admin pode
+    // apagar um documento antes de completar esse prazo desde a emissão.
+    private const ANOS_RETENCAO_MINIMA = 5;
+
+    public function podeExcluir(): bool
+    {
+        if (! $this->data_emissao) {
+            return false;
+        }
+
+        return $this->data_emissao->lte(now()->subYears(self::ANOS_RETENCAO_MINIMA));
+    }
+
+    public function getDataLiberacaoExclusaoAttribute(): ?\Illuminate\Support\Carbon
+    {
+        return $this->data_emissao?->copy()->addYears(self::ANOS_RETENCAO_MINIMA);
+    }
 }

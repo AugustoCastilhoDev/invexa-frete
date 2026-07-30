@@ -531,6 +531,160 @@ class EmissoesFiscaisTest extends TestCase
         $response->assertNotFound();
     }
 
+    public function test_emitir_carta_correcao_com_sucesso_registra_historico(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'cte',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        Http::fake([
+            '*/v2/cte/*/carta_correcao' => Http::response([
+                'status' => 'autorizado',
+                'status_sefaz' => '135',
+                'mensagem_sefaz' => 'Evento registrado e vinculado a CT-e',
+                'caminho_xml' => 'https://focusnfe.example/evento.xml',
+                'numero_carta_correcao' => 1,
+            ], 200),
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.carta-correcao', $emissao), [
+            'campo_corrigido' => 'observacoes',
+            'valor_corrigido' => 'Descrição da carga corrigida.',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertSame('autorizado', $emissao->fresh()->status);
+        $this->assertDatabaseHas('cartas_correcao_cte', [
+            'emissao_fiscal_id' => $emissao->id,
+            'campo_corrigido' => 'observacoes',
+            'valor_corrigido' => 'Descrição da carga corrigida.',
+            'numero_carta_correcao' => 1,
+            'status_sefaz' => '135',
+        ]);
+    }
+
+    public function test_carta_correcao_com_erro_de_negocio_nao_registra_historico(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'cte',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        Http::fake([
+            '*/v2/cte/*/carta_correcao' => Http::response([
+                'codigo' => 'requisicao_invalida',
+                'mensagem' => 'Existem inconsistências em uma ou mais correções.',
+                'erros' => [
+                    ['numero_correcao' => 1, 'erros' => ["Campo 'uf_nicio' inválido."]],
+                ],
+            ], 400),
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.carta-correcao', $emissao), [
+            'campo_corrigido' => 'uf_nicio',
+            'valor_corrigido' => 'SP',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertSame(0, \App\Models\CartaCorrecaoCte::count());
+    }
+
+    public function test_carta_correcao_falha_de_transporte_nao_registra_nada(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'cte',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        Http::fake(function () {
+            throw new \Illuminate\Http\Client\ConnectionException('timeout');
+        });
+
+        $response = $this->post(route('emissoes-fiscais.carta-correcao', $emissao), [
+            'campo_corrigido' => 'observacoes',
+            'valor_corrigido' => 'Novo valor',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertSame(0, \App\Models\CartaCorrecaoCte::count());
+    }
+
+    public function test_nao_permite_carta_correcao_para_mdfe(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'mdfe',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.carta-correcao', $emissao), [
+            'campo_corrigido' => 'observacoes',
+            'valor_corrigido' => 'Novo valor',
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_nao_permite_carta_correcao_para_cte_nao_autorizado(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->create([
+            'tipo' => 'cte',
+            'status' => 'processando_autorizacao',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.carta-correcao', $emissao), [
+            'campo_corrigido' => 'observacoes',
+            'valor_corrigido' => 'Novo valor',
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_carta_correcao_exige_campo_e_valor_corrigido(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'cte',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        $response = $this->post(route('emissoes-fiscais.carta-correcao', $emissao), []);
+
+        $response->assertSessionHasErrors(['campo_corrigido', 'valor_corrigido']);
+    }
+
+    public function test_carta_correcao_de_uma_empresa_nao_e_acessivel_por_outra(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $emissao = EmissaoFiscal::factory()->autorizada()->create([
+            'tipo' => 'cte',
+            'viagem_id' => Viagem::factory()->create()->id,
+        ]);
+
+        $outraEmpresa = Empresa::factory()->focusNfeAtivo()->create();
+        $outroUsuario = User::factory()->create(['empresa_id' => $outraEmpresa->id]);
+        $this->actingAs($outroUsuario);
+
+        $response = $this->post(route('emissoes-fiscais.carta-correcao', $emissao), [
+            'campo_corrigido' => 'observacoes',
+            'valor_corrigido' => 'Novo valor',
+        ]);
+
+        $response->assertNotFound();
+    }
+
     public function test_nao_permite_encerrar_cte_ou_mdfe_nao_autorizado(): void
     {
         $this->ativarFocusNfeNaEmpresaDeTeste();

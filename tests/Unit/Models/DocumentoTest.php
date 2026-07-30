@@ -75,4 +75,32 @@ class DocumentoTest extends TestCase
         $this->assertTrue($mdfe->exige_login_gov_br);
         $this->assertFalse($cte->exige_login_gov_br);
     }
+
+    public function test_pode_excluir_dentro_do_prazo_de_retencao(): void
+    {
+        $documento = Documento::factory()->create(['data_emissao' => now()->subYears(5)->addDay()]);
+
+        $this->assertFalse($documento->podeExcluir());
+    }
+
+    public function test_pode_excluir_no_limite_exato_dos_5_anos(): void
+    {
+        $documento = Documento::factory()->create(['data_emissao' => now()->subYears(5)]);
+
+        $this->assertTrue($documento->podeExcluir());
+    }
+
+    public function test_pode_excluir_apos_o_prazo_de_retencao(): void
+    {
+        $documento = Documento::factory()->create(['data_emissao' => now()->subYears(6)]);
+
+        $this->assertTrue($documento->podeExcluir());
+    }
+
+    public function test_data_liberacao_exclusao_e_5_anos_apos_a_emissao(): void
+    {
+        $documento = Documento::factory()->create(['data_emissao' => '2026-01-15']);
+
+        $this->assertSame('2031-01-15', $documento->data_liberacao_exclusao->format('Y-m-d'));
+    }
 }

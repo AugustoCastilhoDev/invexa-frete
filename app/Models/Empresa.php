@@ -115,4 +115,29 @@ class Empresa extends Model
             default => ['label' => 'Pendente', 'classe' => 'bg-secondary', 'icone' => 'bi-question-circle'],
         };
     }
+
+    // Prazo antes do vencimento em que o certificado A1 já é sinalizado como
+    // "vence em breve" — dá tempo do time renovar antes que a emissão pare.
+    private const DIAS_ALERTA_CERTIFICADO = 30;
+
+    public function situacaoCertificado(): array
+    {
+        if (! $this->focus_nfe_ativo) {
+            return ['label' => 'Inativo', 'classe' => 'bg-secondary', 'icone' => 'bi-dash-circle'];
+        }
+
+        if (! $this->focus_nfe_certificado_validade) {
+            return ['label' => 'Sem validade registrada', 'classe' => 'bg-warning text-dark', 'icone' => 'bi-question-circle'];
+        }
+
+        if ($this->focus_nfe_certificado_validade->isPast()) {
+            return ['label' => 'Vencido', 'classe' => 'bg-danger', 'icone' => 'bi-exclamation-triangle-fill'];
+        }
+
+        if ($this->focus_nfe_certificado_validade->lte(now()->addDays(self::DIAS_ALERTA_CERTIFICADO))) {
+            return ['label' => 'Vence em breve', 'classe' => 'bg-warning text-dark', 'icone' => 'bi-exclamation-triangle'];
+        }
+
+        return ['label' => 'Válido', 'classe' => 'bg-success', 'icone' => 'bi-check-circle'];
+    }
 }

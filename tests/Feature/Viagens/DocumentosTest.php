@@ -82,10 +82,10 @@ class DocumentosTest extends TestCase
         $this->assertEquals('autorizado', $documento->fresh()->status);
     }
 
-    public function test_admin_pode_excluir_documento(): void
+    public function test_admin_pode_excluir_documento_fora_do_prazo_de_retencao(): void
     {
         $this->actingAs(User::factory()->admin()->create());
-        $documento = Documento::factory()->create();
+        $documento = Documento::factory()->create(['data_emissao' => now()->subYears(6)]);
 
         $response = $this->delete(route('documentos.destroy', $documento));
 
@@ -96,11 +96,22 @@ class DocumentosTest extends TestCase
     public function test_operador_nao_pode_excluir_documento(): void
     {
         $this->actingAs(User::factory()->create());
-        $documento = Documento::factory()->create();
+        $documento = Documento::factory()->create(['data_emissao' => now()->subYears(6)]);
 
         $response = $this->delete(route('documentos.destroy', $documento));
 
         $response->assertForbidden();
+        $this->assertDatabaseHas('documentos', ['id' => $documento->id]);
+    }
+
+    public function test_nao_permite_excluir_documento_dentro_do_prazo_de_retencao_mesmo_sendo_admin(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $documento = Documento::factory()->create(['data_emissao' => now()->subYears(2)]);
+
+        $response = $this->delete(route('documentos.destroy', $documento));
+
+        $response->assertStatus(422);
         $this->assertDatabaseHas('documentos', ['id' => $documento->id]);
     }
 

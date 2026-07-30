@@ -62,6 +62,7 @@
                     <th>Usuários</th>
                     <th>Status</th>
                     <th>Cobrança</th>
+                    <th>Certificado</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
             </thead>
@@ -69,6 +70,7 @@
                 @forelse($empresas as $empresa)
                 @php
                     $cobranca = $empresa->situacaoCobranca();
+                    $certificado = $empresa->situacaoCertificado();
                 @endphp
                 <tr>
                     <td class="ps-4 fw-semibold">{{ $empresa->nome }}</td>
@@ -84,6 +86,13 @@
                            class="btn btn-sm {{ $cobranca['classe'] }}"
                            title="Ver detalhes de cobrança">
                             <i class="bi {{ $cobranca['icone'] }} me-1"></i>{{ $cobranca['label'] }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ route('empresas.show', $empresa) }}#focus-nfe"
+                           class="btn btn-sm {{ $certificado['classe'] }}"
+                           title="Validade: {{ $empresa->focus_nfe_certificado_validade?->format('d/m/Y') ?? '-' }}">
+                            <i class="bi {{ $certificado['icone'] }} me-1"></i>{{ $certificado['label'] }}
                         </a>
                     </td>
                     <td class="text-end pe-4">
@@ -115,7 +124,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-4">
+                    <td colspan="7" class="text-center text-muted py-4">
                         <i class="bi bi-buildings fs-3 d-block mb-2"></i>
                         {{ $busca ? 'Nenhuma empresa encontrada para "'.$busca.'".' : 'Nenhuma empresa cadastrada.' }}
                     </td>

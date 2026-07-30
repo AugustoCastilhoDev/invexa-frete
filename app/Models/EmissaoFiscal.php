@@ -74,6 +74,12 @@ class EmissaoFiscal extends Model
         return $this->belongsTo(Documento::class);
     }
 
+    // Histórico de cartas de correção — só existe pra tipo=cte
+    public function cartasCorrecao()
+    {
+        return $this->hasMany(CartaCorrecaoCte::class)->latest();
+    }
+
     public function isFinal(): bool
     {
         return in_array($this->status, self::STATUS_FINAIS, true);
@@ -91,6 +97,13 @@ class EmissaoFiscal extends Model
     public function podeCancelar(): bool
     {
         return $this->status === 'autorizado';
+    }
+
+    // Carta de correção (confirmado em doc.focusnfe.com.br/reference/carta_correcao_cte_cte_os)
+    // só existe pra CT-e autorizado — a Focus rejeita com "CT-e não autorizado" fora disso.
+    public function podeEmitirCartaCorrecao(): bool
+    {
+        return $this->tipo === 'cte' && $this->status === 'autorizado';
     }
 
     public function scopeMdfeAbertoDoVeiculo($query, int $veiculoId)
@@ -199,6 +212,26 @@ class EmissaoFiscal extends Model
         if ($novoStatus === 'cancelado' && $this->documento_id) {
             Documento::whereKey($this->documento_id)->update(['status' => 'cancelado']);
         }
+    }
+
+    /**
+     * Registra uma carta de correção já aceita pela Focus/SEFAZ — diferente de
+     * aplicarCancelamento()/aplicarEncerramento(), não muda o status da própria
+     * EmissaoFiscal (o CT-e continua "autorizado"); só acumula histórico, já
+     * que a Focus aceita até 20 cartas de correção por CT-e (só a última vale).
+     */
+    public function registrarCartaCorrecao(array $dadosCorrecao, array $respostaFocus): CartaCorrecaoCte
+    {
+        return $this->cartasCorrecao()->create([
+            'grupo_corrigido' => $dadosCorrecao['grupo_corrigido'] ?? null,
+            'campo_corrigido' => $dadosCorrecao['campo_corrigido'],
+            'valor_corrigido' => $dadosCorrecao['valor_corrigido'],
+            'numero_item_grupo_corrigido' => $dadosCorrecao['numero_item_grupo_corrigido'] ?? null,
+            'numero_carta_correcao' => $respostaFocus['numero_carta_correcao'] ?? null,
+            'status_sefaz' => $respostaFocus['status_sefaz'] ?? null,
+            'mensagem_sefaz' => $respostaFocus['mensagem_sefaz'] ?? null,
+            'caminho_xml' => $respostaFocus['caminho_xml'] ?? null,
+        ]);
     }
 
     /**

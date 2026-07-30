@@ -93,6 +93,38 @@ class FocusNfeClient
         return $this->cancelar($empresa, "/v2/mdfe/{$referencia}", $justificativa);
     }
 
+    /**
+     * POST /v2/cte/{referencia}/carta_correcao, confirmado contra
+     * doc.focusnfe.com.br/reference/carta_correcao_cte_cte_os — só aceita CT-e
+     * "autorizado" (EmissaoFiscal::podeEmitirCartaCorrecao() já garante isso
+     * antes de chamar). Resposta de sucesso vem com status=autorizado +
+     * numero_carta_correcao; erro de negócio (ex.: campo não corrigível) vem
+     * com "codigo"/"mensagem"/"erros" em vez de "status" — o controller decide
+     * qual é qual, aqui só repassamos o body decodificado.
+     */
+    public function emitirCartaCorrecaoCte(Empresa $empresa, string $referencia, array $dados): ?array
+    {
+        if (! $empresa->focus_nfe_ativo || ! filled($empresa->focus_nfe_token)) {
+            Log::warning("Focus NFe: tentativa de emitir carta de correção sem a empresa #{$empresa->id} estar ativa/configurada.");
+
+            return null;
+        }
+
+        try {
+            $response = $this->http($empresa)->post("/v2/cte/{$referencia}/carta_correcao", $dados);
+        } catch (\Throwable $e) {
+            Log::error('Focus NFe: falha de transporte ao emitir carta de correção.', ['erro' => $e->getMessage()]);
+
+            return null;
+        }
+
+        if (! $response->successful()) {
+            Log::warning('Focus NFe: resposta de erro ao emitir carta de correção.', ['status' => $response->status(), 'body' => $response->json()]);
+        }
+
+        return $response->json();
+    }
+
     public function consultarMdfe(Empresa $empresa, string $referencia): ?array
     {
         return $this->consultar($empresa, "/v2/mdfe/{$referencia}");
