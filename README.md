@@ -194,7 +194,8 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Exportação de dados** (`/exportar-dados`, admin): baixa um `.zip` com todo o cadastro e histórico da empresa em CSV — portabilidade LGPD (art. 18) e saída do sistema sem depender de nós
 - Proteção contra força bruta: 5 tentativas incorretas bloqueiam novas tentativas temporariamente (por e-mail/CPF + IP) no login do sistema, no do Portal do Motorista e também no desafio de código 2FA (por usuário)
 - Senha com política mínima (8 caracteres) e confirmação obrigatória ao criar usuário ou empresa
-- **Backup automatizado** diário do banco de dados (+ uploads locais), criptografado, com cópia local e outra fora do servidor (Cloudflare R2); limpeza de backups antigos e monitoramento com alerta por e-mail se algo ficar velho ou quebrado (`spatie/laravel-backup`, ver `config/backup.php`) — restauração completa (dump + arquivos) testada de ponta a ponta em 2026-07-30
+- **Backup automatizado** diário do banco de dados (+ uploads locais), criptografado, com cópia local e outra fora do servidor (Cloudflare R2); limpeza de backups antigos e monitoramento com alerta por e-mail se algo ficar velho ou quebrado (`spatie/laravel-backup`, ver `config/backup.php`) — restauração completa (dump + arquivos, nas duas cópias) testada de ponta a ponta em produção
+- **Alerta de saúde do sistema** (`sistema:verificar-saude`, agendado de hora em hora): disco/memória acima de 90%, jobs de fila falhados ou emissão fiscal (CT-e/MDF-e) com erro nas últimas horas disparam e-mail — mesmo endereço do alerta de backup. Alerta síncrono, não passa pela fila (senão um problema na própria fila silenciaria o aviso sobre ela)
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
@@ -323,8 +324,31 @@ $admin->save();
 
 > ✅ Em produção desde 2026-07-07 em [invexafrete.com.br](https://invexafrete.com.br) (VPS Hostinger, Nginx + PHP-FPM 8.3 + MySQL, deploy manual via SSH). O passo a passo abaixo é o guia genérico usado nesse deploy — veja [ROADMAP.md](ROADMAP.md), seção "Deploy em produção", para o resumo do que está configurado.
 
+**Opção recomendada — script único, com ponto de restauração automático:**
+
+```bash
+cd /caminho/do/projeto
+./deploy/deploy.sh
+```
+
+`deploy/deploy.sh` roda a sequência inteira (pull, composer, cache, migrations, permissões, restart do worker),
+parando na primeira falha em vez de continuar num estado quebrado, e cria uma tag git (`deploy-AAAAMMDD-HHMMSS`)
+antes de puxar o código novo — um ponto de restauração barato para o **código**. Se precisar reverter:
+
+```bash
+./deploy/rollback.sh deploy-20260731-014000   # tag exibida ao final do deploy.sh
+```
+
+`deploy/rollback.sh` lista quais migrations rodaram desde aquela tag antes de pedir confirmação, e volta o código
+(não o banco) para o estado anterior. **Rollback de código não desfaz migration** — se o deploy problemático
+alterou o banco, o caminho seguro é restaurar um backup de antes dele (ver seção Backup abaixo), não tentar
+reverter a migration às cegas.
+
+**Manual, passo a passo (o que o script acima automatiza):**
+
 ```bash
 # No servidor, dentro da pasta do projeto
+git pull
 composer install --optimize-autoloader --no-dev
 php artisan config:cache
 php artisan route:cache

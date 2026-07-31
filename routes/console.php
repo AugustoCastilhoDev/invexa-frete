@@ -21,6 +21,11 @@ Schedule::command('lgpd:expurgar-logs-acesso')->monthly();
 // documentos fiscais).
 Schedule::command('activitylog:clean')->monthly();
 
+// Alerta de saúde do sistema: disco, memória, jobs de fila falhados e
+// emissões fiscais com erro — roda de hora em hora. Alerta síncrono (não
+// enfileira), pra não depender da própria fila que pode ser o problema.
+Schedule::command('sistema:verificar-saude')->hourly();
+
 // Backup diário do banco de dados (+ uploads locais, se houver), com cópia
 // local e outra na R2 (fora do servidor). Roda de madrugada, horário de
 // menor uso; limpeza antes do backup, monitor depois pra alertar por e-mail
