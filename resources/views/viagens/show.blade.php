@@ -348,6 +348,11 @@
                         @if($cteDaCarga)
                             <span class="badge bg-success ms-1">CT-e nº {{ $cteDaCarga->numero }}</span>
                         @endif
+                        @foreach($carga->documentos as $doc)
+                            <span class="badge bg-{{ $doc->status_badge }} bg-opacity-75 ms-1">
+                                {{ $doc->tipo_formatado }} nº {{ $doc->numero }} — R$ {{ number_format($doc->valor, 2, ',', '.') }}
+                            </span>
+                        @endforeach
                     </span>
                     @if(! $cteDaCarga && $viagem->status !== 'encerrada')
                     <form action="{{ route('cargas.emitir-cte', $carga) }}" method="POST">
