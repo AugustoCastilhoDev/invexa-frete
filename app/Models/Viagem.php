@@ -99,6 +99,7 @@ class Viagem extends Model
         'saldo_motorista'      => 'decimal:2',
         'lucro_transportadora' => 'decimal:2',
         'assinatura_motorista_em' => 'datetime',
+        'assinaturas_motorista_historico' => 'array',
         'frete_recebido'          => 'boolean',
         'data_recebimento_frete'  => 'date',
     ];

@@ -11,6 +11,9 @@ use Illuminate\Http\Request;
 use App\Models\Cliente;
 use App\Models\Unidade;
 use App\Http\Controllers\Concerns\GeraComprovanteAcerto;
+use App\Notifications\ComprovanteAcertoAssinadoNotification;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -331,31 +334,61 @@ class ViagensController extends Controller
             'assinatura_motorista_user_agent' => substr((string) $request->userAgent(), 0, 512),
         ])->save();
 
+        // Gera e guarda o comprovante já com a assinatura embutida, no
+        // instante exato da assinatura — é essa versão (não uma recalculada
+        // depois) que vale como prova do que o motorista aceitou, mesmo que
+        // um admin reabra e altere valores da viagem posteriormente.
+        $comprovantePdf      = $this->gerarComprovanteAcertoBytes($viagem);
+        $comprovanteCaminho  = 'comprovantes/viagem-' . $viagem->id . '-' . (string) Str::uuid() . '.pdf';
+        Storage::disk($disco)->put($comprovanteCaminho, $comprovantePdf);
+
+        $viagem->forceFill(['assinatura_motorista_comprovante_path' => $comprovanteCaminho])->save();
+
+        if ($viagem->motorista->email) {
+            try {
+                Notification::route('mail', $viagem->motorista->email)
+                    ->notify(new ComprovanteAcertoAssinadoNotification($viagem, $comprovantePdf));
+            } catch (\Throwable $e) {
+                Log::warning("Viagem #{$viagem->id}: falha ao enviar comprovante assinado por e-mail.", ['erro' => $e->getMessage()]);
+            }
+        }
+
         return redirect()->route('viagens.show', $viagem)
             ->with('success', 'Assinatura do motorista registrada com sucesso!');
     }
 
     // Reabertura controlada: só admin pode invalidar uma assinatura já
-    // coletada, liberando a viagem para edição de novo. A assinatura antiga é
-    // descartada (não fica "sobrescrita" silenciosamente) — precisa assinar
-    // de novo depois de ajustar os valores.
-    public function reabrirAssinatura(Viagem $viagem)
+    // coletada, liberando a viagem para edição de novo. Diferente de antes,
+    // a assinatura/comprovante antigos NÃO são apagados do disco — ficam
+    // preservados e referenciados no histórico, como evidência do que foi
+    // assinado antes da reabertura. Precisa assinar de novo depois de
+    // ajustar os valores.
+    public function reabrirAssinatura(Request $request, Viagem $viagem)
     {
         abort_unless($viagem->estaAssinada(), 422, 'Esta viagem ainda não foi assinada.');
 
-        if ($viagem->assinatura_motorista_path) {
-            Storage::disk(config('filesystems.uploads_disk'))->delete($viagem->assinatura_motorista_path);
-        }
+        $historico   = $viagem->assinaturas_motorista_historico ?? [];
+        $historico[] = [
+            'assinatura_path'  => $viagem->assinatura_motorista_path,
+            'comprovante_path' => $viagem->assinatura_motorista_comprovante_path,
+            'assinado_em'      => optional($viagem->assinatura_motorista_em)->toIso8601String(),
+            'ip'               => $viagem->assinatura_motorista_ip,
+            'user_agent'       => $viagem->assinatura_motorista_user_agent,
+            'reaberta_em'      => now()->toIso8601String(),
+            'reaberta_por'     => $request->user()->email,
+        ];
 
         $viagem->forceFill([
-            'assinatura_motorista_path'       => null,
-            'assinatura_motorista_em'         => null,
-            'assinatura_motorista_ip'         => null,
-            'assinatura_motorista_user_agent' => null,
+            'assinatura_motorista_path'             => null,
+            'assinatura_motorista_comprovante_path' => null,
+            'assinatura_motorista_em'               => null,
+            'assinatura_motorista_ip'               => null,
+            'assinatura_motorista_user_agent'       => null,
+            'assinaturas_motorista_historico'       => $historico,
         ])->save();
 
         return redirect()->route('viagens.show', $viagem)
-            ->with('success', 'Acerto reaberto. A assinatura anterior foi invalidada — colete uma nova assinatura depois de ajustar os valores.');
+            ->with('success', 'Acerto reaberto. A assinatura anterior foi preservada no histórico — colete uma nova assinatura depois de ajustar os valores.');
     }
 
     public function imprimir(Viagem $viagem)
