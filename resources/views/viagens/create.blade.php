@@ -150,7 +150,13 @@
             </h6>
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold">Valor do Frete *</label>
+                    <label class="form-label fw-semibold">
+                        Valor do Frete *
+                        <a href="https://calculadorafrete.antt.gov.br" target="_blank"
+                           class="text-decoration-none" title="Consultar piso mínimo de frete na calculadora oficial da ANTT">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                    </label>
                     <div class="input-group">
                         <span class="input-group-text">R$</span>
                         <input type="number" name="valor_frete" id="valor_frete"
