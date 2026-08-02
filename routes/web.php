@@ -20,6 +20,7 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\ManutencoesController;
 use App\Http\Controllers\DespesasGeraisController;
 use App\Http\Controllers\AuditoriaController;
+use App\Http\Controllers\CustoFrotaController;
 use App\Http\Controllers\DreController;
 use App\Http\Controllers\ExportacaoDadosController;
 use App\Http\Controllers\MotoristaPortalAccessController;
@@ -217,6 +218,10 @@ Route::middleware(['auth', 'not_super_admin'])->group(function () {
         // DRE (Demonstrativo de Resultado)
         Route::get('/dre', [DreController::class, 'index'])->name('dre.index');
         Route::get('/dre/pdf', [DreController::class, 'pdf'])->name('dre.pdf');
+
+        // Custo da Frota — custo operacional por km, por veículo
+        Route::get('/custo-frota', [CustoFrotaController::class, 'index'])->name('custo-frota.index');
+        Route::get('/custo-frota/csv', [CustoFrotaController::class, 'csv'])->name('custo-frota.csv');
 
         // Log de auditoria (spatie/activitylog) — consulta somente leitura
         Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');

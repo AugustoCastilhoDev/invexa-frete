@@ -63,6 +63,7 @@
                     <th class="ps-4">Data</th>
                     <th>Categoria</th>
                     <th>Descrição</th>
+                    <th>Veículo</th>
                     <th>Valor</th>
                     <th>Recorrente</th>
                     <th class="text-end pe-4">Ações</th>
@@ -74,6 +75,13 @@
                     <td class="ps-4">{{ $despesa->data_despesa->format('d/m/Y') }}</td>
                     <td>{{ $despesa->categoria_formatada }}</td>
                     <td>{{ $despesa->descricao }}</td>
+                    <td>
+                        @if($despesa->veiculo)
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ $despesa->veiculo->placa }}</span>
+                        @else
+                        <span class="text-muted">-</span>
+                        @endif
+                    </td>
                     <td>R$ {{ number_format($despesa->valor, 2, ',', '.') }}</td>
                     <td>
                         @if($despesa->recorrente)
@@ -99,7 +107,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-4">
+                    <td colspan="7" class="text-center text-muted py-4">
                         <i class="bi bi-receipt fs-3 d-block mb-2"></i>
                         Nenhuma despesa registrada no período.
                     </td>

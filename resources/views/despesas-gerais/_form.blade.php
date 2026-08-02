@@ -1,4 +1,4 @@
-@php $despesa = $despesa ?? null; @endphp
+@php $despesa = $despesa ?? null; $veiculos = $veiculos ?? collect(); @endphp
 <div class="row g-3">
     <div class="col-md-4">
         <label class="form-label fw-semibold">Categoria *</label>
@@ -29,6 +29,22 @@
         <input type="date" name="data_despesa" class="form-control @error('data_despesa') is-invalid @enderror"
                value="{{ old('data_despesa', $despesa?->data_despesa?->format('Y-m-d')) }}" required>
         @error('data_despesa')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-4">
+        <label class="form-label fw-semibold">Veículo</label>
+        <select name="veiculo_id" class="form-select @error('veiculo_id') is-invalid @enderror">
+            <option value="">— Despesa geral (não é de um veículo específico) —</option>
+            @foreach($veiculos as $veiculo)
+            <option value="{{ $veiculo->id }}" {{ old('veiculo_id', $despesa?->veiculo_id) == $veiculo->id ? 'selected' : '' }}>
+                {{ $veiculo->placa }} — {{ $veiculo->modelo }}
+            </option>
+            @endforeach
+        </select>
+        @error('veiculo_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        <small class="form-text text-muted">
+            Seguro, IPVA ou financiamento de um veículo específico: selecione-o aqui — vira custo direto
+            dele em "Custo da Frota" em vez de rateado entre todos os veículos.
+        </small>
     </div>
     <div class="col-md-4 d-flex align-items-center">
         <div class="form-check mt-4">

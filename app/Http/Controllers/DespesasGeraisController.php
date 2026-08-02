@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DespesaGeral;
+use App\Models\Veiculo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -16,7 +17,7 @@ class DespesasGeraisController extends Controller
         $dataFim    = $request->input('data_fim', Carbon::now()->endOfMonth()->format('Y-m-d'));
         $categoria  = $request->input('categoria');
 
-        $despesas = DespesaGeral::noPeriodo($dataInicio, $dataFim)
+        $despesas = DespesaGeral::with('veiculo')->noPeriodo($dataInicio, $dataFim)
             ->when($categoria, fn ($query) => $query->where('categoria', $categoria))
             ->orderByDesc('data_despesa')
             ->paginate(15)
@@ -31,7 +32,9 @@ class DespesasGeraisController extends Controller
 
     public function create()
     {
-        return view('despesas-gerais.create');
+        $veiculos = Veiculo::orderBy('placa')->get();
+
+        return view('despesas-gerais.create', compact('veiculos'));
     }
 
     public function store(Request $request)
@@ -43,6 +46,7 @@ class DespesasGeraisController extends Controller
             'data_despesa' => 'required|date',
             'recorrente'   => 'nullable|boolean',
             'observacao'   => 'nullable|string',
+            'veiculo_id'   => 'nullable|exists:veiculos,id',
         ]);
 
         $data = $request->all();
@@ -56,7 +60,9 @@ class DespesasGeraisController extends Controller
 
     public function edit(DespesaGeral $despesaGeral)
     {
-        return view('despesas-gerais.edit', ['despesa' => $despesaGeral]);
+        $veiculos = Veiculo::orderBy('placa')->get();
+
+        return view('despesas-gerais.edit', ['despesa' => $despesaGeral, 'veiculos' => $veiculos]);
     }
 
     public function update(Request $request, DespesaGeral $despesaGeral)
@@ -68,6 +74,7 @@ class DespesasGeraisController extends Controller
             'data_despesa' => 'required|date',
             'recorrente'   => 'nullable|boolean',
             'observacao'   => 'nullable|string',
+            'veiculo_id'   => 'nullable|exists:veiculos,id',
         ]);
 
         $data = $request->all();

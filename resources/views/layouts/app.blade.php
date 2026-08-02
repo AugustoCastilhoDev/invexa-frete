@@ -386,6 +386,10 @@
         href="{{ route('dre.index') }}">
             <i class="bi bi-clipboard-data"></i> Resultado Gerencial
         </a>
+        <a class="nav-link {{ request()->routeIs('custo-frota.*') ? 'active' : '' }}"
+        href="{{ route('custo-frota.index') }}">
+            <i class="bi bi-speedometer2"></i> Custo da Frota
+        </a>
         <a class="nav-link {{ request()->routeIs('despesas-gerais.*') ? 'active' : '' }}"
             href="{{ route('despesas-gerais.index') }}">
             <i class="bi bi-receipt"></i> Despesas Gerais

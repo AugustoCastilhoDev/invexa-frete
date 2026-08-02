@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\DespesaGeral;
 use App\Models\User;
+use App\Models\Veiculo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -66,6 +67,44 @@ class DespesasGeraisTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('total', 1000.0);
+    }
+
+    public function test_cadastra_despesa_geral_vinculada_a_veiculo(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $veiculo = Veiculo::factory()->create();
+
+        $response = $this->post(route('despesas-gerais.store'), [
+            'categoria'    => 'seguro',
+            'descricao'    => 'Seguro do caminhão',
+            'valor'        => 800,
+            'data_despesa' => now()->format('Y-m-d'),
+            'veiculo_id'   => $veiculo->id,
+        ]);
+
+        $response->assertRedirect(route('despesas-gerais.index'));
+        $this->assertDatabaseHas('despesas_gerais', [
+            'descricao'  => 'Seguro do caminhão',
+            'veiculo_id' => $veiculo->id,
+        ]);
+    }
+
+    public function test_cadastra_despesa_geral_sem_veiculo_continua_funcionando(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $response = $this->post(route('despesas-gerais.store'), [
+            'categoria'    => 'aluguel',
+            'descricao'    => 'Aluguel do pátio',
+            'valor'        => 2500,
+            'data_despesa' => now()->format('Y-m-d'),
+        ]);
+
+        $response->assertRedirect(route('despesas-gerais.index'));
+        $this->assertDatabaseHas('despesas_gerais', [
+            'descricao'  => 'Aluguel do pátio',
+            'veiculo_id' => null,
+        ]);
     }
 
     public function test_atualiza_despesa_geral(): void

@@ -21,6 +21,7 @@ class DespesaGeral extends Model
         'data_despesa',
         'recorrente',
         'observacao',
+        'veiculo_id',
     ];
 
     protected $casts = [
@@ -32,6 +33,14 @@ class DespesaGeral extends Model
     public function scopeNoPeriodo($query, $dataInicio, $dataFim)
     {
         return $query->whereBetween('data_despesa', [$dataInicio, $dataFim]);
+    }
+
+    // Quando informado, esta despesa é custo direto de um veículo específico
+    // (seguro, IPVA, financiamento) em vez de overhead corporativo rateado
+    // entre a frota — ver CustoFrotaController.
+    public function veiculo()
+    {
+        return $this->belongsTo(Veiculo::class);
     }
 
     public function getCategoriaFormatadaAttribute(): string
