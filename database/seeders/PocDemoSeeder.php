@@ -153,16 +153,22 @@ class PocDemoSeeder extends Seeder
             'motorista_id' => $motoristas[1]->id, 'veiculo_id' => $veiculos[1]->id, 'cliente_id' => $clientes[1]->id,
             'data_saida' => now()->subDay()->format('Y-m-d'), 'km_inicial' => 2000, 'status' => 'em_andamento',
         ]);
+        // Ancoradas no início do mês corrente (não em "hoje menos N dias"): assim
+        // continuam caindo dentro do período padrão dos relatórios (DRE, Relatório
+        // Financeiro, Custo da Frota — todos filtram "mês atual" por padrão) não
+        // importa em que dia do mês o seeder for rodado.
+        $inicioMes = now()->startOfMonth();
+
         Viagem::create($baseViagem + [
             'motorista_id' => $motoristaComPortal->id, 'veiculo_id' => $veiculos[2]->id, 'cliente_id' => $clientes[2]->id,
-            'data_saida' => now()->subDays(3)->format('Y-m-d'), 'km_inicial' => 3000, 'km_final' => 3620,
+            'data_saida' => $inicioMes->copy()->format('Y-m-d'), 'km_inicial' => 3000, 'km_final' => 3620,
             'status' => 'aguardando_acerto',
         ]);
         for ($i = 0; $i < 3; $i++) {
             Viagem::create($baseViagem + [
                 'motorista_id' => $motoristas[2]->id, 'veiculo_id' => $cavalo->id, 'cliente_id' => $clientes[0]->id,
-                'data_saida' => now()->subDays(10 + $i)->format('Y-m-d'),
-                'data_retorno' => now()->subDays(8 + $i),
+                'data_saida' => $inicioMes->copy()->addDays($i)->format('Y-m-d'),
+                'data_retorno' => $inicioMes->copy()->addDays($i + 1),
                 'km_inicial' => 4000 + ($i * 1000), 'km_final' => 4600 + ($i * 1000),
                 'status' => 'encerrada',
             ]);
@@ -178,7 +184,7 @@ class PocDemoSeeder extends Seeder
         // Manutenção e Despesa Geral, pra alimentar Custo da Frota / DRE
         Manutencao::create([
             'veiculo_id' => $veiculos[0]->id, 'tipo' => 'preventiva', 'descricao' => 'Troca de óleo e filtros',
-            'data_manutencao' => now()->subDays(5)->format('Y-m-d'), 'km_veiculo' => 45000, 'valor' => 850,
+            'data_manutencao' => $inicioMes->copy()->format('Y-m-d'), 'km_veiculo' => 45000, 'valor' => 850,
             'status' => 'concluida',
         ]);
         $despesas = [
@@ -189,7 +195,7 @@ class PocDemoSeeder extends Seeder
         foreach ($despesas as [$categoria, $descricao, $valor]) {
             DespesaGeral::create([
                 'categoria' => $categoria, 'descricao' => $descricao, 'valor' => $valor,
-                'data_despesa' => now()->subDays(15)->format('Y-m-d'), 'recorrente' => true,
+                'data_despesa' => $inicioMes->copy()->format('Y-m-d'), 'recorrente' => true,
             ]);
         }
 
