@@ -49,7 +49,7 @@ Route::get('/', function () {
 })->name('landing');
 
 Route::view('/termos-de-uso', 'legal.termos')->name('legal.termos');
-Route::view('/politica-de-privacidade', 'legal.privacidade')->name('legal.privacidade');
+Route::view('/politica-de-privacidade', 'legal.privacidade', ['atualizadoEm' => '03/08/2026'])->name('legal.privacidade');
 
 Route::middleware(['auth'])->group(function () {
 

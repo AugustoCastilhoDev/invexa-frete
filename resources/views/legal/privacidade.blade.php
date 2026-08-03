@@ -41,10 +41,17 @@ motorista via Portal; gerar relatórios gerenciais para o Cliente; e cumprir obr
 <p>Não vendemos dados pessoais. Compartilhamos dados apenas com prestadores de serviço estritamente necessários à
 operação da Plataforma, sempre sob obrigações contratuais de confidencialidade e segurança:</p>
 <ul>
-    <li><strong>Processamento de pagamentos</strong> (cobrança das assinaturas dos Clientes);</li>
-    <li><strong>Envio de e-mails transacionais</strong> (notificações do sistema, redefinição de senha);</li>
-    <li><strong>Armazenamento de arquivos na nuvem</strong> (comprovantes, documentos fiscais e assinaturas digitais
-    anexados às viagens);</li>
+    <li><strong>Processamento de pagamentos</strong> — Asaas Gestão Financeira S.A., para cobrança das assinaturas
+    dos Clientes (dados cadastrais e de pagamento da empresa contratante, não de motoristas/veículos/clientes
+    finais);</li>
+    <li><strong>Envio de e-mails transacionais</strong> — Resend, para notificações do sistema e redefinição de
+    senha (nome e e-mail do destinatário, conteúdo da notificação);</li>
+    <li><strong>Armazenamento de arquivos na nuvem</strong> — Cloudflare, Inc. (serviço R2), para comprovantes,
+    documentos fiscais e assinaturas digitais anexados às viagens; acesso restrito por URL assinada e
+    temporária;</li>
+    <li><strong>Emissão de documentos fiscais</strong> — Focus NFe (Fusion Data Tecnologia Ltda.), exclusivamente
+    para Clientes que ativam a emissão de CT-e/MDF-e: dados fiscais da viagem/carga e o certificado digital A1
+    da empresa são compartilhados com esse fornecedor para autorização junto à SEFAZ;</li>
     <li><strong>Portais públicos da SEFAZ</strong>, exclusivamente para consulta de autenticidade de documentos
     fiscais informados pelo próprio Cliente, mediante a chave de acesso do documento.</li>
 </ul>
