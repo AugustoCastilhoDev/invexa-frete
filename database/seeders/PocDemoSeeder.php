@@ -13,20 +13,36 @@ use App\Models\Veiculo;
 use App\Models\Viagem;
 use App\Support\TenantContext;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 /**
- * Massa de dados 100% fictícia (nomes/CPF/CNPJ gerados por faker, nenhum
- * dado real) pra popular o ambiente de homologação antes de uma demo ou da
- * POC em sombra — atende ao item A3 do Gate A da Devolutiva Executiva de
- * Prontidão. Cobre o fluxo ponta a ponta (evidência E1): cadastro,
- * programação de frota, viagem em cada status do ciclo, motorista com
- * acesso ao Portal, manutenção e despesa geral pra alimentar DRE/Custo da
- * Frota. Nunca roda em produção (guarda de ambiente abaixo).
+ * Massa de dados 100% fictícia pra popular o ambiente de homologação antes
+ * de uma demo ou da POC em sombra — atende ao item A3 do Gate A da
+ * Devolutiva Executiva de Prontidão. Cobre o fluxo ponta a ponta (evidência
+ * E1): cadastro, programação de frota, viagem em cada status do ciclo,
+ * motorista com acesso ao Portal, manutenção e despesa geral pra alimentar
+ * DRE/Custo da Frota. Nunca roda em produção (guarda de ambiente abaixo).
+ *
+ * Deliberadamente sem `::factory()`/Faker: fakerphp/faker é dependência de
+ * desenvolvimento (composer.json `require-dev`), ausente depois de um
+ * `composer install --no-dev` — exatamente como produção e homologação são
+ * deployadas (`deploy/deploy.sh`). Dado fictício escrito na mão evita
+ * precisar mover Faker pra `require` só por causa de uma ferramenta de demo.
  *
  * Uso: php artisan db:seed --class=PocDemoSeeder
  */
 class PocDemoSeeder extends Seeder
 {
+    private const NOMES = [
+        'Carlos Eduardo Silva', 'Marcos Vinícius Oliveira', 'José Roberto Santos',
+        'Antônio Carlos Pereira', 'Francisco das Chagas Lima', 'Paulo Henrique Souza',
+    ];
+
+    private const CIDADES = [
+        ['Curitiba', 'PR'], ['São Paulo', 'SP'], ['Joinville', 'SC'],
+        ['Londrina', 'PR'], ['Maringá', 'PR'], ['Cascavel', 'PR'],
+    ];
+
     public function run(): void
     {
         if (app()->environment('production')) {
@@ -35,67 +51,147 @@ class PocDemoSeeder extends Seeder
             return;
         }
 
-        $empresa = Empresa::factory()->create([
+        $empresa = Empresa::create([
             'nome' => 'Transportes Horizonte Demo (POC)',
+            'cnpj' => '12.345.678/0001-90',
             'status' => 'ativo',
         ]);
 
         TenantContext::forceId($empresa->id);
 
-        // semDoisFatores() de propósito: reflete a conta de um admin recém-criado
+        // semDoisFatores de propósito: reflete a conta de um admin recém-criado
         // de verdade, que configura 2FA no primeiro login (EnsureTwoFactorIsEnabled)
         // — dá pra usar isso como parte da própria demonstração (evidência E1),
         // em vez de mascarar o comportamento real com um 2FA pré-confirmado.
-        User::factory()->admin()->semDoisFatores()->create([
+        User::create([
             'name' => 'Admin Demo POC',
             'email' => 'admin.poc@invexafrete-demo.com.br',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'status' => 'ativo',
+            'email_verified_at' => now(),
         ]);
 
-        $motoristas = Motorista::factory()->count(4)->create();
-        $motoristaComPortal = Motorista::factory()->comAcessoPortal('senha-demo')->create([
+        $motoristas = [];
+        foreach (self::NOMES as $i => $nome) {
+            $motoristas[] = Motorista::create([
+                'nome' => $nome,
+                'cpf' => sprintf('%03d.%03d.%03d-%02d', 100 + $i, 200 + $i, 300 + $i, 10 + $i),
+                'cnh' => sprintf('%011d', 90000000000 + $i),
+                'categoria_cnh' => 'E',
+                'validade_cnh' => now()->addYears(2)->format('Y-m-d'),
+                'telefone' => sprintf('(41) 9%04d-%04d', 1000 + $i, 2000 + $i),
+                'percentual_comissao' => 10,
+                'status' => 'ativo',
+            ]);
+        }
+        $motoristaComPortal = Motorista::create([
             'nome' => 'Motorista Demo (Portal)',
             'cpf' => '000.111.222-33',
+            'cnh' => '00099988877',
+            'categoria_cnh' => 'E',
+            'validade_cnh' => now()->addYears(2)->format('Y-m-d'),
+            'telefone' => '(41) 90000-0000',
+            'percentual_comissao' => 10,
+            'status' => 'ativo',
+            'password' => Hash::make('senha-demo'),
+            'portal_ativo' => true,
         ]);
 
-        $cavalo = Veiculo::factory()->create(['tipo' => 'truck']);
-        Veiculo::factory()->vinculadaA($cavalo)->create();
-        $veiculos = Veiculo::factory()->count(3)->create();
+        $cavalo = Veiculo::create([
+            'placa' => 'POC1A11', 'modelo' => 'FH 540', 'marca' => 'Volvo', 'ano' => 2022,
+            'tipo' => 'truck', 'renavam' => '10000000001', 'capacidade_kg' => 15000, 'status' => 'ativo',
+        ]);
+        Veiculo::create([
+            'placa' => 'POC1B22', 'modelo' => 'Graneleiro', 'marca' => 'Randon', 'ano' => 2021,
+            'tipo' => 'carreta', 'cavalo_id' => $cavalo->id, 'renavam' => '10000000002',
+            'capacidade_kg' => 30000, 'status' => 'ativo',
+        ]);
+        $veiculosDados = [
+            ['POC2C33', 'Actros', 'Mercedes-Benz', 'truck'],
+            ['POC2D44', 'Constellation', 'Volkswagen', 'truck'],
+            ['POC2E55', 'Delivery', 'Volkswagen', 'van'],
+        ];
+        $veiculos = [];
+        foreach ($veiculosDados as $i => [$placa, $modelo, $marca, $tipo]) {
+            $veiculos[] = Veiculo::create([
+                'placa' => $placa, 'modelo' => $modelo, 'marca' => $marca, 'ano' => 2020 + $i,
+                'tipo' => $tipo, 'renavam' => sprintf('1000000%04d', $i), 'capacidade_kg' => 10000,
+                'status' => 'ativo',
+            ]);
+        }
 
-        $clientes = Cliente::factory()->count(3)->create();
+        $clientes = [];
+        foreach (self::CIDADES as $i => [$cidade, $uf]) {
+            $clientes[] = Cliente::create([
+                'tipo_pessoa' => 'juridica',
+                'nome' => "Comércio Demo {$cidade} Ltda",
+                'razao_social' => "Comércio Demo {$cidade} Ltda",
+                'cpf_cnpj' => sprintf('%02d.%03d.%03d/0001-%02d', 20 + $i, 100 + $i, 200 + $i, 30 + $i),
+                'cidade' => $cidade,
+                'estado' => $uf,
+                'tabela_frete' => 3.5,
+                'status' => 'ativo',
+            ]);
+            if ($i >= 2) {
+                break;
+            }
+        }
 
         // Viagens em cada status do ciclo, pro fluxo ponta a ponta (E1)
-        Viagem::factory()->create([
-            'motorista_id' => $motoristas[0]->id,
-            'veiculo_id' => $veiculos[0]->id,
-            'cliente_id' => $clientes[0]->id,
-            'status' => 'aberta',
+        $baseViagem = [
+            'origem' => 'Curitiba', 'destino' => 'São Paulo',
+            'valor_frete' => 3500, 'percentual_motorista' => 10, 'valor_motorista' => 350,
+            'saldo_motorista' => 350, 'lucro_transportadora' => 3150,
+        ];
+
+        Viagem::create($baseViagem + [
+            'motorista_id' => $motoristas[0]->id, 'veiculo_id' => $veiculos[0]->id, 'cliente_id' => $clientes[0]->id,
+            'data_saida' => now()->format('Y-m-d'), 'km_inicial' => 1000, 'status' => 'aberta',
         ]);
-        Viagem::factory()->create([
-            'motorista_id' => $motoristas[1]->id,
-            'veiculo_id' => $veiculos[1]->id,
-            'cliente_id' => $clientes[1]->id,
-            'status' => 'em_andamento',
+        Viagem::create($baseViagem + [
+            'motorista_id' => $motoristas[1]->id, 'veiculo_id' => $veiculos[1]->id, 'cliente_id' => $clientes[1]->id,
+            'data_saida' => now()->subDay()->format('Y-m-d'), 'km_inicial' => 2000, 'status' => 'em_andamento',
         ]);
-        Viagem::factory()->aguardandoAcerto()->create([
-            'motorista_id' => $motoristaComPortal->id,
-            'veiculo_id' => $veiculos[2]->id,
-            'cliente_id' => $clientes[2]->id,
+        Viagem::create($baseViagem + [
+            'motorista_id' => $motoristaComPortal->id, 'veiculo_id' => $veiculos[2]->id, 'cliente_id' => $clientes[2]->id,
+            'data_saida' => now()->subDays(3)->format('Y-m-d'), 'km_inicial' => 3000, 'km_final' => 3620,
+            'status' => 'aguardando_acerto',
         ]);
-        Viagem::factory()->encerrada()->count(3)->create([
-            'motorista_id' => $motoristas[2]->id,
-            'veiculo_id' => $cavalo->id,
-            'cliente_id' => $clientes[0]->id,
-        ]);
+        for ($i = 0; $i < 3; $i++) {
+            Viagem::create($baseViagem + [
+                'motorista_id' => $motoristas[2]->id, 'veiculo_id' => $cavalo->id, 'cliente_id' => $clientes[0]->id,
+                'data_saida' => now()->subDays(10 + $i)->format('Y-m-d'),
+                'data_retorno' => now()->subDays(8 + $i),
+                'km_inicial' => 4000 + ($i * 1000), 'km_final' => 4600 + ($i * 1000),
+                'status' => 'encerrada',
+            ]);
+        }
 
         // Programação de Frota (próxima viagem planejada)
-        ProgramacaoViagem::factory()->confirmada()->create([
-            'motorista_id' => $motoristas[3]->id,
-            'veiculo_id' => $veiculos[0]->id,
+        ProgramacaoViagem::create([
+            'motorista_id' => $motoristas[3]->id, 'veiculo_id' => $veiculos[0]->id,
+            'origem' => 'Curitiba', 'destino' => 'Joinville',
+            'data_prevista' => now()->addDays(3)->format('Y-m-d'), 'status' => 'confirmada',
         ]);
 
         // Manutenção e Despesa Geral, pra alimentar Custo da Frota / DRE
-        Manutencao::factory()->create(['veiculo_id' => $veiculos[0]->id]);
-        DespesaGeral::factory()->count(3)->create();
+        Manutencao::create([
+            'veiculo_id' => $veiculos[0]->id, 'tipo' => 'preventiva', 'descricao' => 'Troca de óleo e filtros',
+            'data_manutencao' => now()->subDays(5)->format('Y-m-d'), 'km_veiculo' => 45000, 'valor' => 850,
+            'status' => 'concluida',
+        ]);
+        $despesas = [
+            ['aluguel', 'Aluguel do pátio', 2500],
+            ['salarios', 'Folha administrativa', 4200],
+            ['seguro', 'Seguro da frota', 1300],
+        ];
+        foreach ($despesas as [$categoria, $descricao, $valor]) {
+            DespesaGeral::create([
+                'categoria' => $categoria, 'descricao' => $descricao, 'valor' => $valor,
+                'data_despesa' => now()->subDays(15)->format('Y-m-d'), 'recorrente' => true,
+            ]);
+        }
 
         $this->command?->info("Empresa demo criada: #{$empresa->id} — {$empresa->nome} (admin: admin.poc@invexafrete-demo.com.br / password)");
     }
