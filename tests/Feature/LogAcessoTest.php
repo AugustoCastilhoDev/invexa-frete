@@ -16,7 +16,7 @@ class LogAcessoTest extends TestCase
     public function test_login_no_painel_registra_log_de_acesso(): void
     {
         $empresa = Empresa::factory()->create();
-        $user = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
+        $user = User::factory()->admin()->semDoisFatores()->create(['empresa_id' => $empresa->id]);
 
         $this->post('/login', [
             'email' => $user->email,
@@ -61,7 +61,7 @@ class LogAcessoTest extends TestCase
 
     public function test_login_do_super_admin_registra_log_sem_empresa(): void
     {
-        $superAdmin = User::factory()->superAdmin()->create();
+        $superAdmin = User::factory()->superAdmin()->semDoisFatores()->create();
 
         $this->post('/login', [
             'email' => $superAdmin->email,

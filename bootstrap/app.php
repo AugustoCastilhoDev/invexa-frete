@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureTwoFactorIsEnabled;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsNotSuperAdmin;
 use App\Http\Middleware\EnsureUserIsSuperAdmin;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
             'super_admin' => EnsureUserIsSuperAdmin::class,
             'not_super_admin' => EnsureUserIsNotSuperAdmin::class,
+            'two_factor_required' => EnsureTwoFactorIsEnabled::class,
         ]);
 
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('portal*')

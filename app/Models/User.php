@@ -82,4 +82,14 @@ class User extends Authenticatable
     {
         return ! is_null($this->two_factor_confirmed_at);
     }
+
+    /**
+     * Admin e super admin têm acesso a dado financeiro/estratégico e a
+     * outras empresas (suporte); operador não. 2FA obrigatório só pros dois
+     * primeiros — ver EnsureTwoFactorIsEnabled.
+     */
+    public function requiresTwoFactorAuthentication(): bool
+    {
+        return $this->isAdmin() || $this->isSuperAdmin();
+    }
 }

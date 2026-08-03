@@ -7,6 +7,13 @@
     <small class="text-muted">Gerencie suas informações de conta e senha</small>
 </div>
 
+@if (session('aviso_2fa'))
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+    <i class="bi bi-shield-exclamation fs-5"></i>
+    <div>Sua conta exige autenticação em dois fatores (2FA). Configure abaixo antes de continuar usando o sistema.</div>
+</div>
+@endif
+
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="card mb-4">
