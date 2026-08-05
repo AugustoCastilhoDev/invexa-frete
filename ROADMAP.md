@@ -288,6 +288,17 @@ analisadas e com as decisões de desenho já confirmadas:
   [ProgramacoesViagemController](app/Http/Controllers/ProgramacoesViagemController.php#L36-L45), só
   falta expor o `count()` — extrair pra um scope reaproveitável entre as duas telas), e cargas em risco
   de no-show (ver abaixo). Os mesmos três cards entram também na tela `/programacoes`
+- **Divide o card "Viagens Abertas"**: hoje ele soma `aberta` + `em_andamento` num único número
+  ([DashboardController.php:22](app/Http/Controllers/DashboardController.php#L22)), com título e
+  legenda que se contradizem ("Viagens Abertas" / "em andamento") — dá a entender que uma viagem "em
+  aberto" já esteja em rota. Os dois status já existem e já são distintos (o botão que avança de um pro
+  outro já se chama "Iniciar Viagem", [Viagem.php:169](app/Models/Viagem.php#L169)) — não precisa de
+  status novo nem migration, só separar em dois cards: **"Em Aberto"** (`status = aberta`, programada,
+  podendo ou não já estar carregada) e **"Viagem Iniciada"** (`status = em_andamento`, já em rota).
+  Ideia levantada e **adiada de propósito**: fazer a Viagem nascer direto como `em_andamento` quando
+  confirmada a partir de uma Programação que já tem `chegada_horario_informado` preenchida (pula o
+  clique manual de "Iniciar Viagem" já que a coleta comprovadamente aconteceu) — mexe no fluxo central
+  de criação de viagem, então fica só a divisão do card por agora
 - **Horário de coleta e de entrega na Programação**: hoje `data_prevista` em `programacoes_viagem` é só
   `date`, sem hora (mesma limitação de `Viagem::data_saida`/`data_retorno` — o sistema nunca trabalhou
   com horário). Migration aditiva: `hora_coleta` (time, nullable) + `data_entrega_prevista`/
