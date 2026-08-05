@@ -266,9 +266,6 @@ Route::middleware(['auth', 'not_super_admin', 'two_factor_required'])->group(fun
     Route::post('emissoes-fiscais/{emissaoFiscal}/carta-correcao', [EmissoesFiscaisController::class, 'cartaCorrecao'])
         ->name('emissoes-fiscais.carta-correcao');
 
-    Route::get('/dashboard/grafico', [DashboardController::class, 'grafico'])
-    ->name('dashboard.grafico');
-
     // Clientes
     Route::get('clientes/importar', [ClientesController::class, 'importar'])->name('clientes.importar');
     Route::get('clientes/importar/modelo', [ClientesController::class, 'importarTemplate'])->name('clientes.importar.modelo');

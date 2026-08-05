@@ -1,22 +1,32 @@
 @extends('layouts.app')
-@section('title', 'Dashboard')
+@section('title', 'Página Inicial')
 
 @section('content')
 
-{{-- ── Cards de Resumo ── --}}
-<div class="row g-3 mb-4">
+{{-- ── Cards de Operação ── --}}
+<div class="row g-3 mb-3">
 
-    <div class="col-md-4 col-lg-2">
+    <div class="col-md-3 col-lg-3">
         <div class="card h-100 border-start border-primary border-3 card-accent-blue">
             <div class="card-body">
-                <div class="text-muted small mb-1">Viagens Abertas</div>
-                <div class="fs-3 fw-bold text-primary">{{ $totalViagensAbertas }}</div>
-                <div class="text-muted" style="font-size:.75rem">em andamento</div>
+                <div class="text-muted small mb-1">Em Aberto</div>
+                <div class="fs-3 fw-bold text-primary">{{ $totalViagensEmAberto }}</div>
+                <div class="text-muted" style="font-size:.75rem">programada, aguardando carregar/iniciar</div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4 col-lg-2">
+    <div class="col-md-3 col-lg-3">
+        <div class="card h-100 border-start border-3 card-accent-orange" style="border-color:#f97316!important">
+            <div class="card-body">
+                <div class="text-muted small mb-1">Viagem Iniciada</div>
+                <div class="fs-3 fw-bold" style="color:#f97316">{{ $totalViagensIniciadas }}</div>
+                <div class="text-muted" style="font-size:.75rem">já em rota</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-lg-3">
         <div class="card h-100 border-start border-3 card-accent-purple" style="border-color:#8b5cf6!important">
             <div class="card-body">
                 <div class="text-muted small mb-1">Aguard. Acerto</div>
@@ -26,7 +36,7 @@
         </div>
     </div>
 
-    <div class="col-md-4 col-lg-2">
+    <div class="col-md-3 col-lg-3">
         <div class="card h-100 border-start border-success border-3 card-accent-green">
             <div class="card-body">
                 <div class="text-muted small mb-1">Encerradas no Mês</div>
@@ -36,31 +46,12 @@
         </div>
     </div>
 
-    <div class="col-md-4 col-lg-2">
-        <div class="card h-100 border-start border-3 card-accent-orange" style="border-color:#f97316!important">
-            <div class="card-body">
-                <div class="text-muted small mb-1">Faturamento do Mês</div>
-                <div class="fs-5 fw-bold" style="color:#f97316">
-                    R$ {{ number_format($faturamentoMes, 2, ',', '.') }}
-                </div>
-                <div class="text-muted" style="font-size:.75rem">encerrados ou com frete recebido</div>
-            </div>
-        </div>
-    </div>
+</div>
 
-    <div class="col-md-4 col-lg-2">
-        <div class="card h-100 border-start border-success border-3 card-accent-green">
-            <div class="card-body">
-                <div class="text-muted small mb-1">Lucro do Mês</div>
-                <div class="fs-5 fw-bold text-success">
-                    R$ {{ number_format($lucroMes, 2, ',', '.') }}
-                </div>
-                <div class="text-muted" style="font-size:.75rem">líquido transportadora</div>
-            </div>
-        </div>
-    </div>
+{{-- ── Cards de Frota e Programação ── --}}
+<div class="row g-3 mb-4">
 
-    <div class="col-md-4 col-lg-2">
+    <div class="col-md-3 col-lg-3">
         <div class="card h-100 border-start border-secondary border-3 card-accent-gray">
             <div class="card-body">
                 <div class="text-muted small mb-1">Frota / Motoristas</div>
@@ -68,6 +59,42 @@
                     {{ $totalVeiculosAtivos }}<span class="fs-6 text-muted">/{{ $totalMotoristasAtivos }}</span>
                 </div>
                 <div class="text-muted" style="font-size:.75rem">veículos / motoristas</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-lg-3">
+        <div class="card h-100 border-start border-primary border-3 card-accent-blue">
+            <div class="card-body">
+                <div class="text-muted small mb-1">Veículos Programados</div>
+                <div class="fs-3 fw-bold text-primary">{{ $totalVeiculosProgramados }}</div>
+                <div class="text-muted" style="font-size:.75rem">próxima viagem já planejada</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-lg-3">
+        <div class="card h-100 border-start border-warning border-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-1 mb-1">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size:.8rem"></i>
+                    <span class="text-muted small">Sem Próxima Viagem</span>
+                </div>
+                <div class="fs-3 fw-bold text-warning">{{ $totalVeiculosSemProgramacao }}</div>
+                <div class="text-muted" style="font-size:.75rem">veículo ativo sem programação</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-lg-3">
+        <div class="card h-100 border-start border-danger border-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-1 mb-1">
+                    <i class="bi bi-clock-history text-danger" style="font-size:.8rem"></i>
+                    <span class="text-muted small">Risco de No-Show</span>
+                </div>
+                <div class="fs-3 fw-bold text-danger">{{ $totalRiscoNoShow }}</div>
+                <div class="text-muted" style="font-size:.75rem">coleta em ≤2h sem chegada informada</div>
             </div>
         </div>
     </div>
@@ -184,63 +211,8 @@
 
 <div class="row g-4 mb-4">
 
-    {{-- ── Gráfico de Faturamento ── --}}
-    <div class="col-md-8">
-        <div class="card h-100">
-            <div class="card-header bg-white">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <span class="fw-semibold">
-                        <i class="bi bi-graph-up me-2 text-primary"></i>
-                        Faturamento vs Lucro
-                    </span>
-                    <div class="d-flex gap-2 align-items-center flex-wrap">
-                        <div class="btn-group btn-group-sm" id="btnsPeriodo">
-                            <button class="btn btn-primary active" data-periodo="30">30 dias</button>
-                            <button class="btn btn-outline-secondary" data-periodo="60">60 dias</button>
-                            <button class="btn btn-outline-secondary" data-periodo="90">90 dias</button>
-                            <button class="btn btn-outline-secondary" data-periodo="personalizado">
-                                <i class="bi bi-calendar3 me-1"></i>Personalizado
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Campos de data personalizado --}}
-                <div id="periodoPersonalizado" class="d-none mt-2">
-                    <div class="d-flex gap-2 align-items-center flex-wrap">
-                        <input type="date" id="dataInicio" class="form-control form-control-sm"
-                               style="width:150px" value="{{ now()->subMonth()->format('Y-m-d') }}">
-                        <span class="text-muted small">até</span>
-                        <input type="date" id="dataFim" class="form-control form-control-sm"
-                               style="width:150px" value="{{ now()->format('Y-m-d') }}">
-                        <button class="btn btn-primary btn-sm" id="btnAplicar">
-                            <i class="bi bi-search me-1"></i>Aplicar
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Totalizadores do período --}}
-                <div class="d-flex gap-4 mt-2">
-                    <span class="small text-muted">
-                        Faturamento:
-                        <span id="totalFrete" class="fw-bold" style="color:#f97316">R$ 0,00</span>
-                    </span>
-                    <span class="small text-muted">
-                        Lucro:
-                        <span id="totalLucro" class="fw-bold text-success">R$ 0,00</span>
-                    </span>
-                </div>
-            </div>
-            <div class="card-body">
-                <div style="position:relative;height:220px">
-                    <canvas id="graficoFaturamento"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- ── Viagens por Status ── --}}
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card h-100">
             <div class="card-header bg-white fw-semibold">
                 <i class="bi bi-pie-chart me-2 text-primary"></i>
@@ -424,113 +396,5 @@
             plugins: { legend: { display: false } }
         }
     });
-
-    // ── Gráfico de Faturamento com filtro AJAX ──
-    let graficoFaturamento = null;
-
-    function formatBRL(valor) {
-        return 'R$ ' + parseFloat(valor).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2
-        });
-    }
-
-    function carregarGrafico(periodo, inicio = null, fim = null) {
-        let url = `/dashboard/grafico?tipo=${periodo}`;
-        if (periodo === 'personalizado' && inicio && fim) {
-            url += `&inicio=${inicio}&fim=${fim}`;
-        }
-
-        fetch(url, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => r.json())
-        .then(data => {
-
-            document.getElementById('totalFrete').textContent = formatBRL(data.totais.frete);
-            document.getElementById('totalLucro').textContent = formatBRL(data.totais.lucro);
-
-            if (graficoFaturamento) {
-                graficoFaturamento.data.labels           = data.labels;
-                graficoFaturamento.data.datasets[0].data = data.fretes;
-                graficoFaturamento.data.datasets[1].data = data.lucros;
-                graficoFaturamento.update();
-            } else {
-                graficoFaturamento = new Chart(
-                    document.getElementById('graficoFaturamento'), {
-                    type: 'bar',
-                    data: {
-                        labels: data.labels,
-                        datasets: [
-                            {
-                                label: 'Faturamento (R$)',
-                                data: data.fretes,
-                                backgroundColor: 'rgba(249,115,22,0.8)',
-                                borderRadius: 6,
-                            },
-                            {
-                                label: 'Lucro (R$)',
-                                data: data.lucros,
-                                backgroundColor: 'rgba(16,185,129,0.8)',
-                                borderRadius: 6,
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: 'top' } },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: v => 'R$ ' + v.toLocaleString('pt-BR')
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    // ── Botões de período ──
-    document.querySelectorAll('#btnsPeriodo button').forEach(btn => {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('#btnsPeriodo button').forEach(b => {
-                b.classList.remove('btn-primary', 'active');
-                b.classList.add('btn-outline-secondary');
-            });
-            this.classList.remove('btn-outline-secondary');
-            this.classList.add('btn-primary', 'active');
-
-            const periodo = this.dataset.periodo;
-            const personalizado = document.getElementById('periodoPersonalizado');
-
-            if (periodo === 'personalizado') {
-                personalizado.classList.remove('d-none');
-            } else {
-                personalizado.classList.add('d-none');
-                carregarGrafico(periodo);
-            }
-        });
-    });
-
-    // ── Botão aplicar personalizado ──
-    document.getElementById('btnAplicar').addEventListener('click', function () {
-        const inicio = document.getElementById('dataInicio').value;
-        const fim    = document.getElementById('dataFim').value;
-        if (!inicio || !fim) {
-            alert('Preencha as duas datas.');
-            return;
-        }
-        if (inicio > fim) {
-            alert('A data início deve ser anterior à data fim.');
-            return;
-        }
-        carregarGrafico('personalizado', inicio, fim);
-    });
-
-    // ── Carrega ao iniciar com 30 dias ──
-    carregarGrafico('30');
 </script>
 @endpush

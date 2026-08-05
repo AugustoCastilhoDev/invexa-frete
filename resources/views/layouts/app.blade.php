@@ -327,7 +327,7 @@
     <nav class="nav flex-column">
         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
         href="{{ route('dashboard') }}">
-            <i class="bi bi-speedometer2"></i> Dashboard
+            <i class="bi bi-house-door"></i> Página Inicial
         </a>
         <a class="nav-link {{ request()->routeIs('viagens.*') ? 'active' : '' }}"
         href="{{ route('viagens.index') }}">

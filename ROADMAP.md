@@ -111,12 +111,26 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
   - **Renomeado de "DRE" (2026-07-30)**: um dossiê externo de avaliação de prontidão pra POC apontou, corretamente, que o cálculo não é uma demonstração contábil de verdade (sem plano de contas, regime de competência formal ou tributos) — usar o termo "DRE" prometia mais rigor contábil do que a funcionalidade entrega (risco "uso indevido do termo DRE"). Renomeado em toda a UI (menu, título da tela, PDF, landing page, termos de uso) pra "Resultado Gerencial"/"Resultado Gerencial da Operação"; nenhuma mudança de cálculo ou de rota (`dre.index`/`dre.pdf` continuam com o nome interno antigo, só o texto visível mudou)
 - **Despesas Gerais**: cadastro de custos administrativos não ligados a uma viagem (aluguel, salários, contas, seguro, impostos, marketing, outros), com filtro por período/categoria — alimenta o Resultado Gerencial
 
-### Dashboard
-- Cards de resumo: viagens abertas, faturamento, lucro, frota
-- Gráfico de Faturamento vs Lucro com filtros de 30, 60, 90 dias e período personalizado
-- Gráfico de Viagens por Status
-- Viagens em aberto e Top 5 motoristas do mês
-- Painel de **Pendências**: CNH de motorista vencida/vencendo, veículos em manutenção, documentos fiscais pendentes, manutenção preventiva vencendo
+### Dashboard → Página Inicial (2026-08-05)
+Terceiro e último item da priorização de Programação de Frota pedida pelo patrocinador. A rota continua
+`/dashboard`, mas o conteúdo virou 100% operacional — igual para admin e operador, sem nenhum dado
+financeiro.
+- **Financeiro removido por completo**: cards de Faturamento/Lucro do mês e o gráfico Faturamento x
+  Lucro (com filtro de 30/60/90 dias e período personalizado) saíram — não reaparecem nem pra admin,
+  já vivem em Relatórios/Resultado Gerencial (área admin-only). A rota `/dashboard/grafico` e o método
+  `DashboardController::grafico()`/`viagensComFaturamentoReconhecido()` foram removidos junto, sem uso
+  restante
+- **Card "Viagens Abertas" dividido em dois**: `aberta` (rótulo "Em Aberto" — programada, podendo ou
+  não já estar carregada) e `em_andamento` (rótulo "Viagem Iniciada" — já em rota). Antes um único card
+  somava os dois status com legenda contraditória ("Viagens Abertas" / "em andamento")
+- **Três cards novos de frota/programação**, reaproveitando o que já existia em `/programacoes`:
+  Veículos Programados, Veículos Sem Próxima Viagem e Risco de No-Show — mesmos números das duas telas,
+  a partir do mesmo `ProgramacaoViagem::emRiscoDeNoShow()`
+- Gráfico de Viagens por Status (donut) mantido — é distribuição operacional, não financeiro
+- Viagens em aberto (tabela) e Top 5 motoristas do mês mantidos
+- Painel de **Pendências**: CNH de motorista vencida/vencendo, veículos em manutenção, documentos
+  fiscais pendentes, manutenção preventiva vencendo — mantido sem alteração
+- Menu lateral renomeado de "Dashboard" para "Página Inicial"
 
 ### Multi-tenant (Empresas)
 - Todas as tabelas de domínio (motoristas, veículos, clientes, viagens, lançamentos, descontos, documentos, manutenções, despesas gerais) são escopadas por `empresa_id` via escopo global no model — cada empresa cliente só enxerga e só cria dados dentro da própria empresa, automaticamente, sem precisar reescrever cada consulta existente
@@ -249,7 +263,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Alternância entre login de Operador/Admin e Portal do Motorista (2026-07-18)**: abas no topo das duas telas de login (`/login` e portal), levando de uma para a outra sem precisar saber a URL de cor
 
 ### Infraestrutura de qualidade
-- 564 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA (incluindo obrigatoriedade pra admin/super admin), notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista, a tela de diagnóstico do sistema e a API REST (autenticação por token e isolamento multi-tenant)
+- 563 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA (incluindo obrigatoriedade pra admin/super admin), notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista, a tela de diagnóstico do sistema e a API REST (autenticação por token e isolamento multi-tenant)
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 - **Varredura de saúde do código (2026-07-16)**: removidos 9 arquivos do scaffold original do Laravel Breeze nunca usados (`welcome.blade.php`, `layouts/navigation.blade.php` e os componentes exclusivos dela — a navegação real é `layouts/app.blade.php`, escrita do zero); adicionadas ao `.env.example` as 4 chaves de `config/lgpd.php` que não estavam documentadas (tinham default seguro no código, mas não apareciam pra quem fosse configurar um deploy novo). Nenhum bug funcional encontrado — suíte completa, `route:list` e uma checagem estática de toda chamada `route('...')` contra as rotas registradas confirmaram consistência
 - **Teste de carga e concorrência em produção (2026-07-18, VPS KVM 1)**: leitura simultânea estável até ~450 requisições sem erro na tela mais pesada do painel (Dashboard), primeiros sinais de fila só perto de 600, sem nenhum erro; escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados. [Relatório completo](https://claude.ai/code/artifact/ae23fae1-d5b5-43f6-a8a4-e6ad9fe81ad2) (privado — liberar visualização caso a caso)
@@ -274,35 +288,25 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 ## 🔜 Próximas implementações sugeridas
 
-### Priorizado — Programação de Frota (feedback do patrocinador e do mercado, 2026-08-05)
+### ✅ Priorizado — Programação de Frota (feedback do patrocinador e do mercado, 2026-08-05) — concluído
 Reunião do patrocinador com pessoas do setor de logística/transporte apontou acerto com motorista e
 programação de frota como o diferencial de mercado mais forte do produto. Acerto já está maduro;
 decisão foi priorizar programação de frota agora, à frente do resto do backlog abaixo. Três frentes,
-analisadas e com as decisões de desenho já confirmadas:
+todas implementadas em 2026-08-05 (detalhe de cada uma nas seções correspondentes acima — Motoristas/
+Veículos, Programação de Frota, Dashboard → Página Inicial):
 - ✅ **Frota própria x agregado — implementado 2026-08-05**: campo `vinculo` (enum `propria`/`agregado`,
   default `propria`) em [Motorista](app/Models/Motorista.php) e [Veiculo](app/Models/Veiculo.php), mesmo
   padrão do campo `status` existente — migration aditiva, select no cadastro/edição, badge na listagem
   e no detalhe, suporte no importador CSV. Detalhe nas seções "Motoristas"/"Veículos" acima. Só
   classificação por ora; não muda cálculo financeiro nem custo
-- **Dashboard vira "Página Inicial" operacional**: os cards de Faturamento/Lucro do mês e o gráfico
-  Faturamento x Lucro saem do [DashboardController](app/Http/Controllers/DashboardController.php) —
-  decisão confirmada é que o financeiro **não reaparece** na página inicial nem pra admin, já vive em
-  Relatórios/Resultado Gerencial (área já admin-only). Entram três cards novos: veículos programados e
-  veículos sem programação (query já existe em
-  [ProgramacoesViagemController](app/Http/Controllers/ProgramacoesViagemController.php#L36-L45), só
-  falta expor o `count()` — extrair pra um scope reaproveitável entre as duas telas), e cargas em risco
-  de no-show (ver abaixo). Os mesmos três cards entram também na tela `/programacoes`
-- **Divide o card "Viagens Abertas"**: hoje ele soma `aberta` + `em_andamento` num único número
-  ([DashboardController.php:22](app/Http/Controllers/DashboardController.php#L22)), com título e
-  legenda que se contradizem ("Viagens Abertas" / "em andamento") — dá a entender que uma viagem "em
-  aberto" já esteja em rota. Os dois status já existem e já são distintos (o botão que avança de um pro
-  outro já se chama "Iniciar Viagem", [Viagem.php:169](app/Models/Viagem.php#L169)) — não precisa de
-  status novo nem migration, só separar em dois cards: **"Em Aberto"** (`status = aberta`, programada,
-  podendo ou não já estar carregada) e **"Viagem Iniciada"** (`status = em_andamento`, já em rota).
-  Ideia levantada e **adiada de propósito**: fazer a Viagem nascer direto como `em_andamento` quando
-  confirmada a partir de uma Programação que já tem `chegada_horario_informado` preenchida (pula o
-  clique manual de "Iniciar Viagem" já que a coleta comprovadamente aconteceu) — mexe no fluxo central
-  de criação de viagem, então fica só a divisão do card por agora
+- ✅ **Dashboard vira "Página Inicial" operacional — implementado 2026-08-05**: financeiro (cards +
+  gráfico) removido por completo, sem reaparecer nem pra admin. Card "Viagens Abertas" dividido em "Em
+  Aberto"/"Viagem Iniciada". Três cards novos de frota/programação reaproveitando `/programacoes`.
+  Detalhe completo na seção "Dashboard → Página Inicial" acima. Ideia levantada e **adiada de
+  propósito**: fazer a Viagem nascer direto como `em_andamento` quando confirmada a partir de uma
+  Programação que já tem `chegada_horario_informado` preenchida (pula o clique manual de "Iniciar
+  Viagem" já que a coleta comprovadamente aconteceu) — mexe no fluxo central de criação de viagem, fica
+  fora deste pacote
 - ✅ **Horário de coleta e de entrega na Programação — implementado 2026-08-05**: `data_prevista` em
   `programacoes_viagem` ganhou `hora_coleta` + `data_entrega_prevista`/`hora_entrega_prevista` (todos
   opcionais, migration aditiva, sem quebrar registro existente)

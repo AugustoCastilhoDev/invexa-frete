@@ -48,7 +48,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Avanço de status direto na tela da viagem, sem precisar abrir a edição; não permite pular etapas
 - Assinatura digital do motorista (captura por canvas na tela da viagem), embutida no comprovante em PDF com data/hora
 - **Programação de Frota**: planeje o motorista/veículo/cliente da próxima viagem antes de encerrar a atual, numa tela dedicada com visão de quais veículos já têm plano definido e quais estão livres; origem/destino são selecionados por UF+cidade (IBGE), igual ao formulário de viagem, e o valor do frete é sugerido automaticamente a partir da tabela de frete do cliente quando cliente+rota baterem com uma entrada cadastrada (editável); a confirmação abre a viagem de verdade a partir dos dados programados, sem duplicar cadastro
-- **Controle de recebimento do frete**: na listagem de viagens, confirmação com um clique de que o frete foi recebido do cliente (com data), filtro por recebido/pendente e exportação em CSV — o recebimento já entra no faturamento do Dashboard e no Relatório Financeiro mesmo antes da viagem encerrar, sem contar em duplicidade quando o acerto fecha depois
+- **Controle de recebimento do frete**: na listagem de viagens, confirmação com um clique de que o frete foi recebido do cliente (com data), filtro por recebido/pendente e exportação em CSV — o recebimento já entra no Relatório Financeiro mesmo antes da viagem encerrar, sem contar em duplicidade quando o acerto fecha depois
 
 ### 👤 Motoristas
 - Cadastro completo (CPF, CNH, categoria, validade)
@@ -82,9 +82,10 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - CPF de cliente pessoa física mascarado (CNPJ não é dado pessoal, então fica visível)
 - Importação em massa via CSV
 
-### 📊 Dashboard
-- Cards de resumo: viagens abertas, faturamento, lucro, frota
-- Gráfico de Faturamento vs Lucro com filtros de 30, 60, 90 dias e período personalizado
+### 🏠 Página Inicial
+- 100% operacional, igual para admin e operador — nenhum dado financeiro (isso fica em Relatórios/Resultado Gerencial, área admin-only)
+- Cards de resumo: viagens em aberto, viagem iniciada, aguardando acerto, encerradas no mês, frota/motoristas
+- Cards de frota/programação: veículos programados, veículos sem próxima viagem, risco de no-show (mesmos números da tela de Programação de Frota)
 - Gráfico de Viagens por Status
 - Viagens em aberto
 - Top 5 motoristas do mês
@@ -180,7 +181,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Modo claro/escuro (alternância pelo card de usuário no sidebar), preferência salva no navegador
 - Relógio/data ao vivo no sidebar
 - Sidebar off-canvas e tabelas com rolagem horizontal em telas de celular (abaixo de 992px)
-- Menu lateral agrupado por uso: **Principal** (Dashboard, Viagens, Programação de Frota, Acertos) e **Cadastros**/**Fiscal** ficam visíveis a todo usuário; itens restritos a admin (Financeiro, DRE, Despesas Gerais, Usuários) ficam consolidados num único bloco **Administração**, mais abaixo — quem é operador não vê nenhum item que não pode acessar
+- Menu lateral agrupado por uso: **Principal** (Página Inicial, Viagens, Programação de Frota, Acertos) e **Cadastros**/**Fiscal** ficam visíveis a todo usuário; itens restritos a admin (Financeiro, DRE, Despesas Gerais, Usuários) ficam consolidados num único bloco **Administração**, mais abaixo — quem é operador não vê nenhum item que não pode acessar
 
 ### 🔒 Segurança & LGPD
 - **Criptografia em repouso** dos documentos pessoais/fiscais mais sensíveis (CPF e CNH de motorista, CPF/CNPJ de cliente, CNPJ de empresa e de unidade) — cast `encrypted` do Laravel (AES-256 via a `APP_KEY`); busca e checagem de unicidade continuam funcionando através de um hash determinístico (HMAC-SHA256) guardado numa coluna separada, já que o valor cifrado muda a cada gravação
@@ -199,7 +200,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 564+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, resultado gerencial, portal do motorista, permissões, 2FA (incluindo obrigatoriedade para admin/super admin), notificações, isolamento multi-tenant, anonimização de dados, log de acesso, log de auditoria, emissão/encerramento/cancelamento/carta de correção de CT-e/MDF-e, diagnóstico do sistema e a API REST
+- 563+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, resultado gerencial, portal do motorista, permissões, 2FA (incluindo obrigatoriedade para admin/super admin), notificações, isolamento multi-tenant, anonimização de dados, log de acesso, log de auditoria, emissão/encerramento/cancelamento/carta de correção de CT-e/MDF-e, diagnóstico do sistema e a API REST
 - CI no GitHub Actions rodando a suíte a cada push/PR
 - **Teste de volume de dados**: importação CSV validada localmente até 20.000 linhas numa importação só (5.000 em ~17s), depois do fix que envolve o processo inteiro numa transação — evita timeout do PHP deixar dado pela metade num import grande
 - **Teste de carga e concorrência em produção**: leitura simultânea sem erro até 900 requisições na tela mais pesada do painel (Dashboard) na VPS atual (KVM 2, 2026-08-03), o dobro do teste anterior (450, KVM 1); escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados — número específico da VPS atual, ver [ROADMAP.md](ROADMAP.md) para os relatórios completos
@@ -226,7 +227,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (564+ testes) |
+| Testes | PHPUnit (563+ testes) |
 | CI | GitHub Actions |
 
 ---

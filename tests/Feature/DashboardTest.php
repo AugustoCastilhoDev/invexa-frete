@@ -27,67 +27,46 @@ class DashboardTest extends TestCase
         $this->actingAs(User::factory()->create());
 
         Viagem::factory()->create(['status' => 'aberta']);
+        Viagem::factory()->create(['status' => 'em_andamento']);
         Viagem::factory()->encerrada()->create(['valor_frete' => 1000, 'percentual_motorista' => 10]);
 
         $response = $this->get(route('dashboard'));
 
         $response->assertOk();
-        $response->assertViewHas('totalViagensAbertas', 1);
+        $response->assertViewHas('totalViagensEmAberto', 1);
+        $response->assertViewHas('totalViagensIniciadas', 1);
     }
 
-    public function test_faturamento_do_mes_inclui_frete_recebido_mesmo_sem_a_viagem_encerrar(): void
+    // Financeiro (faturamento/lucro/gráfico) saiu da página inicial de propósito
+    // — já vive em Relatórios/Resultado Gerencial, área admin-only. A página
+    // inicial fica 100% operacional pra admin e operador.
+    public function test_dashboard_nao_expoe_mais_dados_financeiros(): void
     {
         $this->actingAs(User::factory()->create());
-
-        Viagem::factory()->create([
-            'status'                 => 'em_andamento',
-            'valor_frete'            => 1000,
-            'lucro_transportadora'   => 800,
-            'frete_recebido'         => true,
-            'data_recebimento_frete' => now(),
-        ]);
 
         $response = $this->get(route('dashboard'));
 
         $response->assertOk();
-        $response->assertViewHas('faturamentoMes', fn ($v) => (float) $v === 1000.0);
-        $response->assertViewHas('lucroMes', fn ($v) => (float) $v === 800.0);
+        $response->assertViewMissing('faturamentoMes');
+        $response->assertViewMissing('lucroMes');
+        $response->assertDontSee('Faturamento do Mês');
+        $response->assertDontSee('Lucro do Mês');
     }
 
-    public function test_faturamento_do_mes_nao_duplica_viagem_encerrada_e_com_frete_recebido(): void
+    public function test_dashboard_exibe_cards_de_frota_e_programacao(): void
     {
         $this->actingAs(User::factory()->create());
 
-        Viagem::factory()->create([
-            'status'                 => 'encerrada',
-            'valor_frete'            => 1000,
-            'lucro_transportadora'   => 800,
-            'updated_at'             => now(),
-            'frete_recebido'         => true,
-            'data_recebimento_frete' => now(),
-        ]);
+        $veiculo = Veiculo::factory()->create();
+        Motorista::factory()->create();
+        \App\Models\ProgramacaoViagem::factory()->create(['veiculo_id' => $veiculo->id]);
 
         $response = $this->get(route('dashboard'));
 
         $response->assertOk();
-        $response->assertViewHas('faturamentoMes', fn ($v) => (float) $v === 1000.0);
-        $response->assertViewHas('lucroMes', fn ($v) => (float) $v === 800.0);
-    }
-
-    public function test_grafico_retorna_json_com_labels_e_totais(): void
-    {
-        $this->actingAs(User::factory()->create());
-
-        Viagem::factory()->encerrada()->create([
-            'valor_frete'          => 1000,
-            'percentual_motorista' => 10,
-            'updated_at'           => now(),
-        ]);
-
-        $response = $this->getJson(route('dashboard.grafico', ['tipo' => '30']));
-
-        $response->assertOk();
-        $response->assertJsonStructure(['labels', 'fretes', 'lucros', 'totais' => ['frete', 'lucro']]);
+        $response->assertViewHas('totalVeiculosProgramados', 1);
+        $response->assertViewHas('totalVeiculosSemProgramacao', 0);
+        $response->assertViewHas('totalRiscoNoShow', 0);
     }
 
     public function test_dashboard_sem_pendencias_nao_exibe_a_secao(): void
