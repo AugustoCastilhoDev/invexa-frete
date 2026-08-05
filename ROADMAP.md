@@ -295,19 +295,23 @@ analisadas e com as decisões de desenho já confirmadas:
   registro existente
 - **Risco de no-show**: regra é "2h antes do agendamento o veículo ainda não está no local da coleta".
   Sem GPS integrado (ver "Em espera" abaixo), não tem sinal automático de localização — decisão
-  confirmada é **check-in manual**: botão "Cheguei no local de coleta" no Portal do Motorista (mesmo
-  padrão de UX do lançamento de despesa) e também disponível pro operador marcar. Três campos, não um
-  só, pra separar "quando aconteceu" de "quando o sistema processou" (mesmo raciocínio já usado no
-  reconhecimento de faturamento por `data_recebimento_frete`, não pela data do clique):
+  confirmada é **check-in manual, sem trava de aprovação**: botão "Cheguei no local de coleta" no
+  Portal do Motorista (mesmo padrão de UX do lançamento de despesa) e também disponível pro operador
+  marcar. Diferente do fluxo de Lançamentos (pendente→aprovado), aqui não há aprovação do operador —
+  essa trava existe nos lançamentos porque eles mexem no saldo do motorista (dinheiro real); check-in
+  de chegada é só informação operacional, sem efeito financeiro, então não precisa da mesma cautela.
+  Dois campos, pra separar "quando aconteceu" de "quando o sistema recebeu" (mesmo raciocínio já usado
+  no reconhecimento de faturamento por `data_recebimento_frete`, não pela data do clique):
   `chegada_horario_informado` (o horário que o motorista efetivamente informa — editável, pode ser
-  diferente do momento do envio se ele só pegar sinal depois de sair do local), `chegada_informada_em`
-  (quando o registro chegou no sistema, auditoria) e `chegada_confirmada_em`/`chegada_confirmada_por`
-  (quando/quem o operador aceita — mesmo padrão pendente→aprovado dos lançamentos, com opção de
-  rejeitar um horário informado que pareça incorreto). O cálculo de risco de no-show usa sempre
-  `chegada_horario_informado` contra a coleta prevista — nunca o horário em que o operador aceitou —
-  pra não gerar um no-show falso só porque o operador revisou o check-in horas depois. Card de risco =
-  programação pendente + coleta prevista em ≤2h + nenhum horário informado ainda; é confirmação manual,
-  não rastreamento automático, e o texto do card deve deixar isso claro
+  diferente do momento do envio se ele só pegar sinal depois de sair do local) e `chegada_informada_em`
+  (quando o registro chegou no sistema, auditoria). O cálculo de risco de no-show usa sempre
+  `chegada_horario_informado` contra a coleta prevista. Cards (dashboard e `/programacoes`) refletem o
+  check-in assim que a página é recarregada — não há atualização automática de tela sem reload, mesmo
+  padrão do resto do sistema hoje. Card de risco = programação pendente + coleta prevista em ≤2h +
+  nenhum horário informado ainda. Sem checagem automática de veracidade do horário informado — enquanto
+  não houver rastreamento GPS, confirmar que o veículo está mesmo no local é responsabilidade do
+  operador/programador de cargas, não do sistema; decisão consciente de não construir um mecanismo de
+  contestação agora (baixo risco, sem efeito financeiro) e revisitar só se virar problema real na prática
 
 ### Curto prazo
 - **WhatsApp**: arquitetura de notificação já pronta para receber um novo canal; falta só a conta em um provedor (Twilio, Z-API, Meta Cloud API) para integrar de verdade
