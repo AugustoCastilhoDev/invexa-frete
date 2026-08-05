@@ -271,6 +271,44 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 
 ## 🔜 Próximas implementações sugeridas
 
+### Priorizado — Programação de Frota (feedback do patrocinador e do mercado, 2026-08-05)
+Reunião do patrocinador com pessoas do setor de logística/transporte apontou acerto com motorista e
+programação de frota como o diferencial de mercado mais forte do produto. Acerto já está maduro;
+decisão foi priorizar programação de frota agora, à frente do resto do backlog abaixo. Três frentes,
+analisadas e com as decisões de desenho já confirmadas:
+- **Frota própria x agregado**: campo novo `vinculo` (enum `propria`/`agregado`, default `propria`) em
+  [Motorista](app/Models/Motorista.php) e [Veiculo](app/Models/Veiculo.php), mesmo padrão do campo
+  `status` existente — migration aditiva, select no cadastro/edição, badge na listagem. Só
+  classificação por ora; não muda cálculo financeiro nem custo
+- **Dashboard vira "Página Inicial" operacional**: os cards de Faturamento/Lucro do mês e o gráfico
+  Faturamento x Lucro saem do [DashboardController](app/Http/Controllers/DashboardController.php) —
+  decisão confirmada é que o financeiro **não reaparece** na página inicial nem pra admin, já vive em
+  Relatórios/Resultado Gerencial (área já admin-only). Entram três cards novos: veículos programados e
+  veículos sem programação (query já existe em
+  [ProgramacoesViagemController](app/Http/Controllers/ProgramacoesViagemController.php#L36-L45), só
+  falta expor o `count()` — extrair pra um scope reaproveitável entre as duas telas), e cargas em risco
+  de no-show (ver abaixo). Os mesmos três cards entram também na tela `/programacoes`
+- **Horário de coleta e de entrega na Programação**: hoje `data_prevista` em `programacoes_viagem` é só
+  `date`, sem hora (mesma limitação de `Viagem::data_saida`/`data_retorno` — o sistema nunca trabalhou
+  com horário). Migration aditiva: `hora_coleta` (time, nullable) + `data_entrega_prevista`/
+  `hora_entrega_prevista` (date/time, nullable — frete longo pode entregar dias depois), sem quebrar
+  registro existente
+- **Risco de no-show**: regra é "2h antes do agendamento o veículo ainda não está no local da coleta".
+  Sem GPS integrado (ver "Em espera" abaixo), não tem sinal automático de localização — decisão
+  confirmada é **check-in manual**: botão "Cheguei no local de coleta" no Portal do Motorista (mesmo
+  padrão de UX do lançamento de despesa) e também disponível pro operador marcar. Três campos, não um
+  só, pra separar "quando aconteceu" de "quando o sistema processou" (mesmo raciocínio já usado no
+  reconhecimento de faturamento por `data_recebimento_frete`, não pela data do clique):
+  `chegada_horario_informado` (o horário que o motorista efetivamente informa — editável, pode ser
+  diferente do momento do envio se ele só pegar sinal depois de sair do local), `chegada_informada_em`
+  (quando o registro chegou no sistema, auditoria) e `chegada_confirmada_em`/`chegada_confirmada_por`
+  (quando/quem o operador aceita — mesmo padrão pendente→aprovado dos lançamentos, com opção de
+  rejeitar um horário informado que pareça incorreto). O cálculo de risco de no-show usa sempre
+  `chegada_horario_informado` contra a coleta prevista — nunca o horário em que o operador aceitou —
+  pra não gerar um no-show falso só porque o operador revisou o check-in horas depois. Card de risco =
+  programação pendente + coleta prevista em ≤2h + nenhum horário informado ainda; é confirmação manual,
+  não rastreamento automático, e o texto do card deve deixar isso claro
+
 ### Curto prazo
 - **WhatsApp**: arquitetura de notificação já pronta para receber um novo canal; falta só a conta em um provedor (Twilio, Z-API, Meta Cloud API) para integrar de verdade
 - **Revisar prazos de retenção da LGPD** (`config/lgpd.php`) com jurídico/contábil, agora que o expurgo automático mensal já roda de verdade em produção (cron ativo)
