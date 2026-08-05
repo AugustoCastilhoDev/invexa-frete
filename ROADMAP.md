@@ -128,8 +128,14 @@ financeiro.
   a partir do mesmo `ProgramacaoViagem::emRiscoDeNoShow()`
 - Gráfico de Viagens por Status (donut) mantido — é distribuição operacional, não financeiro
 - Viagens em aberto (tabela) e Top 5 motoristas do mês mantidos
-- Painel de **Pendências**: CNH de motorista vencida/vencendo, veículos em manutenção, documentos
-  fiscais pendentes, manutenção preventiva vencendo — mantido sem alteração
+- **Card "Manutenção da Frota" (2026-08-05)**: ocupava o espaço vazio ao lado do gráfico de Viagens por
+  Status (esse gráfico é só `col-md-6`, sobrava a outra metade da linha). Reaproveita exatamente os
+  mesmos dados que já existiam (`veiculosEmManutencao`, `manutencoesVencendo`) — só que promovidos pra
+  card próprio e sempre visível, em vez de ficarem escondidos dentro do painel de Pendências (que só
+  aparece quando há pendência). Duas colunas: **Em Andamento** (veículo com manutenção em curso) e
+  **Programada** (próxima manutenção prevista nos próximos 30 dias)
+- Painel de **Pendências**: agora só CNH de motorista vencida/vencendo e documentos fiscais pendentes —
+  manutenção saiu daqui porque ganhou o card próprio acima, evitando mostrar a mesma informação duas vezes
 - Menu lateral renomeado de "Dashboard" para "Página Inicial"
 
 ### Multi-tenant (Empresas)

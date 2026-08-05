@@ -102,7 +102,7 @@
 </div>
 
 @php
-    $totalPendencias = $cnhVencendo->count() + $veiculosEmManutencao->count() + $documentosPendentes->count() + $manutencoesVencendo->count();
+    $totalPendencias = $cnhVencendo->count() + $documentosPendentes->count();
 @endphp
 @if($totalPendencias > 0)
 <div class="row g-4 mb-4">
@@ -116,7 +116,7 @@
                 <div class="row g-4">
 
                     {{-- CNH vencendo/vencida --}}
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="fw-semibold small text-uppercase text-muted">
                                 <i class="bi bi-person-badge me-1"></i>CNH a vencer
@@ -140,28 +140,8 @@
                         @endforelse
                     </div>
 
-                    {{-- Veículos em manutenção --}}
-                    <div class="col-md-3">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="fw-semibold small text-uppercase text-muted">
-                                <i class="bi bi-car-front me-1"></i>Veículos em manutenção
-                            </span>
-                            <span class="badge bg-secondary">{{ $veiculosEmManutencao->count() }}</span>
-                        </div>
-                        @forelse($veiculosEmManutencao as $veiculo)
-                            <a href="{{ route('veiculos.show', $veiculo) }}"
-                               class="d-flex justify-content-between text-decoration-none py-1 small"
-                               style="border-bottom:1px solid #f0f0f0">
-                                <span class="text-dark">{{ $veiculo->placa }}</span>
-                                <span class="text-muted">{{ $veiculo->modelo }}</span>
-                            </a>
-                        @empty
-                            <p class="text-muted small mb-0">Nenhum veículo em manutenção.</p>
-                        @endforelse
-                    </div>
-
                     {{-- Documentos fiscais pendentes --}}
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="fw-semibold small text-uppercase text-muted">
                                 <i class="bi bi-file-earmark-text me-1"></i>Documentos pendentes
@@ -177,28 +157,6 @@
                             </a>
                         @empty
                             <p class="text-muted small mb-0">Nenhum documento pendente.</p>
-                        @endforelse
-                    </div>
-
-                    {{-- Manutenção preventiva vencendo --}}
-                    <div class="col-md-3">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="fw-semibold small text-uppercase text-muted">
-                                <i class="bi bi-tools me-1"></i>Manutenção preventiva
-                            </span>
-                            <span class="badge bg-secondary">{{ $manutencoesVencendo->count() }}</span>
-                        </div>
-                        @forelse($manutencoesVencendo as $manutencao)
-                            <a href="{{ route('veiculos.show', $manutencao->veiculo) }}"
-                               class="d-flex justify-content-between text-decoration-none py-1 small"
-                               style="border-bottom:1px solid #f0f0f0">
-                                <span class="text-dark">{{ $manutencao->veiculo->placa }}</span>
-                                <span class="text-muted">
-                                    {{ $manutencao->proxima_manutencao_data->format('d/m/Y') }}
-                                </span>
-                            </a>
-                        @empty
-                            <p class="text-muted small mb-0">Nenhuma manutenção preventiva vencendo.</p>
                         @endforelse
                     </div>
 
@@ -261,6 +219,65 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Manutenção da Frota ── --}}
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-tools me-2 text-primary"></i>Manutenção da Frota</span>
+                <a href="{{ route('manutencoes.index') }}" class="btn btn-sm btn-outline-primary">
+                    Ver histórico
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+
+                    {{-- Em andamento --}}
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-semibold small text-uppercase text-muted">
+                                <i class="bi bi-car-front me-1"></i>Em andamento
+                            </span>
+                            <span class="badge bg-warning text-dark">{{ $veiculosEmManutencao->count() }}</span>
+                        </div>
+                        @forelse($veiculosEmManutencao as $veiculo)
+                            <a href="{{ route('veiculos.show', $veiculo) }}"
+                               class="d-flex justify-content-between text-decoration-none py-1 small"
+                               style="border-bottom:1px solid #f0f0f0">
+                                <span class="text-dark">{{ $veiculo->placa }}</span>
+                                <span class="text-muted">{{ $veiculo->modelo }}</span>
+                            </a>
+                        @empty
+                            <p class="text-muted small mb-0">Nenhum veículo em manutenção.</p>
+                        @endforelse
+                    </div>
+
+                    {{-- Programada (próxima manutenção vencendo) --}}
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-semibold small text-uppercase text-muted">
+                                <i class="bi bi-calendar-event me-1"></i>Programada
+                            </span>
+                            <span class="badge bg-secondary">{{ $manutencoesVencendo->count() }}</span>
+                        </div>
+                        @forelse($manutencoesVencendo as $manutencao)
+                            <a href="{{ route('veiculos.show', $manutencao->veiculo) }}"
+                               class="d-flex justify-content-between text-decoration-none py-1 small"
+                               style="border-bottom:1px solid #f0f0f0">
+                                <span class="text-dark">{{ $manutencao->veiculo->placa }}</span>
+                                <span class="text-muted">
+                                    {{ $manutencao->proxima_manutencao_data->format('d/m/Y') }}
+                                </span>
+                            </a>
+                        @empty
+                            <p class="text-muted small mb-0">Nenhuma manutenção programada nos próximos 30 dias.</p>
+                        @endforelse
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
