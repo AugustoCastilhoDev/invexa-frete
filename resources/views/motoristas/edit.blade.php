@@ -77,6 +77,13 @@
                         <option value="inativo" {{ old('status', $motorista->status) == 'inativo' ? 'selected' : '' }}>Inativo</option>
                     </select>
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Vínculo *</label>
+                    <select name="vinculo" class="form-select" required>
+                        <option value="propria" {{ old('vinculo', $motorista->vinculo) == 'propria' ? 'selected' : '' }}>Frota Própria</option>
+                        <option value="agregado" {{ old('vinculo', $motorista->vinculo) == 'agregado' ? 'selected' : '' }}>Agregado</option>
+                    </select>
+                </div>
                 <div class="col-12 text-end">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-check-lg me-1"></i> Atualizar Motorista

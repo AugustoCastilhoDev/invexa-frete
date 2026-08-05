@@ -58,6 +58,9 @@
                             <span class="badge {{ $badge }}">{{ ucfirst($veiculo->status) }}</span>
                         </td>
                     </tr>
+                    <tr><td class="text-muted">Vínculo</td>
+                        <td><span class="badge {{ $veiculo->vinculo === 'agregado' ? 'bg-info text-dark' : 'bg-primary' }}">
+                            {{ $veiculo->vinculo_formatado }}</span></td></tr>
                 </table>
                 </div>
                 <div class="text-muted border-top pt-2 mt-2" style="font-size:.75rem">

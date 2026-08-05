@@ -50,6 +50,7 @@ class VeiculosController extends Controller
             'capacidade_kg'=> 'nullable|numeric|min:0',
             'tara_kg'      => 'nullable|integer|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
+            'vinculo'      => 'nullable|in:propria,agregado',
         ]);
 
         $empresa = $request->user()->empresa;
@@ -95,6 +96,7 @@ class VeiculosController extends Controller
             'capacidade_kg'=> 'nullable|numeric|min:0',
             'tara_kg'      => 'nullable|integer|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
+            'vinculo'      => 'nullable|in:propria,agregado',
         ]);
 
         $veiculo->update($request->all());
@@ -117,8 +119,8 @@ class VeiculosController extends Controller
 
     public function importarTemplate()
     {
-        $csv = "placa;modelo;marca;ano;tipo;renavam;chassi;validade_documento;capacidade_kg;status\n"
-            . "ABC1D23;FH 540;Volvo;2020;truck;12345678901;9BWZZZ377VT004251;31/03/2027;15000;ativo\n";
+        $csv = "placa;modelo;marca;ano;tipo;renavam;chassi;validade_documento;capacidade_kg;status;vinculo\n"
+            . "ABC1D23;FH 540;Volvo;2020;truck;12345678901;9BWZZZ377VT004251;31/03/2027;15000;ativo;propria\n";
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -145,6 +147,7 @@ class VeiculosController extends Controller
                 'validade_documento' => 'validade_documento',
                 'capacidade_kg' => 'capacidade_kg',
                 'status' => 'status',
+                'vinculo' => 'vinculo',
             ],
             [
                 'placa' => 'required|string|max:10|unique:veiculos',
@@ -157,6 +160,7 @@ class VeiculosController extends Controller
                 'validade_documento' => 'nullable|date',
                 'capacidade_kg' => 'nullable|numeric|min:0',
                 'status' => 'required|in:ativo,inativo,manutencao',
+                'vinculo' => 'nullable|in:propria,agregado',
             ],
             function (array $dados) use ($empresa) {
                 if ($empresa && $empresa->limiteVeiculosAtingido()) {

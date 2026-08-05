@@ -84,6 +84,7 @@
                     <th>Telefone</th>
                     <th>Comissão</th>
                     <th>Status</th>
+                    <th>Vínculo</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
             </thead>
@@ -97,6 +98,11 @@
                     <td>
                         <span class="badge {{ $motorista->status === 'ativo' ? 'bg-success' : 'bg-secondary' }}">
                             {{ ucfirst($motorista->status) }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge {{ $motorista->vinculo === 'agregado' ? 'bg-info text-dark' : 'bg-primary' }}">
+                            {{ $motorista->vinculo_formatado }}
                         </span>
                     </td>
                     <td class="text-end pe-4">
@@ -122,7 +128,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-4">
+                    <td colspan="7" class="text-center text-muted py-4">
                         <i class="bi bi-person-badge fs-3 d-block mb-2"></i>
                         {{ $busca ? 'Nenhum motorista encontrado para "'.$busca.'".' : 'Nenhum motorista cadastrado.' }}
                     </td>

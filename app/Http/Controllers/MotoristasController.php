@@ -47,6 +47,7 @@ class MotoristasController extends Controller
             'email'               => 'nullable|email',
             'percentual_comissao' => 'required|numeric|min:0|max:100',
             'status'              => 'required|in:ativo,inativo',
+            'vinculo'             => 'nullable|in:propria,agregado',
         ]);
 
         // cpf é cifrado — a checagem de unicidade do Laravel (unique:motoristas)
@@ -85,6 +86,7 @@ class MotoristasController extends Controller
             'email'               => 'nullable|email',
             'percentual_comissao' => 'required|numeric|min:0|max:100',
             'status'              => 'required|in:ativo,inativo',
+            'vinculo'             => 'nullable|in:propria,agregado',
         ]);
 
         if (Motorista::where('cpf_hash', Motorista::hashDocumento($request->cpf))
@@ -113,8 +115,8 @@ class MotoristasController extends Controller
 
     public function importarTemplate()
     {
-        $csv = "nome;cpf;cnh;categoria_cnh;validade_cnh;telefone;email;percentual_comissao;status\n"
-            . "João da Silva;123.456.789-00;12345678900;AB;31/12/2028;(11) 91234-5678;joao@email.com;10;ativo\n";
+        $csv = "nome;cpf;cnh;categoria_cnh;validade_cnh;telefone;email;percentual_comissao;status;vinculo\n"
+            . "João da Silva;123.456.789-00;12345678900;AB;31/12/2028;(11) 91234-5678;joao@email.com;10;ativo;propria\n";
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -138,6 +140,7 @@ class MotoristasController extends Controller
                 'email' => 'email',
                 'percentual_comissao' => 'percentual_comissao',
                 'status' => 'status',
+                'vinculo' => 'vinculo',
             ],
             [
                 'nome' => 'required|string|max:255',
@@ -149,6 +152,7 @@ class MotoristasController extends Controller
                 'email' => 'nullable|email',
                 'percentual_comissao' => 'required|numeric|min:0|max:100',
                 'status' => 'required|in:ativo,inativo',
+                'vinculo' => 'nullable|in:propria,agregado',
             ],
             function (array $dados) {
                 // cpf é cifrado — a regra "unique" do Validator não funciona

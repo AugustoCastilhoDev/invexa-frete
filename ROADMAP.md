@@ -16,6 +16,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - CPF e CNH mascarados na interface (`123.***.***-01`), com botão para revelar o valor completo
 - **Importação em massa via CSV**: cadastra vários motoristas de uma vez a partir de uma planilha, com modelo para baixar; linhas com erro (CPF duplicado, data inválida etc.) não travam as demais — ficam listadas com o número da linha e o motivo, para corrigir e reenviar só o que faltou
 - **Fix crítico de robustez do importador (2026-07-18)**: `CsvImporter` (compartilhado por motoristas, veículos e clientes) rodava cada linha como um `create()` isolado, sem transação — um arquivo grande o suficiente (~1000 linhas) estourava os 30s padrão de execução do PHP no meio do processo, deixando parte da planilha gravada e a outra parte perdida, sem nenhum aviso claro pro operador. Corrigido envolvendo o processamento inteiro numa única transação de banco (uma falha catastrófica no meio desfaz tudo, em vez de importar pela metade) e elevando o limite de execução (`set_time_limit(300)`). Efeito colateral: eliminar o commit por linha também deixou a importação **~14x mais rápida** — testado localmente com 5.000 linhas em 17s e 20.000 em ~1min, sem erro. Nginx (`client_max_body_size`, `fastcgi_read_timeout`) e PHP-FPM (`upload_max_filesize`, `post_max_size`) da VPS ajustados em conjunto — ver seção "Deploy em produção"
+- **Frota própria x agregado (2026-08-05)**: campo `vinculo` (Frota Própria/Agregado, default Frota Própria) no cadastro, edição, listagem e detalhe — primeiro item da priorização de Programação de Frota pedida pelo patrocinador (ver "Próximas implementações sugeridas"). Suporte também no importador CSV (coluna opcional, sem quebrar planilhas antigas que não a têm)
 
 ### Veículos
 - Cadastro completo da frota (placa, modelo, marca, ano, tipo, RENAVAM, chassi, validade do documento/CRLV, capacidade)
@@ -24,6 +25,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Busca por placa, modelo ou marca
 - Listagem destaca em vermelho, com ícone de atenção, veículos com validade do documento vencendo em até 30 dias (ou já vencida)
 - **Importação em massa via CSV**: mesmo mecanismo dos motoristas; respeita o limite de veículos do plano linha a linha (se estourar no meio do arquivo, as linhas restantes ficam marcadas como erro em vez de criar acima do contratado). O vínculo cavalo/carreta não é importado — fica para ajuste manual depois
+- **Frota própria x agregado (2026-08-05)**: mesmo campo `vinculo` dos motoristas, mesmo tratamento (cadastro/edição/listagem/detalhe/CSV)
 
 ### Manutenção de veículos
 - Registro de manutenção preventiva/corretiva, independente de viagem
@@ -246,7 +248,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Alternância entre login de Operador/Admin e Portal do Motorista (2026-07-18)**: abas no topo das duas telas de login (`/login` e portal), levando de uma para a outra sem precisar saber a URL de cor
 
 ### Infraestrutura de qualidade
-- 549 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA (incluindo obrigatoriedade pra admin/super admin), notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista, a tela de diagnóstico do sistema e a API REST (autenticação por token e isolamento multi-tenant)
+- 553 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA (incluindo obrigatoriedade pra admin/super admin), notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista, a tela de diagnóstico do sistema e a API REST (autenticação por token e isolamento multi-tenant)
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 - **Varredura de saúde do código (2026-07-16)**: removidos 9 arquivos do scaffold original do Laravel Breeze nunca usados (`welcome.blade.php`, `layouts/navigation.blade.php` e os componentes exclusivos dela — a navegação real é `layouts/app.blade.php`, escrita do zero); adicionadas ao `.env.example` as 4 chaves de `config/lgpd.php` que não estavam documentadas (tinham default seguro no código, mas não apareciam pra quem fosse configurar um deploy novo). Nenhum bug funcional encontrado — suíte completa, `route:list` e uma checagem estática de toda chamada `route('...')` contra as rotas registradas confirmaram consistência
 - **Teste de carga e concorrência em produção (2026-07-18, VPS KVM 1)**: leitura simultânea estável até ~450 requisições sem erro na tela mais pesada do painel (Dashboard), primeiros sinais de fila só perto de 600, sem nenhum erro; escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados. [Relatório completo](https://claude.ai/code/artifact/ae23fae1-d5b5-43f6-a8a4-e6ad9fe81ad2) (privado — liberar visualização caso a caso)
@@ -276,9 +278,10 @@ Reunião do patrocinador com pessoas do setor de logística/transporte apontou a
 programação de frota como o diferencial de mercado mais forte do produto. Acerto já está maduro;
 decisão foi priorizar programação de frota agora, à frente do resto do backlog abaixo. Três frentes,
 analisadas e com as decisões de desenho já confirmadas:
-- **Frota própria x agregado**: campo novo `vinculo` (enum `propria`/`agregado`, default `propria`) em
-  [Motorista](app/Models/Motorista.php) e [Veiculo](app/Models/Veiculo.php), mesmo padrão do campo
-  `status` existente — migration aditiva, select no cadastro/edição, badge na listagem. Só
+- ✅ **Frota própria x agregado — implementado 2026-08-05**: campo `vinculo` (enum `propria`/`agregado`,
+  default `propria`) em [Motorista](app/Models/Motorista.php) e [Veiculo](app/Models/Veiculo.php), mesmo
+  padrão do campo `status` existente — migration aditiva, select no cadastro/edição, badge na listagem
+  e no detalhe, suporte no importador CSV. Detalhe nas seções "Motoristas"/"Veículos" acima. Só
   classificação por ora; não muda cálculo financeiro nem custo
 - **Dashboard vira "Página Inicial" operacional**: os cards de Faturamento/Lucro do mês e o gráfico
   Faturamento x Lucro saem do [DashboardController](app/Http/Controllers/DashboardController.php) —

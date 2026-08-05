@@ -40,6 +40,9 @@
                     <tr><td class="text-muted">Status</td>
                         <td><span class="badge {{ $motorista->status === 'ativo' ? 'bg-success' : 'bg-secondary' }}">
                             {{ ucfirst($motorista->status) }}</span></td></tr>
+                    <tr><td class="text-muted">Vínculo</td>
+                        <td><span class="badge {{ $motorista->vinculo === 'agregado' ? 'bg-info text-dark' : 'bg-primary' }}">
+                            {{ $motorista->vinculo_formatado }}</span></td></tr>
                 </table>
                 </div>
                 <div class="text-muted border-top pt-2 mt-2" style="font-size:.75rem">

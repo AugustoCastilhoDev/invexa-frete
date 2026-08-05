@@ -27,6 +27,7 @@ class Veiculo extends Model
         'capacidade_kg',
         'tara_kg',
         'status',
+        'vinculo',
     ];
 
     protected $casts = [
@@ -69,5 +70,10 @@ class Veiculo extends Model
         return $query->where(function ($q) {
             $q->where('tipo', '!=', 'carreta')->orWhereNull('cavalo_id');
         });
+    }
+
+    public function getVinculoFormatadoAttribute(): string
+    {
+        return $this->vinculo === 'agregado' ? 'Agregado' : 'Frota Própria';
     }
 }

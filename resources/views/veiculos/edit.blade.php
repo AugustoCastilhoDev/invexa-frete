@@ -107,6 +107,17 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Vínculo *</label>
+                    <select name="vinculo" class="form-select" required>
+                        @foreach(['propria'=>'Frota Própria','agregado'=>'Agregado'] as $val => $label)
+                            <option value="{{ $val }}"
+                                {{ old('vinculo', $veiculo->vinculo) == $val ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-12 text-end">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-check-lg me-1"></i> Atualizar Veículo

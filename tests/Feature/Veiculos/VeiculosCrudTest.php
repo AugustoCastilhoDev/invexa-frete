@@ -27,6 +27,35 @@ class VeiculosCrudTest extends TestCase
         $this->assertDatabaseHas('veiculos', ['placa' => 'ABC1D23']);
     }
 
+    public function test_cria_veiculo_sem_informar_vinculo_assume_frota_propria(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->post(route('veiculos.store'), [
+            'placa'  => 'ABC1D23',
+            'modelo' => 'FH 540',
+            'tipo'   => 'carreta',
+            'status' => 'ativo',
+        ]);
+
+        $this->assertDatabaseHas('veiculos', ['placa' => 'ABC1D23', 'vinculo' => 'propria']);
+    }
+
+    public function test_cria_veiculo_agregado(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->post(route('veiculos.store'), [
+            'placa'   => 'ABC1D23',
+            'modelo'  => 'FH 540',
+            'tipo'    => 'carreta',
+            'status'  => 'ativo',
+            'vinculo' => 'agregado',
+        ]);
+
+        $this->assertDatabaseHas('veiculos', ['placa' => 'ABC1D23', 'vinculo' => 'agregado']);
+    }
+
     public function test_cria_veiculo_com_chassi_e_validade_documento(): void
     {
         $this->actingAs(User::factory()->create());

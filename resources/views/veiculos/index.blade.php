@@ -99,6 +99,7 @@
                     <th>Capacidade</th>
                     <th>Validade Documento</th>
                     <th>Status</th>
+                    <th>Vínculo</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
             </thead>
@@ -133,6 +134,11 @@
                         @endphp
                         <span class="badge {{ $badge }}">{{ ucfirst($veiculo->status) }}</span>
                     </td>
+                    <td>
+                        <span class="badge {{ $veiculo->vinculo === 'agregado' ? 'bg-info text-dark' : 'bg-primary' }}">
+                            {{ $veiculo->vinculo_formatado }}
+                        </span>
+                    </td>
                     <td class="text-end pe-4">
                         <a href="{{ route('veiculos.show', $veiculo) }}"
                            class="btn btn-sm btn-outline-secondary">
@@ -156,7 +162,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-4">
+                    <td colspan="9" class="text-center text-muted py-4">
                         <i class="bi bi-car-front fs-3 d-block mb-2"></i>
                         {{ $busca ? 'Nenhum veículo encontrado para "'.$busca.'".' : 'Nenhum veículo cadastrado.' }}
                     </td>

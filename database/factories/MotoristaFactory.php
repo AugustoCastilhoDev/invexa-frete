@@ -19,12 +19,18 @@ class MotoristaFactory extends Factory
             'email'               => $this->faker->unique()->safeEmail(),
             'percentual_comissao' => 10,
             'status'              => 'ativo',
+            'vinculo'             => 'propria',
         ];
     }
 
     public function inativo(): static
     {
         return $this->state(fn () => ['status' => 'inativo']);
+    }
+
+    public function agregado(): static
+    {
+        return $this->state(fn () => ['vinculo' => 'agregado']);
     }
 
     public function comAcessoPortal(string $senha = 'senha-motorista'): static

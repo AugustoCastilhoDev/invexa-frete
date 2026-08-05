@@ -27,6 +27,7 @@ class Motorista extends Model implements AuthenticatableContract
         'email',
         'percentual_comissao',
         'status',
+        'vinculo',
     ];
 
     protected $hidden = [
@@ -103,5 +104,10 @@ class Motorista extends Model implements AuthenticatableContract
         }
 
         return substr($digitos, 0, 2) . str_repeat('*', $tamanho - 4) . substr($digitos, -2);
+    }
+
+    public function getVinculoFormatadoAttribute(): string
+    {
+        return $this->vinculo === 'agregado' ? 'Agregado' : 'Frota Própria';
     }
 }

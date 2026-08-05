@@ -83,6 +83,8 @@ class PocDemoSeeder extends Seeder
                 'telefone' => sprintf('(41) 9%04d-%04d', 1000 + $i, 2000 + $i),
                 'percentual_comissao' => 10,
                 'status' => 'ativo',
+                // Alterna propria/agregado pra já mostrar os dois na demo
+                'vinculo' => $i % 2 === 0 ? 'propria' : 'agregado',
             ]);
         }
         $motoristaComPortal = Motorista::create([
@@ -118,6 +120,8 @@ class PocDemoSeeder extends Seeder
                 'placa' => $placa, 'modelo' => $modelo, 'marca' => $marca, 'ano' => 2020 + $i,
                 'tipo' => $tipo, 'renavam' => sprintf('1000000%04d', $i), 'capacidade_kg' => 10000,
                 'status' => 'ativo',
+                // Alterna propria/agregado pra já mostrar os dois na demo
+                'vinculo' => $i % 2 === 0 ? 'propria' : 'agregado',
             ]);
         }
 

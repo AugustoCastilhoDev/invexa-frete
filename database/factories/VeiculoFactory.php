@@ -17,12 +17,18 @@ class VeiculoFactory extends Factory
             'renavam'       => $this->faker->numerify('###########'),
             'capacidade_kg' => $this->faker->randomFloat(2, 1000, 30000),
             'status'        => 'ativo',
+            'vinculo'       => 'propria',
         ];
     }
 
     public function inativo(): static
     {
         return $this->state(fn () => ['status' => 'inativo']);
+    }
+
+    public function agregado(): static
+    {
+        return $this->state(fn () => ['vinculo' => 'agregado']);
     }
 
     public function emManutencao(): static

@@ -26,6 +26,41 @@ class MotoristasCrudTest extends TestCase
         $this->assertDatabaseHas('motoristas', ['cpf_hash' => Motorista::hashDocumento('12345678901')]);
     }
 
+    public function test_cria_motorista_sem_informar_vinculo_assume_frota_propria(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->post(route('motoristas.store'), [
+            'nome'                => 'João da Silva',
+            'cpf'                 => '12345678901',
+            'percentual_comissao' => 12.5,
+            'status'              => 'ativo',
+        ]);
+
+        $this->assertDatabaseHas('motoristas', [
+            'cpf_hash' => Motorista::hashDocumento('12345678901'),
+            'vinculo'  => 'propria',
+        ]);
+    }
+
+    public function test_cria_motorista_agregado(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->post(route('motoristas.store'), [
+            'nome'                => 'Motorista Agregado',
+            'cpf'                 => '12345678901',
+            'percentual_comissao' => 12.5,
+            'status'              => 'ativo',
+            'vinculo'             => 'agregado',
+        ]);
+
+        $this->assertDatabaseHas('motoristas', [
+            'cpf_hash' => Motorista::hashDocumento('12345678901'),
+            'vinculo'  => 'agregado',
+        ]);
+    }
+
     public function test_nao_permite_cpf_duplicado(): void
     {
         $this->actingAs(User::factory()->create());
