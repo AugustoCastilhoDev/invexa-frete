@@ -73,6 +73,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Valor do frete opcional na programação (útil quando já negociado), pré-preenchido no formulário de nova viagem ao confirmar
 - **Origem/destino por UF+cidade via IBGE (2026-07-30)**: os campos de rota, que eram texto livre, passaram a usar os mesmos selects de UF→cidade (com código de município do IBGE) já usados no formulário de viagem — evita divergência de grafia entre a rota programada e a rota real da viagem. Migration `add_rota_ibge_fields_to_programacoes_viagem_table` adiciona `origem_uf`/`origem_codigo_municipio`/`destino_uf`/`destino_codigo_municipio` (nullable, para não quebrar registros antigos)
 - **Sugestão automática de valor de frete (2026-07-30)**: mesma integração com a tabela de frete por cliente/rota usada nas telas de viagem — ao selecionar cliente + rota, o campo Valor do Frete é preenchido automaticamente se houver uma entrada cadastrada, mas continua editável e para de ser sobrescrito assim que o usuário digita um valor manualmente. Nota: o link "Confirmar" (que abre `viagens.create` a partir de uma programação) ainda não repassa `origem_uf`/`origem_codigo_municipio`/`destino_uf`/`destino_codigo_municipio` via query string — a pré-seleção da cidade nesse fluxo específico continua pendente, motorista/veículo/cliente/valor_frete já eram (e continuam sendo) pré-preenchidos normalmente
+- **Horário de coleta/entrega e check-in de chegada (2026-08-05)**: segundo item da priorização de Programação de Frota pedida pelo patrocinador. `hora_coleta`, `data_entrega_prevista` e `hora_entrega_prevista` (todos opcionais) somam-se à `data_prevista` existente. Novo botão "Cheguei no local de coleta" — no Portal do Motorista (`portal.programacoes.chegada`) e também na tela `/programacoes` para o operador — grava `chegada_horario_informado` (o horário que quem confirma efetivamente informa, editável, pode ser diferente de quando o registro chega ao sistema) e `chegada_informada_em` (só auditoria). Sem aprovação/trava do operador, diferente do fluxo de Lançamentos — check-in de chegada não mexe em saldo, não precisa da mesma cautela. `ProgramacaoViagem::emRiscoDeNoShow()` filtra em PHP (não em SQL): pendente + hora de coleta definida + sem chegada informada + coleta prevista em ≤2h — combinar data+hora e comparar com "agora+2h" não tem expressão portável entre MySQL (produção) e SQLite (suíte de testes), e o universo candidato é pequeno o bastante pra não pesar. Card "Risco de No-Show" e badge por linha já aparecem em `/programacoes`; os mesmos dados ainda vão alimentar a Página Inicial quando o terceiro item da fila (dashboard) for implementado. 11 testes novos (`ProgramacoesViagemTest`, `PortalProgramacoesTest`)
 
 ### Emissão de CT-e/MDF-e (Focus NFe) — estrutura e payload prontos, desligada por padrão
 - Módulo completo de emissão real de CT-e/MDF-e via API da Focus NFe, mas **inerte para todo cliente até um super_admin ativar manualmente** para uma empresa específica — nenhum plano da Focus foi contratado ainda; ver `[[cte_mdfe_focus_nfe]]` na memória do projeto para o contexto da decisão
@@ -248,7 +249,7 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - **Alternância entre login de Operador/Admin e Portal do Motorista (2026-07-18)**: abas no topo das duas telas de login (`/login` e portal), levando de uma para a outra sem precisar saber a URL de cor
 
 ### Infraestrutura de qualidade
-- 553 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA (incluindo obrigatoriedade pra admin/super admin), notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista, a tela de diagnóstico do sistema e a API REST (autenticação por token e isolamento multi-tenant)
+- 564 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA (incluindo obrigatoriedade pra admin/super admin), notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista, a tela de diagnóstico do sistema e a API REST (autenticação por token e isolamento multi-tenant)
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 - **Varredura de saúde do código (2026-07-16)**: removidos 9 arquivos do scaffold original do Laravel Breeze nunca usados (`welcome.blade.php`, `layouts/navigation.blade.php` e os componentes exclusivos dela — a navegação real é `layouts/app.blade.php`, escrita do zero); adicionadas ao `.env.example` as 4 chaves de `config/lgpd.php` que não estavam documentadas (tinham default seguro no código, mas não apareciam pra quem fosse configurar um deploy novo). Nenhum bug funcional encontrado — suíte completa, `route:list` e uma checagem estática de toda chamada `route('...')` contra as rotas registradas confirmaram consistência
 - **Teste de carga e concorrência em produção (2026-07-18, VPS KVM 1)**: leitura simultânea estável até ~450 requisições sem erro na tela mais pesada do painel (Dashboard), primeiros sinais de fila só perto de 600, sem nenhum erro; escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados. [Relatório completo](https://claude.ai/code/artifact/ae23fae1-d5b5-43f6-a8a4-e6ad9fe81ad2) (privado — liberar visualização caso a caso)
@@ -302,30 +303,45 @@ analisadas e com as decisões de desenho já confirmadas:
   confirmada a partir de uma Programação que já tem `chegada_horario_informado` preenchida (pula o
   clique manual de "Iniciar Viagem" já que a coleta comprovadamente aconteceu) — mexe no fluxo central
   de criação de viagem, então fica só a divisão do card por agora
-- **Horário de coleta e de entrega na Programação**: hoje `data_prevista` em `programacoes_viagem` é só
-  `date`, sem hora (mesma limitação de `Viagem::data_saida`/`data_retorno` — o sistema nunca trabalhou
-  com horário). Migration aditiva: `hora_coleta` (time, nullable) + `data_entrega_prevista`/
-  `hora_entrega_prevista` (date/time, nullable — frete longo pode entregar dias depois), sem quebrar
-  registro existente
-- **Risco de no-show**: regra é "2h antes do agendamento o veículo ainda não está no local da coleta".
-  Sem GPS integrado (ver "Em espera" abaixo), não tem sinal automático de localização — decisão
-  confirmada é **check-in manual, sem trava de aprovação**: botão "Cheguei no local de coleta" no
-  Portal do Motorista (mesmo padrão de UX do lançamento de despesa) e também disponível pro operador
-  marcar. Diferente do fluxo de Lançamentos (pendente→aprovado), aqui não há aprovação do operador —
-  essa trava existe nos lançamentos porque eles mexem no saldo do motorista (dinheiro real); check-in
-  de chegada é só informação operacional, sem efeito financeiro, então não precisa da mesma cautela.
-  Dois campos, pra separar "quando aconteceu" de "quando o sistema recebeu" (mesmo raciocínio já usado
-  no reconhecimento de faturamento por `data_recebimento_frete`, não pela data do clique):
-  `chegada_horario_informado` (o horário que o motorista efetivamente informa — editável, pode ser
-  diferente do momento do envio se ele só pegar sinal depois de sair do local) e `chegada_informada_em`
-  (quando o registro chegou no sistema, auditoria). O cálculo de risco de no-show usa sempre
-  `chegada_horario_informado` contra a coleta prevista. Cards (dashboard e `/programacoes`) refletem o
-  check-in assim que a página é recarregada — não há atualização automática de tela sem reload, mesmo
-  padrão do resto do sistema hoje. Card de risco = programação pendente + coleta prevista em ≤2h +
-  nenhum horário informado ainda. Sem checagem automática de veracidade do horário informado — enquanto
-  não houver rastreamento GPS, confirmar que o veículo está mesmo no local é responsabilidade do
-  operador/programador de cargas, não do sistema; decisão consciente de não construir um mecanismo de
-  contestação agora (baixo risco, sem efeito financeiro) e revisitar só se virar problema real na prática
+- ✅ **Horário de coleta e de entrega na Programação — implementado 2026-08-05**: `data_prevista` em
+  `programacoes_viagem` ganhou `hora_coleta` + `data_entrega_prevista`/`hora_entrega_prevista` (todos
+  opcionais, migration aditiva, sem quebrar registro existente)
+- ✅ **Risco de no-show — implementado 2026-08-05**: check-in manual, sem trava de aprovação, no Portal
+  do Motorista e também disponível pro operador em `/programacoes`. Detalhe completo na seção
+  "Programação de Frota" acima
+
+### Taxonomia de veículos de carga pesada (ideia registrada, 2026-08-05)
+Hoje `tipo` em [Veiculo](app/Models/Veiculo.php) é `truck`/`carreta`/`van`/`utilitario`/`outro` — cobre
+bem carga leve, mas é raso demais pra carga pesada profissional. Lista proposta, substituindo e
+expandindo as opções atuais:
+- **Truck (Chassi Rígido)** — caminhão pesado fixo, 3 eixos
+- **Bitruck (Chassi Rígido)** — caminhão pesado fixo, 4 eixos
+- **Cavalo Mecânico Simples (4x2)** — unidade tratora, 2 eixos
+- **Cavalo Mecânico Trucado (6x2 / 6x4)** — unidade tratora, 3 eixos
+- **Carreta (Semirreboque)** — o implemento de carga isolado (já existe)
+- **Bitrem / Rodotrem (Combinação)** — pro caso de agregado que cadastra o conjunto rodoviário completo
+  numa única placa
+
+Separar o cavalo mecânico em Simples x Trucado importa de verdade, não é só rótulo mais bonito: muda
+capacidade de tração (trucado puxa Bitrem/Rodotrem, simples não), pedágio e consumo de pneu (o número de
+eixos do cavalo altera os dois direto) e facilita o controle de estoque de peça/pneu preventivo em
+`/manutencoes` mais pra frente.
+
+**Risco real de implementação, não só cosmético**: hoje o vínculo cavalo↔carreta é decidido checando
+literalmente `tipo === 'truck'`, em 4 pontos de
+[VeiculosController.php](app/Http/Controllers/VeiculosController.php#L33) (dropdown de cavalos nos dois
+formulários + validação de `cavalo_id` nos dois). Na taxonomia nova, quem puxa carreta são os **Cavalo
+Mecânico** (Simples/Trucado) — Truck e Bitruck são chassi rígido, não tracionam semirreboque. Ou seja,
+não é só trocar o rótulo de `truck`: os 4 pontos precisam passar a checar "é algum tipo de cavalo
+mecânico" em vez de um valor único, senão um Truck (chassi rígido) continua aparecendo errado como opção
+de cavalo pra vincular carreta. Também precisa de decisão sobre o que fazer com veículo já cadastrado
+como `truck` hoje (migração de dado pra qual valor novo?) antes de trocar o enum — não decidido ainda,
+fica pra quando entrar na fila de implementação.
+
+**Próximo passo sugerido, também só registrado por ora**: quando `tipo = carreta` for selecionado, abrir
+um campo condicional novo — "Tipo de Carroceria / Implemento" — com Baú/Sider, Graneleiro/Grade Baixa,
+Caçamba, Prancha/Porta-Contêiner. Mesmo padrão de UX já usado pro campo condicional de "Cavalo
+Vinculado" que só aparece quando `tipo = carreta` ([veiculos/create.blade.php:46-56](resources/views/veiculos/create.blade.php#L46-L56)).
 
 ### Curto prazo
 - **WhatsApp**: arquitetura de notificação já pronta para receber um novo canal; falta só a conta em um provedor (Twilio, Z-API, Meta Cloud API) para integrar de verdade

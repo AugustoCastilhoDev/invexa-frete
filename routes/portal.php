@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Portal\PortalAuthController;
 use App\Http\Controllers\Portal\PortalLancamentosController;
+use App\Http\Controllers\Portal\PortalProgramacoesController;
 use App\Http\Controllers\Portal\PortalSenhaController;
 use App\Http\Controllers\Portal\PortalViagensController;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
 
         Route::post('viagens/{viagem}/lancamentos', [PortalLancamentosController::class, 'store'])
             ->name('lancamentos.store');
+
+        Route::post('programacoes/{programacao}/chegada', [PortalProgramacoesController::class, 'chegada'])
+            ->name('programacoes.chegada');
 
         Route::get('senha', [PortalSenhaController::class, 'edit'])->name('senha.edit');
         Route::put('senha', [PortalSenhaController::class, 'update'])->name('senha.update');

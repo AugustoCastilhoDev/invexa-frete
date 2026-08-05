@@ -33,6 +33,18 @@
             </div>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="card text-center border-start border-danger border-3">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                    <i class="bi bi-clock-history text-danger" style="font-size:.8rem"></i>
+                    <span class="text-muted small">Risco de No-Show</span>
+                </div>
+                <div class="fw-bold text-danger fs-3">{{ $totalRiscoNoShow }}</div>
+                <div class="text-muted" style="font-size:.7rem">coleta em ≤2h sem chegada informada</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- ── Filtros ── --}}
@@ -96,6 +108,7 @@
                     <th>Cliente</th>
                     <th>Origem / Destino</th>
                     <th>Data Prevista</th>
+                    <th>Coleta</th>
                     <th>Frete</th>
                     <th>Status</th>
                     <th class="text-end pe-4">Ações</th>
@@ -110,6 +123,34 @@
                     <td>{{ $programacao->cliente->nome ?? '-' }}</td>
                     <td>{{ $programacao->origem }} → {{ $programacao->destino }}</td>
                     <td>{{ $programacao->data_prevista->format('d/m/Y') }}</td>
+                    <td>
+                        @if(! $programacao->hora_coleta)
+                            <span class="text-muted">-</span>
+                        @else
+                            <div>{{ \Illuminate\Support\Carbon::parse($programacao->hora_coleta)->format('H:i') }}</div>
+                            @if($programacao->chegadaInformada())
+                                <span class="badge bg-success-subtle text-success" style="font-size:.7rem">
+                                    <i class="bi bi-check-circle me-1"></i>Chegada {{ $programacao->chegada_horario_informado->format('H:i') }}
+                                </span>
+                            @elseif($programacao->em_risco_de_no_show)
+                                <span class="badge bg-danger-subtle text-danger" style="font-size:.7rem">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Risco de no-show
+                                </span>
+                            @endif
+                            @if($programacao->estaPendente() && ! $programacao->chegadaInformada())
+                                <form action="{{ route('programacoes.chegada', $programacao) }}" method="POST"
+                                      class="d-flex gap-1 align-items-center mt-1">
+                                    @csrf
+                                    <input type="time" name="horario" class="form-control form-control-sm"
+                                           style="width:85px;font-size:.75rem" value="{{ now()->format('H:i') }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success px-1 py-0"
+                                            title="Confirmar chegada no local de coleta" style="font-size:.75rem">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </button>
+                                </form>
+                            @endif
+                        @endif
+                    </td>
                     <td>{{ $programacao->valor_frete !== null ? 'R$ ' . number_format($programacao->valor_frete, 2, ',', '.') : '-' }}</td>
                     <td>
                         @if($programacao->status === 'pendente')
@@ -158,7 +199,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="text-center text-muted py-5">
+                    <td colspan="10" class="text-center text-muted py-5">
                         <i class="bi bi-signpost-2 fs-3 d-block mb-2"></i>
                         Nenhuma programação encontrada.
                     </td>

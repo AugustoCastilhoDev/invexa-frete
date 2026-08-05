@@ -184,6 +184,110 @@ class ProgramacoesViagemTest extends TestCase
         $this->assertNull(ProgramacaoViagem::firstOrFail()->valor_frete);
     }
 
+    public function test_cadastra_programacao_com_hora_de_coleta_e_entrega_prevista(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->post(route('programacoes.store'), [
+            'motorista_id'  => Motorista::factory()->create()->id,
+            'veiculo_id'    => Veiculo::factory()->create()->id,
+            'origem'        => 'São Paulo',
+            'destino'       => 'Curitiba',
+            'data_prevista' => now()->addDays(2)->format('Y-m-d'),
+            'hora_coleta'   => '08:30',
+            'data_entrega_prevista' => now()->addDays(3)->format('Y-m-d'),
+            'hora_entrega_prevista' => '17:00',
+        ]);
+
+        $response->assertRedirect(route('programacoes.index'));
+        $programacao = ProgramacaoViagem::firstOrFail();
+        // Formato bruto da coluna TIME varia entre MySQL (produção, normaliza pra
+        // "H:i:s") e SQLite (suíte de testes, guarda exatamente o que foi salvo)
+        // — comparar pelo valor semântico (H:i) em vez da string crua.
+        $this->assertSame('08:30', \Illuminate\Support\Carbon::parse($programacao->hora_coleta)->format('H:i'));
+        $this->assertSame('17:00', \Illuminate\Support\Carbon::parse($programacao->hora_entrega_prevista)->format('H:i'));
+        $this->assertSame(now()->addDays(3)->format('Y-m-d'), $programacao->data_entrega_prevista->format('Y-m-d'));
+    }
+
+    public function test_operador_marca_chegada_no_local_de_coleta(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $programacao = ProgramacaoViagem::factory()->create([
+            'data_prevista' => now()->format('Y-m-d'),
+            'hora_coleta'   => '08:00',
+        ]);
+
+        $response = $this->post(route('programacoes.chegada', $programacao), ['horario' => '08:15']);
+
+        $response->assertRedirect(route('programacoes.index'));
+        $programacao->refresh();
+        $this->assertTrue($programacao->chegadaInformada());
+        $this->assertSame('08:15', $programacao->chegada_horario_informado->format('H:i'));
+        $this->assertNotNull($programacao->chegada_informada_em);
+    }
+
+    public function test_nao_pode_marcar_chegada_em_programacao_ja_confirmada(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $programacao = ProgramacaoViagem::factory()->confirmada()->create(['hora_coleta' => '08:00']);
+
+        $response = $this->post(route('programacoes.chegada', $programacao), ['horario' => '08:15']);
+
+        $response->assertStatus(400);
+    }
+
+    public function test_risco_de_no_show_considera_coleta_prevista_dentro_de_2h_sem_chegada(): void
+    {
+        \Illuminate\Support\Carbon::setTestNow('2026-08-10 06:00:00');
+        $this->actingAs(User::factory()->create());
+
+        // Coleta prevista daqui a 1h: dentro da janela de risco (≤2h) e sem chegada informada.
+        $emRisco = ProgramacaoViagem::factory()->create([
+            'data_prevista' => '2026-08-10',
+            'hora_coleta'   => '07:00',
+        ]);
+
+        // Coleta prevista daqui a 5h: fora da janela, não deveria contar.
+        ProgramacaoViagem::factory()->create([
+            'data_prevista' => '2026-08-10',
+            'hora_coleta'   => '11:00',
+        ]);
+
+        $resultado = ProgramacaoViagem::emRiscoDeNoShow();
+
+        $this->assertCount(1, $resultado);
+        $this->assertTrue($resultado->first()->is($emRisco));
+
+        \Illuminate\Support\Carbon::setTestNow();
+    }
+
+    public function test_risco_de_no_show_nao_conta_quando_chegada_ja_informada(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $programacao = ProgramacaoViagem::factory()->create([
+            'data_prevista' => now()->format('Y-m-d'),
+            'hora_coleta'   => now()->addMinutes(30)->format('H:i'),
+        ]);
+        $programacao->marcarChegada(now()->format('H:i'));
+
+        $this->assertCount(0, ProgramacaoViagem::emRiscoDeNoShow());
+    }
+
+    public function test_risco_de_no_show_nao_conta_sem_hora_de_coleta_definida(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        ProgramacaoViagem::factory()->create([
+            'data_prevista' => now()->format('Y-m-d'),
+            'hora_coleta'   => null,
+        ]);
+
+        $this->assertCount(0, ProgramacaoViagem::emRiscoDeNoShow());
+    }
+
     public function test_confirmar_programacao_cria_viagem_e_marca_como_confirmada(): void
     {
         $this->actingAs(User::factory()->create());

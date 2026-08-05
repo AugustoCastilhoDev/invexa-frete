@@ -96,14 +96,22 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Data Prevista *</label>
                     <input type="date" name="data_prevista"
                            class="form-control @error('data_prevista') is-invalid @enderror"
                            value="{{ old('data_prevista', $programacao->data_prevista->format('Y-m-d')) }}" required>
                     @error('data_prevista')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Hora da Coleta</label>
+                    <input type="time" name="hora_coleta"
+                           class="form-control @error('hora_coleta') is-invalid @enderror"
+                           value="{{ old('hora_coleta', $programacao->hora_coleta ? \Illuminate\Support\Carbon::parse($programacao->hora_coleta)->format('H:i') : null) }}">
+                    @error('hora_coleta')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <small class="text-muted">Usada pro alerta de risco de no-show</small>
+                </div>
+                <div class="col-md-6">
                     <label class="form-label fw-semibold">Valor do Frete</label>
                     <div class="input-group">
                         <span class="input-group-text">R$</span>
@@ -114,7 +122,29 @@
                     </div>
                     <small class="text-muted">Opcional — preencha se já estiver negociado, ou selecione cliente + rota para receber uma sugestão automática</small>
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Data de Entrega Prevista</label>
+                    <input type="date" name="data_entrega_prevista"
+                           class="form-control @error('data_entrega_prevista') is-invalid @enderror"
+                           value="{{ old('data_entrega_prevista', optional($programacao->data_entrega_prevista)->format('Y-m-d')) }}">
+                    @error('data_entrega_prevista')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Hora de Entrega Prevista</label>
+                    <input type="time" name="hora_entrega_prevista"
+                           class="form-control @error('hora_entrega_prevista') is-invalid @enderror"
+                           value="{{ old('hora_entrega_prevista', $programacao->hora_entrega_prevista ? \Illuminate\Support\Carbon::parse($programacao->hora_entrega_prevista)->format('H:i') : null) }}">
+                    @error('hora_entrega_prevista')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
             </div>
+
+            @if($programacao->chegadaInformada())
+                <div class="alert alert-success py-2 mb-4">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Chegada no local de coleta informada às <strong>{{ $programacao->chegada_horario_informado->format('H:i') }}</strong>
+                    (registrado no sistema às {{ $programacao->chegada_informada_em->format('d/m/Y H:i') }}).
+                </div>
+            @endif
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Observações</label>

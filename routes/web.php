@@ -187,6 +187,8 @@ Route::middleware(['auth', 'not_super_admin', 'two_factor_required'])->group(fun
         ->parameters(['programacoes' => 'programacao']);
     Route::delete('programacoes/{programacao}', [ProgramacoesViagemController::class, 'destroy'])
         ->middleware('admin')->name('programacoes.destroy');
+    Route::post('programacoes/{programacao}/chegada', [ProgramacoesViagemController::class, 'marcarChegada'])
+        ->name('programacoes.chegada');
 
     // Lançamentos (aninhados na viagem)
     Route::post('viagens/{viagem}/lancamentos', [LancamentosController::class, 'store'])

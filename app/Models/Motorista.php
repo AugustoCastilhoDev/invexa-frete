@@ -69,6 +69,12 @@ class Motorista extends Model implements AuthenticatableContract
         return $this->hasMany(Viagem::class);
     }
 
+    // Um motorista tem muitas programações de viagem futura
+    public function programacoes()
+    {
+        return $this->hasMany(ProgramacaoViagem::class);
+    }
+
     // Motoristas ativos com CNH já vencida ou vencendo nos próximos $dias
     public function scopeCnhVencendo($query, int $dias = 30)
     {

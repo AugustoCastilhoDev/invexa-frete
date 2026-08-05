@@ -37,6 +37,8 @@ class ProgramacoesViagemController extends Controller
 
         $totalPendentes = ProgramacaoViagem::where('status', 'pendente')->count();
 
+        $totalRiscoNoShow = ProgramacaoViagem::emRiscoDeNoShow()->count();
+
         // Carreta vinculada a um cavalo não conta separadamente: ela sempre viaja
         // junto do cavalo, então só o cavalo precisa da própria programação.
         $totalVeiculosSemProgramacao = Veiculo::contamParaLimite()
@@ -49,7 +51,7 @@ class ProgramacoesViagemController extends Controller
 
         return view('programacoes.index', compact(
             'programacoes', 'motoristas', 'veiculos',
-            'totalPendentes', 'totalVeiculosSemProgramacao'
+            'totalPendentes', 'totalVeiculosSemProgramacao', 'totalRiscoNoShow'
         ));
     }
 
@@ -103,6 +105,18 @@ class ProgramacoesViagemController extends Controller
             ->with('success', 'Programação removida com sucesso!');
     }
 
+    public function marcarChegada(Request $request, ProgramacaoViagem $programacao)
+    {
+        abort_if(! $programacao->estaPendente(), 400, 'Esta programação já foi confirmada.');
+
+        $request->validate(['horario' => 'nullable|date_format:H:i']);
+
+        $programacao->marcarChegada($request->input('horario') ?: now()->format('H:i'));
+
+        return redirect()->route('programacoes.index')
+            ->with('success', 'Chegada no local de coleta registrada com sucesso!');
+    }
+
     private function validarDados(Request $request, ?ProgramacaoViagem $programacao = null): array
     {
         $data = $request->validate([
@@ -141,6 +155,9 @@ class ProgramacoesViagemController extends Controller
             'destino_codigo_municipio' => 'nullable|string|max:7',
             'valor_frete'      => 'nullable|numeric|min:0',
             'data_prevista'    => 'required|date',
+            'hora_coleta'      => 'nullable|date_format:H:i',
+            'data_entrega_prevista' => 'nullable|date|after_or_equal:data_prevista',
+            'hora_entrega_prevista' => 'nullable|date_format:H:i',
             'observacoes'      => 'nullable|string',
             'viagem_origem_id' => 'nullable|exists:viagens,id',
         ]);

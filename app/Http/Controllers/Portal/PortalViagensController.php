@@ -13,12 +13,18 @@ class PortalViagensController extends Controller
 
     public function index()
     {
-        $viagens = Auth::guard('motorista')->user()
-            ->viagens()
+        $motorista = Auth::guard('motorista')->user();
+
+        $viagens = $motorista->viagens()
             ->orderByDesc('data_saida')
             ->paginate(10);
 
-        return view('portal.viagens.index', compact('viagens'));
+        $programacoesPendentes = $motorista->programacoes()
+            ->where('status', 'pendente')
+            ->orderBy('data_prevista')
+            ->get();
+
+        return view('portal.viagens.index', compact('viagens', 'programacoesPendentes'));
     }
 
     public function show(Viagem $viagem)

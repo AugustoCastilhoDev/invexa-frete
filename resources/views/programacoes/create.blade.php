@@ -97,14 +97,22 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Data Prevista *</label>
                     <input type="date" name="data_prevista"
                            class="form-control @error('data_prevista') is-invalid @enderror"
                            value="{{ old('data_prevista', date('Y-m-d')) }}" required>
                     @error('data_prevista')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Hora da Coleta</label>
+                    <input type="time" name="hora_coleta"
+                           class="form-control @error('hora_coleta') is-invalid @enderror"
+                           value="{{ old('hora_coleta') }}">
+                    @error('hora_coleta')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <small class="text-muted">Usada pro alerta de risco de no-show</small>
+                </div>
+                <div class="col-md-6">
                     <label class="form-label fw-semibold">Valor do Frete</label>
                     <div class="input-group">
                         <span class="input-group-text">R$</span>
@@ -114,6 +122,20 @@
                         @error('valor_frete')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <small class="text-muted">Opcional — preencha se já estiver negociado, ou selecione cliente + rota para receber uma sugestão automática</small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Data de Entrega Prevista</label>
+                    <input type="date" name="data_entrega_prevista"
+                           class="form-control @error('data_entrega_prevista') is-invalid @enderror"
+                           value="{{ old('data_entrega_prevista') }}">
+                    @error('data_entrega_prevista')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Hora de Entrega Prevista</label>
+                    <input type="time" name="hora_entrega_prevista"
+                           class="form-control @error('hora_entrega_prevista') is-invalid @enderror"
+                           value="{{ old('hora_entrega_prevista') }}">
+                    @error('hora_entrega_prevista')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
 
