@@ -92,10 +92,10 @@ class ProgramacoesViagemController extends Controller
     public function store(Request $request)
     {
         $data = $this->validarDados($request);
-        $destinos = Arr::pull($data, 'destinos', []);
+        $paradas = Arr::pull($data, 'paradas', []);
 
         $programacao = ProgramacaoViagem::create($data);
-        $this->salvarDestinos($programacao, $destinos);
+        $this->salvarParadas($programacao, $paradas);
 
         return redirect()->route('programacoes.index')
             ->with('success', 'Próxima viagem programada com sucesso!');
@@ -105,7 +105,7 @@ class ProgramacoesViagemController extends Controller
     {
         abort_if(! $programacao->estaPendente(), 400, 'Esta programação já foi confirmada.');
 
-        $programacao->load('destinos');
+        $programacao->load('paradas');
 
         $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
         $veiculos = Veiculo::with('carretas')->where('status', 'ativo')->where('tipo', '!=', 'carreta')->orderBy('placa')->get();
@@ -120,10 +120,10 @@ class ProgramacoesViagemController extends Controller
         abort_if(! $programacao->estaPendente(), 400, 'Esta programação já foi confirmada.');
 
         $data = $this->validarDados($request, $programacao);
-        $destinos = Arr::pull($data, 'destinos', []);
+        $paradas = Arr::pull($data, 'paradas', []);
 
         $programacao->update($data);
-        $this->salvarDestinos($programacao, $destinos);
+        $this->salvarParadas($programacao, $paradas);
 
         return redirect()->route('programacoes.index')
             ->with('success', 'Programação atualizada com sucesso!');
@@ -193,33 +193,43 @@ class ProgramacoesViagemController extends Controller
             'hora_entrega_prevista' => 'nullable|date_format:H:i',
             'observacoes'      => 'nullable|string',
             'viagem_origem_id' => 'nullable|exists:viagens,id',
-            'destinos'                     => 'nullable|array',
-            'destinos.*.cidade'            => 'nullable|string|max:255',
-            'destinos.*.uf'                => 'nullable|string|max:2',
-            'destinos.*.codigo_municipio'  => 'nullable|string|max:7',
-            'destinos.*.valor_frete'       => 'nullable|numeric|min:0',
+            'paradas'                    => 'nullable|array',
+            'paradas.*.tipo'             => 'nullable|in:coleta,entrega',
+            'paradas.*.cidade'           => 'nullable|string|max:255',
+            'paradas.*.uf'               => 'nullable|string|max:2',
+            'paradas.*.codigo_municipio' => 'nullable|string|max:7',
+            'paradas.*.valor_frete'      => 'nullable|numeric|min:0',
         ]);
 
         return $data;
     }
 
-    // Delete-and-recreate: seguro porque destinos só ganham carga_id depois
+    // Delete-and-recreate: seguro porque paradas só ganham carga_id depois
     // que a programação já está confirmada — e confirmada não passa mais por
-    // aqui (update() bloqueia edição fora do status "pendente").
-    private function salvarDestinos(ProgramacaoViagem $programacao, array $destinos): void
+    // aqui (update() bloqueia edição fora do status "pendente"). A ordem
+    // salva segue a ordem de chegada no array (o navegador manda os campos
+    // na ordem em que aparecem no DOM, não na ordem numérica do índice do
+    // nome do campo) — é isso que os botões de mover pra cima/baixo na tela
+    // usam pra reordenar sem precisar de nenhuma lógica extra aqui.
+    private function salvarParadas(ProgramacaoViagem $programacao, array $paradas): void
     {
-        $programacao->destinos()->delete();
+        $programacao->paradas()->delete();
 
-        foreach (array_values($destinos) as $indice => $destino) {
-            if (blank($destino['cidade'] ?? null)) {
+        foreach (array_values($paradas) as $indice => $parada) {
+            if (blank($parada['cidade'] ?? null)) {
                 continue;
             }
 
-            $programacao->destinos()->create([
-                'cidade'           => $destino['cidade'],
-                'uf'               => $destino['uf'] ?? null,
-                'codigo_municipio' => $destino['codigo_municipio'] ?? null,
-                'valor_frete'      => $destino['valor_frete'] ?? null,
+            $tipo = $parada['tipo'] ?? 'entrega';
+
+            $programacao->paradas()->create([
+                'tipo'             => $tipo,
+                'cidade'           => $parada['cidade'],
+                'uf'               => $parada['uf'] ?? null,
+                'codigo_municipio' => $parada['codigo_municipio'] ?? null,
+                // Valor de frete só faz sentido pra entrega (é o que vira
+                // Carga depois) — coleta nunca carrega esse dado.
+                'valor_frete'      => $tipo === 'entrega' ? ($parada['valor_frete'] ?? null) : null,
                 'ordem'            => $indice,
             ]);
         }

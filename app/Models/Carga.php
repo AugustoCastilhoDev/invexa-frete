@@ -20,6 +20,9 @@ class Carga extends Model
         'destino',
         'destino_uf',
         'destino_codigo_municipio',
+        'origem',
+        'origem_uf',
+        'origem_codigo_municipio',
     ];
 
     protected $casts = [
@@ -76,5 +79,23 @@ class Carga extends Model
     public function getDestinoCodigoMunicipioEfetivoAttribute(): ?string
     {
         return $this->destino_codigo_municipio ?? $this->viagem?->destino_codigo_municipio;
+    }
+
+    // Mesma ideia do lado da coleta: viagem com múltiplas coletas em pontos
+    // diferentes (2 origens) pode ter carga cuja coleta real foi num ponto
+    // diferente da origem principal da viagem.
+    public function getOrigemEfetivaAttribute(): ?string
+    {
+        return $this->origem ?? $this->viagem?->origem;
+    }
+
+    public function getOrigemUfEfetivaAttribute(): ?string
+    {
+        return $this->origem_uf ?? $this->viagem?->origem_uf;
+    }
+
+    public function getOrigemCodigoMunicipioEfetivaAttribute(): ?string
+    {
+        return $this->origem_codigo_municipio ?? $this->viagem?->origem_codigo_municipio;
     }
 }

@@ -297,10 +297,12 @@ class EmissoesFiscaisController extends Controller
      * Destinatário e valores vêm da Carga (um CT-e por carga/cliente), não
      * mais da viagem inteira. Emitente vem da Unidade (matriz/filial)
      * escolhida na carga quando houver, com fallback pros dados fiscais da
-     * Empresa — cobre empresas sem filial. Destino (município_fim/uf_fim/
-     * codigo_municipio_fim) vem da própria Carga quando ela tem cidade
-     * própria (fracionado com destinos diferentes), com fallback pro destino
-     * da Viagem — cobre o caso comum de uma entrega só.
+     * Empresa — cobre empresas sem filial. Origem (município_inicio/uf_inicio/
+     * codigo_municipio_inicio) e destino (município_fim/uf_fim/
+     * codigo_municipio_fim) vêm da própria Carga quando ela tem cidade
+     * própria (fracionado com origens/destinos diferentes), com fallback
+     * pra origem/destino da Viagem — cobre o caso comum de 1 coleta e 1
+     * entrega só.
      */
     private function montarPayloadCte(Carga $carga): array
     {
@@ -321,9 +323,11 @@ class EmissoesFiscaisController extends Controller
             'codigo_municipio_envio' => $emitente->codigo_municipio,
             'municipio_envio' => $emitente->municipio,
             'uf_envio' => $emitente->uf,
-            'codigo_municipio_inicio' => $viagem->origem_codigo_municipio,
-            'municipio_inicio' => $viagem->origem,
-            'uf_inicio' => $viagem->origem_uf,
+            // Fallback pra origem da viagem quando a carga não tem coleta
+            // própria — ver Carga::origem_efetiva.
+            'codigo_municipio_inicio' => $carga->origem_codigo_municipio_efetiva,
+            'municipio_inicio' => $carga->origem_efetiva,
+            'uf_inicio' => $carga->origem_uf_efetiva,
             // Fallback pro destino da viagem quando a carga não tem cidade
             // própria (caso comum, uma entrega só) — ver Carga::destino_efetivo.
             'codigo_municipio_fim' => $carga->destino_codigo_municipio_efetivo,

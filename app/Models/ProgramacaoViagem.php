@@ -80,12 +80,24 @@ class ProgramacaoViagem extends Model
         return $this->belongsTo(Viagem::class, 'viagem_id');
     }
 
-    // Destinos além do "Destino" principal (ex.: coleta em São Paulo, entrega
-    // em Salvador e Maceió) — cada um vira sugestão de Carga ao confirmar
-    // esta programação em Viagem (ver Viagem::destinosPendentes()).
-    public function destinos()
+    // Paradas além da Origem/Destino principais (ex.: 2ª coleta em Curitiba,
+    // entregas extras em Salvador e Maceió) — ordenadas pra já deixar pronta
+    // a sequência real da viagem (roteirização futura). Entregas viram
+    // sugestão de Carga ao confirmar esta programação em Viagem (ver
+    // Viagem::entregasPendentes()); coletas são só informativas por ora.
+    public function paradas()
     {
-        return $this->hasMany(DestinoProgramacao::class, 'programacao_viagem_id')->orderBy('ordem');
+        return $this->hasMany(ParadaProgramacao::class, 'programacao_viagem_id')->orderBy('ordem');
+    }
+
+    public function paradasColeta()
+    {
+        return $this->paradas()->where('tipo', 'coleta');
+    }
+
+    public function paradasEntrega()
+    {
+        return $this->paradas()->where('tipo', 'entrega');
     }
 
     public function estaPendente(): bool

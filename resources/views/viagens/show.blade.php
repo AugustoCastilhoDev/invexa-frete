@@ -334,27 +334,37 @@
             </div>
             @endif
             @if($viagem->empresa->focus_nfe_ativo)
-            @php $destinosPendentes = $viagem->destinosPendentes(); @endphp
-            @if($destinosPendentes->isNotEmpty())
+            @php
+                $entregasPendentes = $viagem->entregasPendentes();
+                $coletasPlanejadas = $viagem->coletasPlanejadas();
+            @endphp
+            @if($coletasPlanejadas->isNotEmpty())
+            <div class="px-3 pt-2 pb-1 small text-muted border-bottom">
+                <i class="bi bi-signpost-split me-1"></i>Coletas planejadas na programação:
+                {{ $coletasPlanejadas->map(fn ($c) => "{$c->cidade}/{$c->uf}")->implode(', ') }}
+                — use como referência ao preencher a origem de uma carga abaixo.
+            </div>
+            @endif
+            @if($entregasPendentes->isNotEmpty())
             <div class="px-3 pt-2 pb-1 bg-info bg-opacity-10 border-bottom">
                 <small class="fw-semibold text-info-emphasis d-block mb-1">
-                    <i class="bi bi-signpost-split me-1"></i>Destinos planejados na programação — ainda sem carga
+                    <i class="bi bi-signpost-split me-1"></i>Entregas planejadas na programação — ainda sem carga
                 </small>
-                @foreach($destinosPendentes as $destinoPendente)
+                @foreach($entregasPendentes as $entregaPendente)
                 <div class="d-flex justify-content-between align-items-center small py-1">
                     <span>
                         <i class="bi bi-geo-alt text-muted"></i>
-                        {{ $destinoPendente->cidade }}/{{ $destinoPendente->uf }}
-                        @if($destinoPendente->valor_frete)
-                            — R$ {{ number_format($destinoPendente->valor_frete, 2, ',', '.') }}
+                        {{ $entregaPendente->cidade }}/{{ $entregaPendente->uf }}
+                        @if($entregaPendente->valor_frete)
+                            — R$ {{ number_format($entregaPendente->valor_frete, 2, ',', '.') }}
                         @endif
                     </span>
                     <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#novaCarga"
-                            data-destino-id="{{ $destinoPendente->id }}"
-                            data-cidade="{{ $destinoPendente->cidade }}"
-                            data-uf="{{ $destinoPendente->uf }}"
-                            data-codigo="{{ $destinoPendente->codigo_municipio }}"
-                            data-valor="{{ $destinoPendente->valor_frete }}">
+                            data-parada-id="{{ $entregaPendente->id }}"
+                            data-cidade="{{ $entregaPendente->cidade }}"
+                            data-uf="{{ $entregaPendente->uf }}"
+                            data-codigo="{{ $entregaPendente->codigo_municipio }}"
+                            data-valor="{{ $entregaPendente->valor_frete }}">
                         <i class="bi bi-plus-lg me-1"></i>Criar Carga
                     </button>
                 </div>
@@ -375,6 +385,11 @@
                         @endif
                         @if($carga->valor_frete)
                             — R$ {{ number_format($carga->valor_frete, 2, ',', '.') }}
+                        @endif
+                        @if($carga->origem)
+                            <span class="badge bg-warning bg-opacity-10 text-warning ms-1">
+                                <i class="bi bi-geo-alt-fill"></i> de {{ $carga->origem }}/{{ $carga->origem_uf }}
+                            </span>
                         @endif
                         @if($carga->destino)
                             <span class="badge bg-info bg-opacity-10 text-info ms-1">
@@ -408,7 +423,7 @@
                     <div class="modal-content">
                         <form action="{{ route('cargas.store', $viagem) }}" method="POST">
                             @csrf
-                            <input type="hidden" name="destino_programacao_id" id="carga_destino_programacao_id">
+                            <input type="hidden" name="parada_programacao_id" id="carga_parada_programacao_id">
                             <div class="modal-header">
                                 <h6 class="modal-title mb-0">Nova Carga</h6>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -432,6 +447,26 @@
                                         <input type="number" name="valor_frete" id="carga_valor_frete" class="form-control form-control-sm" step="0.01" min="0">
                                     </div>
                                     <div class="form-text">Usado no CT-e deste cliente — pode ser diferente do valor de frete da viagem inteira.</div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">Origem desta carga (opcional)</label>
+                                    <div class="row g-1">
+                                        <div class="col-4">
+                                            <select name="origem_uf" id="carga_origem_uf" class="form-select form-select-sm">
+                                                <option value="">UF</option>
+                                                @foreach(['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] as $uf)
+                                                <option value="{{ $uf }}">{{ $uf }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-8">
+                                            <select name="origem" id="carga_origem_cidade" class="form-select form-select-sm">
+                                                <option value="">Selecione a UF primeiro</option>
+                                            </select>
+                                            <input type="hidden" name="origem_codigo_municipio" id="carga_origem_codigo_municipio">
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Só preencha se esta carga foi coletada num ponto diferente da origem da viagem ({{ $viagem->origem }}/{{ $viagem->origem_uf }}).</div>
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label small fw-semibold">Destino desta carga (opcional)</label>
@@ -480,56 +515,77 @@
             @push('scripts')
             <script>
             (function () {
-                const ufSelect = document.getElementById('carga_destino_uf');
-                const cidadeSelect = document.getElementById('carga_destino_cidade');
-                const codigoInput = document.getElementById('carga_destino_codigo_municipio');
-                const valorInput = document.getElementById('carga_valor_frete');
-                const destinoProgramacaoInput = document.getElementById('carga_destino_programacao_id');
                 const modalNovaCarga = document.getElementById('novaCarga');
-                if (!ufSelect || !cidadeSelect || !codigoInput || !modalNovaCarga) return;
+                const valorInput = document.getElementById('carga_valor_frete');
+                const paradaProgramacaoInput = document.getElementById('carga_parada_programacao_id');
+                if (!modalNovaCarga) return;
 
-                function carregarCidades(ufSelecionada, selecionarCidade, codigoFallback) {
-                    if (!ufSelecionada) {
-                        cidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
-                        codigoInput.value = '';
-                        return;
+                // Mesmo seletor UF→cidade (IBGE) usado em todo lugar, aqui
+                // aplicado duas vezes (origem e destino da carga) — por isso
+                // vira uma função que devolve um "carregador" reutilizável,
+                // em vez de repetir a lógica de fetch duas vezes.
+                function criarCarregadorDeCidades(ufSelect, cidadeSelect, codigoInput) {
+                    function carregarCidades(ufSelecionada, selecionarCidade, codigoFallback) {
+                        if (!ufSelecionada) {
+                            cidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+                            codigoInput.value = '';
+                            return;
+                        }
+                        cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+                        fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufSelecionada}/municipios`)
+                            .then(r => r.json())
+                            .then(municipios => {
+                                cidadeSelect.innerHTML = '<option value="">Selecione a cidade</option>' +
+                                    municipios.map(m => `<option value="${m.nome}" data-codigo="${m.id}">${m.nome}</option>`).join('');
+                                if (selecionarCidade) {
+                                    cidadeSelect.value = selecionarCidade;
+                                    codigoInput.value = cidadeSelect.selectedOptions[0]?.dataset.codigo || codigoFallback || '';
+                                }
+                            })
+                            .catch(() => { cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>'; });
                     }
-                    cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
-                    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufSelecionada}/municipios`)
-                        .then(r => r.json())
-                        .then(municipios => {
-                            cidadeSelect.innerHTML = '<option value="">Selecione a cidade</option>' +
-                                municipios.map(m => `<option value="${m.nome}" data-codigo="${m.id}">${m.nome}</option>`).join('');
-                            if (selecionarCidade) {
-                                cidadeSelect.value = selecionarCidade;
-                                codigoInput.value = cidadeSelect.selectedOptions[0]?.dataset.codigo || codigoFallback || '';
-                            }
-                        })
-                        .catch(() => { cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>'; });
+
+                    ufSelect.addEventListener('change', function () { carregarCidades(this.value, null); });
+                    cidadeSelect.addEventListener('change', function () {
+                        codigoInput.value = this.selectedOptions[0]?.dataset.codigo || '';
+                    });
+
+                    return carregarCidades;
                 }
 
-                ufSelect.addEventListener('change', function () { carregarCidades(this.value, null); });
-                cidadeSelect.addEventListener('change', function () {
-                    codigoInput.value = this.selectedOptions[0]?.dataset.codigo || '';
-                });
+                const origemUfSelect = document.getElementById('carga_origem_uf');
+                const origemCidadeSelect = document.getElementById('carga_origem_cidade');
+                const origemCodigoInput = document.getElementById('carga_origem_codigo_municipio');
+                const carregarCidadesOrigem = criarCarregadorDeCidades(origemUfSelect, origemCidadeSelect, origemCodigoInput);
 
-                // Botão "Criar Carga" de uma sugestão (destino planejado na
-                // Programação) pré-preenche o modal — sem criar nada sozinho, o
-                // operador ainda escolhe o cliente e confirma/ajusta o valor.
+                const destinoUfSelect = document.getElementById('carga_destino_uf');
+                const destinoCidadeSelect = document.getElementById('carga_destino_cidade');
+                const destinoCodigoInput = document.getElementById('carga_destino_codigo_municipio');
+                const carregarCidadesDestino = criarCarregadorDeCidades(destinoUfSelect, destinoCidadeSelect, destinoCodigoInput);
+
+                // Botão "Criar Carga" de uma sugestão (entrega planejada na
+                // Programação) pré-preenche só o destino — sem criar nada
+                // sozinho, o operador ainda escolhe o cliente e confirma/
+                // ajusta o valor. Origem sempre volta em branco na abertura,
+                // pra não arrastar seleção de um uso anterior do modal.
                 modalNovaCarga.addEventListener('show.bs.modal', function (evento) {
                     const gatilho = evento.relatedTarget;
                     const dados = gatilho ? gatilho.dataset : {};
 
-                    destinoProgramacaoInput.value = dados.destinoId || '';
+                    paradaProgramacaoInput.value = dados.paradaId || '';
                     valorInput.value = dados.valor || '';
 
+                    origemUfSelect.value = '';
+                    origemCidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+                    origemCodigoInput.value = '';
+
                     if (dados.uf) {
-                        ufSelect.value = dados.uf;
-                        carregarCidades(dados.uf, dados.cidade || null, dados.codigo || null);
+                        destinoUfSelect.value = dados.uf;
+                        carregarCidadesDestino(dados.uf, dados.cidade || null, dados.codigo || null);
                     } else {
-                        ufSelect.value = '';
-                        cidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
-                        codigoInput.value = '';
+                        destinoUfSelect.value = '';
+                        destinoCidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+                        destinoCodigoInput.value = '';
                     }
                 });
             })();

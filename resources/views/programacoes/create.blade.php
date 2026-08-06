@@ -142,18 +142,19 @@
                         @error('valor_frete')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <small class="text-muted">Opcional — preencha se já estiver negociado, ou selecione cliente + rota para receber uma sugestão automática</small>
-                    <small id="total-com-destinos" class="d-block fw-semibold text-primary mt-1 d-none"></small>
+                    <small id="total-com-paradas" class="d-block fw-semibold text-primary mt-1 d-none"></small>
                 </div>
                 <div class="col-12">
-                    <label class="form-label fw-semibold">Destinos adicionais</label>
+                    <label class="form-label fw-semibold">Paradas adicionais</label>
                     <div class="text-muted small mb-2">
-                        Se essa viagem entrega em mais de uma cidade (ex.: coleta em São Paulo →
-                        Salvador → Maceió), adicione os destinos extras aqui — cada um vira
-                        sugestão de carga ao confirmar a viagem.
+                        Se essa viagem tem mais de uma coleta ou mais de uma entrega (ex.: coleta em
+                        São Paulo → coleta em Curitiba → entrega em Salvador → entrega em Maceió),
+                        adicione as paradas extras aqui, na ordem real — cada entrega vira sugestão
+                        de carga ao confirmar a viagem.
                     </div>
-                    <div id="destinos-adicionais"></div>
-                    <button type="button" id="adicionar-destino" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-plus-lg me-1"></i> Adicionar destino
+                    <div id="paradas-adicionais"></div>
+                    <button type="button" id="adicionar-parada" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Adicionar parada
                     </button>
                 </div>
                 <div class="col-md-3">
@@ -229,70 +230,127 @@
     ligarSelectCidade('origem_uf', 'origem_cidade', 'origem_codigo_municipio', @json(old('origem')), @json(old('origem_codigo_municipio')));
     ligarSelectCidade('destino_uf', 'destino_cidade', 'destino_codigo_municipio', @json(old('destino')), @json(old('destino_codigo_municipio')));
 
-    // ── Destinos adicionais (coleta única, várias entregas) ──
+    // ── Paradas adicionais (coleta e/ou entrega, além da origem/destino principais) ──
     const ufsDisponiveis = @json($ufs);
-    let destinoIndex = 0;
-    const destinosContainer = document.getElementById('destinos-adicionais');
+    let paradaIndex = 0;
+    const paradasContainer = document.getElementById('paradas-adicionais');
 
-    function criarLinhaDestino(dados = {}) {
-        const indice = destinoIndex++;
+    function criarLinhaParada(dados = {}) {
+        const indice = paradaIndex++;
         const div = document.createElement('div');
-        div.className = 'row g-2 align-items-start mb-2 destino-adicional-row';
+        div.className = 'row g-2 align-items-start mb-2 parada-adicional-row';
         div.innerHTML = `
+            <div class="col-md-1 pt-2 text-center">
+                <span class="badge bg-secondary parada-ordem">•</span>
+            </div>
             <div class="col-md-2">
-                <select name="destinos[${indice}][uf]" class="form-select form-select-sm destino-uf">
+                <select name="paradas[${indice}][tipo]" class="form-select form-select-sm parada-tipo">
+                    <option value="entrega">Entrega</option>
+                    <option value="coleta">Coleta</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <select name="paradas[${indice}][uf]" class="form-select form-select-sm parada-uf">
                     <option value="">UF</option>
                     ${ufsDisponiveis.map(uf => `<option value="${uf}">${uf}</option>`).join('')}
                 </select>
             </div>
-            <div class="col-md-4">
-                <select name="destinos[${indice}][cidade]" class="form-select form-select-sm destino-cidade">
+            <div class="col-md-3">
+                <select name="paradas[${indice}][cidade]" class="form-select form-select-sm parada-cidade">
                     <option value="">Selecione a UF primeiro</option>
                 </select>
-                <input type="hidden" name="destinos[${indice}][codigo_municipio]" class="destino-codigo">
+                <input type="hidden" name="paradas[${indice}][codigo_municipio]" class="parada-codigo">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2 parada-valor-wrapper">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text">R$</span>
-                    <input type="number" name="destinos[${indice}][valor_frete]" class="form-control destino-valor"
-                           step="0.01" min="0" placeholder="Valor desta etapa">
+                    <input type="number" name="paradas[${indice}][valor_frete]" class="form-control parada-valor"
+                           step="0.01" min="0" placeholder="Valor">
                 </div>
             </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-sm btn-outline-danger w-100 remover-destino">
+            <div class="col-md-3 d-flex gap-1">
+                <button type="button" class="btn btn-sm btn-outline-secondary mover-parada-cima" title="Mover pra cima">
+                    <i class="bi bi-arrow-up"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary mover-parada-baixo" title="Mover pra baixo">
+                    <i class="bi bi-arrow-down"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger flex-grow-1 remover-parada">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
         `;
-        destinosContainer.appendChild(div);
+        paradasContainer.appendChild(div);
 
-        const ufSelect = div.querySelector('.destino-uf');
-        const cidadeSelect = div.querySelector('.destino-cidade');
-        const codigoInput = div.querySelector('.destino-codigo');
-        const valorInput = div.querySelector('.destino-valor');
+        const tipoSelect = div.querySelector('.parada-tipo');
+        const ufSelect = div.querySelector('.parada-uf');
+        const cidadeSelect = div.querySelector('.parada-cidade');
+        const codigoInput = div.querySelector('.parada-codigo');
+        const valorInput = div.querySelector('.parada-valor');
+        const valorWrapper = div.querySelector('.parada-valor-wrapper');
 
+        if (dados.tipo) tipoSelect.value = dados.tipo;
         if (dados.uf) ufSelect.value = dados.uf;
         ligarSelectCidadePorElemento(ufSelect, cidadeSelect, codigoInput, dados.cidade || null, dados.codigo_municipio || null);
         if (dados.valor_frete) valorInput.value = dados.valor_frete;
 
-        valorInput.addEventListener('input', atualizarTotalComDestinos);
-        div.querySelector('.remover-destino').addEventListener('click', function () {
-            div.remove();
-            atualizarTotalComDestinos();
+        // Valor de frete só faz sentido pra entrega (é o que vira Carga
+        // depois) — some o campo quando o tipo for coleta.
+        function atualizarVisibilidadeValor() {
+            const ehColeta = tipoSelect.value === 'coleta';
+            valorWrapper.classList.toggle('d-none', ehColeta);
+            if (ehColeta) valorInput.value = '';
+        }
+        atualizarVisibilidadeValor();
+        tipoSelect.addEventListener('change', function () {
+            atualizarVisibilidadeValor();
+            atualizarTotalComParadas();
         });
 
-        atualizarTotalComDestinos();
+        valorInput.addEventListener('input', atualizarTotalComParadas);
+        div.querySelector('.remover-parada').addEventListener('click', function () {
+            div.remove();
+            atualizarTotalComParadas();
+            renumerarParadas();
+        });
+        div.querySelector('.mover-parada-cima').addEventListener('click', function () {
+            const anterior = div.previousElementSibling;
+            if (anterior) paradasContainer.insertBefore(div, anterior);
+            renumerarParadas();
+        });
+        div.querySelector('.mover-parada-baixo').addEventListener('click', function () {
+            const proximo = div.nextElementSibling;
+            if (proximo) paradasContainer.insertBefore(proximo, div);
+            renumerarParadas();
+        });
+
+        atualizarTotalComParadas();
+        renumerarParadas();
     }
 
-    function atualizarTotalComDestinos() {
-        const totalEl = document.getElementById('total-com-destinos');
+    // Numeração puramente visual — a ordem de fato é a posição no DOM, que
+    // já é o que o servidor usa pra montar "ordem" ao salvar (o array
+    // "paradas" chega na requisição na sequência em que os campos aparecem
+    // no HTML, não na ordem numérica dos índices dos nomes dos campos).
+    function renumerarParadas() {
+        const linhas = paradasContainer.querySelectorAll('.parada-adicional-row');
+        linhas.forEach((linha, i) => {
+            linha.querySelector('.parada-ordem').textContent = i + 1;
+            linha.querySelector('.mover-parada-cima').disabled = (i === 0);
+            linha.querySelector('.mover-parada-baixo').disabled = (i === linhas.length - 1);
+        });
+    }
+
+    function atualizarTotalComParadas() {
+        const totalEl = document.getElementById('total-com-paradas');
         const valorPrincipal = parseFloat(document.getElementById('valor_frete').value) || 0;
-        const valoresAdicionais = Array.from(document.querySelectorAll('.destino-valor'))
-            .reduce((soma, input) => soma + (parseFloat(input.value) || 0), 0);
+        const valoresAdicionais = Array.from(document.querySelectorAll('.parada-adicional-row'))
+            .filter(linha => linha.querySelector('.parada-tipo').value === 'entrega')
+            .reduce((soma, linha) => soma + (parseFloat(linha.querySelector('.parada-valor').value) || 0), 0);
 
         if (valoresAdicionais > 0) {
             const total = valorPrincipal + valoresAdicionais;
-            totalEl.textContent = 'Total da programação (todas as etapas): R$ ' +
+            totalEl.textContent = 'Total da programação (todas as entregas): R$ ' +
                 total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             totalEl.classList.remove('d-none');
         } else {
@@ -300,8 +358,8 @@
         }
     }
 
-    document.getElementById('adicionar-destino').addEventListener('click', () => criarLinhaDestino());
-    document.getElementById('valor_frete').addEventListener('input', atualizarTotalComDestinos);
+    document.getElementById('adicionar-parada').addEventListener('click', () => criarLinhaParada());
+    document.getElementById('valor_frete').addEventListener('input', atualizarTotalComParadas);
 
     // ── Sugestão automática de valor_frete a partir da tabela de frete do cliente
     let valorFreteEditadoManualmente = false;

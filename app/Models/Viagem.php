@@ -175,11 +175,19 @@ class Viagem extends Model
         return $this->hasOne(ProgramacaoViagem::class, 'viagem_id');
     }
 
-    // Destinos planejados na Programação de origem que ainda não viraram
+    // Entregas planejadas na Programação de origem que ainda não viraram
     // Carga — some da lista assim que o operador confirma a sugestão.
-    public function destinosPendentes()
+    public function entregasPendentes()
     {
-        return $this->programacao?->destinos->whereNull('carga_id') ?? collect();
+        return $this->programacao?->paradasEntrega->whereNull('carga_id') ?? collect();
+    }
+
+    // Coletas extras planejadas na Programação — só informativo aqui (não
+    // vira Carga sozinho, diferente de entregasPendentes()); o operador usa
+    // essa lista como referência ao preencher a origem de uma Carga à mão.
+    public function coletasPlanejadas()
+    {
+        return $this->programacao?->paradasColeta ?? collect();
     }
     // Próximo status no fluxo (aberta → em_andamento → aguardando_acerto).
     // O encerramento tem sua própria ação (rota "encerrar"), por isso não entra aqui.

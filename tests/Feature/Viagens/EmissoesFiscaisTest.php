@@ -474,6 +474,56 @@ class EmissoesFiscaisTest extends TestCase
         });
     }
 
+    public function test_payload_do_cte_usa_origem_propria_da_carga_quando_diferente_da_viagem(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create([
+            'origem'                  => 'São Paulo',
+            'origem_uf'               => 'SP',
+            'origem_codigo_municipio' => '3550308',
+        ]);
+        $carga = Carga::factory()->create([
+            'viagem_id'                => $viagem->id,
+            'origem'                   => 'Curitiba',
+            'origem_uf'                => 'PR',
+            'origem_codigo_municipio'  => '4106902',
+        ]);
+
+        Http::fake(['*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('cargas.emitir-cte', $carga));
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/v2/cte')
+                && $request['municipio_inicio'] === 'Curitiba'
+                && $request['codigo_municipio_inicio'] === '4106902'
+                && $request['uf_inicio'] === 'PR';
+        });
+    }
+
+    public function test_payload_do_cte_usa_origem_da_viagem_quando_a_carga_nao_tem_origem_propria(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create([
+            'origem'                  => 'São Paulo',
+            'origem_uf'               => 'SP',
+            'origem_codigo_municipio' => '3550308',
+        ]);
+        $carga = Carga::factory()->create(['viagem_id' => $viagem->id]);
+
+        Http::fake(['*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('cargas.emitir-cte', $carga));
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/v2/cte')
+                && $request['municipio_inicio'] === 'São Paulo'
+                && $request['codigo_municipio_inicio'] === '3550308';
+        });
+    }
+
     public function test_payload_do_cte_usa_cnpj_da_unidade_quando_a_carga_tem_uma(): void
     {
         $empresa = $this->ativarFocusNfeNaEmpresaDeTeste();

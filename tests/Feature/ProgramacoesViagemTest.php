@@ -45,7 +45,7 @@ class ProgramacoesViagemTest extends TestCase
         ]);
     }
 
-    public function test_cadastra_programacao_com_destinos_adicionais(): void
+    public function test_cadastra_programacao_com_paradas_adicionais(): void
     {
         $this->actingAs(User::factory()->create());
 
@@ -58,30 +58,91 @@ class ProgramacoesViagemTest extends TestCase
             'origem'        => 'São Paulo',
             'destino'       => 'Salvador',
             'data_prevista' => now()->addDays(2)->format('Y-m-d'),
-            'destinos'      => [
-                ['cidade' => 'Maceió', 'uf' => 'AL', 'codigo_municipio' => '2704302', 'valor_frete' => 800],
-                ['cidade' => 'Recife', 'uf' => 'PE', 'codigo_municipio' => '2611606', 'valor_frete' => 600],
+            'paradas'       => [
+                ['tipo' => 'coleta', 'cidade' => 'Curitiba', 'uf' => 'PR', 'codigo_municipio' => '4106902'],
+                ['tipo' => 'entrega', 'cidade' => 'Maceió', 'uf' => 'AL', 'codigo_municipio' => '2704302', 'valor_frete' => 800],
+                ['tipo' => 'entrega', 'cidade' => 'Recife', 'uf' => 'PE', 'codigo_municipio' => '2611606', 'valor_frete' => 600],
             ],
         ]);
 
         $response->assertRedirect(route('programacoes.index'));
         $programacao = ProgramacaoViagem::firstOrFail();
-        $this->assertCount(2, $programacao->destinos);
-        $this->assertDatabaseHas('destinos_programacao', [
+        $this->assertCount(3, $programacao->paradas);
+        $this->assertCount(1, $programacao->paradasColeta()->get());
+        $this->assertCount(2, $programacao->paradasEntrega()->get());
+        $this->assertDatabaseHas('paradas_programacao', [
             'programacao_viagem_id' => $programacao->id,
-            'cidade'                => 'Maceió',
-            'uf'                    => 'AL',
-            'valor_frete'           => 800,
+            'tipo'                  => 'coleta',
+            'cidade'                => 'Curitiba',
+            'valor_frete'           => null,
             'ordem'                 => 0,
         ]);
-        $this->assertDatabaseHas('destinos_programacao', [
+        $this->assertDatabaseHas('paradas_programacao', [
+            'programacao_viagem_id' => $programacao->id,
+            'tipo'                  => 'entrega',
+            'cidade'                => 'Maceió',
+            'valor_frete'           => 800,
+            'ordem'                 => 1,
+        ]);
+        $this->assertDatabaseHas('paradas_programacao', [
             'programacao_viagem_id' => $programacao->id,
             'cidade'                => 'Recife',
-            'ordem'                 => 1,
+            'ordem'                 => 2,
         ]);
     }
 
-    public function test_destino_adicional_sem_cidade_e_ignorado(): void
+    public function test_parada_de_coleta_com_valor_frete_enviado_ignora_o_valor(): void
+    {
+        // Segurança de dado: valor de frete só faz sentido pra entrega (é o
+        // que vira Carga depois) — mesmo que o cliente mande algo, o servidor
+        // não persiste valor numa parada de coleta.
+        $this->actingAs(User::factory()->create());
+        $motorista = Motorista::factory()->create();
+        $veiculo   = Veiculo::factory()->create();
+
+        $this->post(route('programacoes.store'), [
+            'motorista_id'  => $motorista->id,
+            'veiculo_id'    => $veiculo->id,
+            'origem'        => 'São Paulo',
+            'destino'       => 'Salvador',
+            'data_prevista' => now()->addDays(2)->format('Y-m-d'),
+            'paradas'       => [
+                ['tipo' => 'coleta', 'cidade' => 'Curitiba', 'uf' => 'PR', 'valor_frete' => 999],
+            ],
+        ]);
+
+        $programacao = ProgramacaoViagem::firstOrFail();
+        $this->assertNull($programacao->paradas->first()->valor_frete);
+    }
+
+    public function test_ordem_das_paradas_segue_a_ordem_de_chegada_na_requisicao_nao_o_indice_do_campo(): void
+    {
+        // Simula o efeito dos botões "mover pra cima/baixo" na tela: eles só
+        // reordenam os elementos no DOM, sem renumerar os índices dos campos
+        // — é a ordem de chegada na requisição que decide a "ordem" salva.
+        $this->actingAs(User::factory()->create());
+        $motorista = Motorista::factory()->create();
+        $veiculo   = Veiculo::factory()->create();
+
+        $response = $this->post(route('programacoes.store'), [
+            'motorista_id'  => $motorista->id,
+            'veiculo_id'    => $veiculo->id,
+            'origem'        => 'São Paulo',
+            'destino'       => 'Salvador',
+            'data_prevista' => now()->addDays(2)->format('Y-m-d'),
+            'paradas'       => [
+                2 => ['tipo' => 'entrega', 'cidade' => 'Recife', 'uf' => 'PE'],
+                0 => ['tipo' => 'coleta', 'cidade' => 'Maceió', 'uf' => 'AL'],
+                1 => ['tipo' => 'entrega', 'cidade' => 'Aracaju', 'uf' => 'SE'],
+            ],
+        ]);
+
+        $response->assertRedirect(route('programacoes.index'));
+        $programacao = ProgramacaoViagem::firstOrFail();
+        $this->assertSame(['Recife', 'Maceió', 'Aracaju'], $programacao->paradas->pluck('cidade')->all());
+    }
+
+    public function test_parada_adicional_sem_cidade_e_ignorada(): void
     {
         $this->actingAs(User::factory()->create());
 
@@ -94,21 +155,21 @@ class ProgramacoesViagemTest extends TestCase
             'origem'        => 'São Paulo',
             'destino'       => 'Salvador',
             'data_prevista' => now()->addDays(2)->format('Y-m-d'),
-            'destinos'      => [
-                ['cidade' => '', 'uf' => '', 'valor_frete' => null],
+            'paradas'       => [
+                ['tipo' => 'entrega', 'cidade' => '', 'uf' => '', 'valor_frete' => null],
             ],
         ]);
 
         $programacao = ProgramacaoViagem::firstOrFail();
-        $this->assertCount(0, $programacao->destinos);
+        $this->assertCount(0, $programacao->paradas);
     }
 
-    public function test_atualizar_programacao_substitui_destinos_adicionais(): void
+    public function test_atualizar_programacao_substitui_paradas_adicionais(): void
     {
         $this->actingAs(User::factory()->create());
 
         $programacao = ProgramacaoViagem::factory()->create();
-        $programacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL', 'ordem' => 0]);
+        $programacao->paradas()->create(['tipo' => 'entrega', 'cidade' => 'Maceió', 'uf' => 'AL', 'ordem' => 0]);
 
         $response = $this->put(route('programacoes.update', $programacao), [
             'motorista_id'  => $programacao->motorista_id,
@@ -116,15 +177,15 @@ class ProgramacoesViagemTest extends TestCase
             'origem'        => $programacao->origem,
             'destino'       => $programacao->destino,
             'data_prevista' => $programacao->data_prevista->format('Y-m-d'),
-            'destinos'      => [
-                ['cidade' => 'Recife', 'uf' => 'PE', 'valor_frete' => 500],
+            'paradas'       => [
+                ['tipo' => 'entrega', 'cidade' => 'Recife', 'uf' => 'PE', 'valor_frete' => 500],
             ],
         ]);
 
         $response->assertRedirect(route('programacoes.index'));
         $programacao->refresh();
-        $this->assertCount(1, $programacao->destinos);
-        $this->assertSame('Recife', $programacao->destinos->first()->cidade);
+        $this->assertCount(1, $programacao->paradas);
+        $this->assertSame('Recife', $programacao->paradas->first()->cidade);
     }
 
     public function test_nao_permite_duas_programacoes_pendentes_para_o_mesmo_veiculo(): void

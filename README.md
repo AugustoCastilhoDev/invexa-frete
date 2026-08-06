@@ -59,7 +59,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Filtro de período (Hoje/Amanhã/Esta semana) e painel expansível listando os veículos ativos sem próxima viagem, com atalho "Programar" pra cada um
 - Ao selecionar um cavalo mecânico, o dropdown já mostra a carreta vinculada; um campo separado permite trocar por outra disponível
 - Confirmação abre a viagem de verdade a partir dos dados programados (incluindo a carreta escolhida), sem duplicar cadastro
-- **Destinos adicionais** (1 coleta, várias entregas — ex.: São Paulo → Salvador → Maceió): botão "Adicionar destino" permite planejar mais de uma cidade de entrega já na Programação, cada uma com valor de frete próprio (soma automática mostrada na tela). Ao confirmar a viagem, cada destino adicional aparece na tela da Viagem como sugestão de Carga (cidade e valor já pré-preenchidos no modal "Nova Carga") — o operador ainda escolhe o cliente e confirma antes de salvar, nada é criado sozinho
+- **Paradas adicionais** (múltiplas coletas e/ou entregas — ex.: coleta em São Paulo → coleta em Curitiba → entrega em Salvador → entrega em Maceió): botão "Adicionar parada" permite planejar a sequência real da viagem já na Programação, cada parada marcada como coleta ou entrega, reordenáveis com botões ↑/↓; entregas têm valor de frete próprio (soma automática mostrada na tela). Ao confirmar a viagem, cada entrega planejada aparece na tela da Viagem como sugestão de Carga (cidade e valor já pré-preenchidos no modal "Nova Carga") — o operador ainda escolhe o cliente e confirma antes de salvar, nada é criado sozinho; coletas planejadas aparecem como referência informativa
 
 ### 👤 Motoristas
 - Cadastro completo (CPF, CNH, categoria, validade)
@@ -150,7 +150,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Alerta de certificado vencendo**: badge (Válido/Vence em breve/Vencido) na listagem de empresas e na tela de detalhe, com aviso destacado quando faltam 30 dias ou menos para o vencimento — evita que a emissão pare de funcionar silenciosamente sem ninguém perceber (`Empresa::situacaoCertificado()`)
 - Card "Dados Fiscais" na mesma tela (endereço completo com busca por CEP, IE, RNTRC, regime tributário, CFOP, ICMS) alimenta o payload real de emissão — campos ficam vazios até serem confirmados com o contador da transportadora, sem valor chutado; link direto para a Consulta Pública da ANTT ao lado do campo RNTRC (empresa e cada unidade/filial), para conferir a validade antes de ativar um cliente real — não é uma integração automática, só atalho para o portal oficial
 - **Cargas**: uma viagem pode atender vários clientes/destinatários na mesma rota — cada "Carga" agrupa as NF-e's de um cliente e vira a unidade de emissão do CT-e (destinatário e valor do frete próprios); ao autorizar, o XML e o DACTE/DAMDFE são baixados dos servidores da Focus e guardados no nosso próprio storage, disponíveis para download junto com os documentos lançados manualmente
-- **Destino próprio por carga**: quando um fracionado entrega em cidades diferentes (1 coleta, várias entregas), cada Carga pode ter seu próprio destino (UF+cidade); se não informado, o CT-e usa o destino da viagem normalmente — cobre o caso comum de uma entrega só sem exigir nenhum preenchimento extra
+- **Origem e destino próprios por carga**: quando um fracionado tem coletas e/ou entregas em cidades diferentes, cada Carga pode ter sua própria origem e/ou destino (UF+cidade); se não informado, o CT-e usa a origem/destino da viagem normalmente — cobre o caso comum de 1 coleta e 1 entrega só, sem exigir nenhum preenchimento extra
 - **Encerramento de MDF-e**: botão dedicado para encerrar o manifesto na SEFAZ ao fim da viagem — abrir uma nova viagem para um veículo com MDF-e ainda não encerrado é bloqueado; o MDF-e referencia automaticamente todos os CT-e's autorizados de todas as cargas da viagem
 - **Cancelamento de CT-e/MDF-e**: qualquer documento autorizado pode ser cancelado, com justificativa obrigatória (15 a 255 caracteres) — a SEFAZ, via Focus, decide o prazo permitido e rejeita fora da janela; cancelamento é definitivo e o Documento vinculado acompanha o status
 - **Carta de Correção Eletrônica (CC-e) de CT-e**: para CT-e autorizado, corrige campos sem impacto fiscal (ex.: observações, descrição da carga) sem precisar cancelar — histórico de correções (até 20 por CT-e, só a última vale) fica guardado e visível na tela; não é permitido corrigir base de cálculo, alíquota, remetente/destinatário nem datas de emissão/saída (limitação da própria SEFAZ)
@@ -220,7 +220,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 604+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, resultado gerencial, portal do motorista, permissões, 2FA (incluindo obrigatoriedade para admin/super admin), notificações, isolamento multi-tenant, anonimização de dados, log de acesso, log de auditoria, emissão/encerramento/cancelamento/carta de correção de CT-e/MDF-e, diagnóstico do sistema e a API REST
+- 611+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, resultado gerencial, portal do motorista, permissões, 2FA (incluindo obrigatoriedade para admin/super admin), notificações, isolamento multi-tenant, anonimização de dados, log de acesso, log de auditoria, emissão/encerramento/cancelamento/carta de correção de CT-e/MDF-e, diagnóstico do sistema e a API REST
 - CI no GitHub Actions rodando a suíte a cada push/PR
 - **Teste de volume de dados**: importação CSV validada localmente até 20.000 linhas numa importação só (5.000 em ~17s), depois do fix que envolve o processo inteiro numa transação — evita timeout do PHP deixar dado pela metade num import grande
 - **Teste de carga e concorrência em produção**: leitura simultânea sem erro até 900 requisições na tela mais pesada do painel (Dashboard) na VPS atual (KVM 2, 2026-08-03), o dobro do teste anterior (450, KVM 1); escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados — número específico da VPS atual, ver [ROADMAP.md](ROADMAP.md) para os relatórios completos
@@ -247,7 +247,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (604+ testes) |
+| Testes | PHPUnit (611+ testes) |
 | CI | GitHub Actions |
 
 ---

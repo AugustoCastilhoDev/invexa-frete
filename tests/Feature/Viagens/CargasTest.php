@@ -126,17 +126,30 @@ class CargasTest extends TestCase
         $this->assertSame('3509502', $carga->destino_codigo_municipio_efetivo);
     }
 
-    public function test_viagem_mostra_destinos_pendentes_da_programacao_confirmada(): void
+    public function test_viagem_mostra_entregas_pendentes_da_programacao_confirmada(): void
     {
         $this->actingAs(User::factory()->create());
         $viagem = Viagem::factory()->create();
         $programacao = ProgramacaoViagem::factory()->confirmada()->create(['viagem_id' => $viagem->id]);
-        $destino = $programacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL', 'valor_frete' => 800]);
+        $entrega = $programacao->paradas()->create(['tipo' => 'entrega', 'cidade' => 'Maceió', 'uf' => 'AL', 'valor_frete' => 800]);
 
-        $pendentes = $viagem->fresh()->destinosPendentes();
+        $pendentes = $viagem->fresh()->entregasPendentes();
 
         $this->assertCount(1, $pendentes);
-        $this->assertTrue($pendentes->first()->is($destino));
+        $this->assertTrue($pendentes->first()->is($entrega));
+    }
+
+    public function test_viagem_lista_coletas_planejadas_da_programacao_confirmada(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+        $programacao = ProgramacaoViagem::factory()->confirmada()->create(['viagem_id' => $viagem->id]);
+        $coleta = $programacao->paradas()->create(['tipo' => 'coleta', 'cidade' => 'Curitiba', 'uf' => 'PR']);
+
+        $planejadas = $viagem->fresh()->coletasPlanejadas();
+
+        $this->assertCount(1, $planejadas);
+        $this->assertTrue($planejadas->first()->is($coleta));
     }
 
     public function test_tela_da_viagem_renderiza_sugestao_de_carga_pendente(): void
@@ -146,54 +159,84 @@ class CargasTest extends TestCase
         $this->actingAs(User::factory()->create());
         $viagem = Viagem::factory()->create();
         $programacao = ProgramacaoViagem::factory()->confirmada()->create(['viagem_id' => $viagem->id]);
-        $programacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL', 'valor_frete' => 800]);
+        $programacao->paradas()->create(['tipo' => 'entrega', 'cidade' => 'Maceió', 'uf' => 'AL', 'valor_frete' => 800]);
+        $programacao->paradas()->create(['tipo' => 'coleta', 'cidade' => 'Curitiba', 'uf' => 'PR']);
 
         $response = $this->get(route('viagens.show', $viagem));
 
         $response->assertOk();
         $response->assertSee('Maceió/AL');
         $response->assertSee('Criar Carga');
+        $response->assertSee('Curitiba/PR');
     }
 
-    public function test_criar_carga_a_partir_de_destino_pendente_marca_como_convertido(): void
+    public function test_criar_carga_a_partir_de_entrega_pendente_marca_como_convertida(): void
     {
         $this->actingAs(User::factory()->create());
         $viagem = Viagem::factory()->create();
         $programacao = ProgramacaoViagem::factory()->confirmada()->create(['viagem_id' => $viagem->id]);
-        $destino = $programacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL', 'valor_frete' => 800]);
+        $entrega = $programacao->paradas()->create(['tipo' => 'entrega', 'cidade' => 'Maceió', 'uf' => 'AL', 'valor_frete' => 800]);
         $cliente = Cliente::factory()->create();
 
         $response = $this->post(route('cargas.store', $viagem), [
-            'cliente_id'              => $cliente->id,
-            'valor_frete'             => 800,
-            'destino'                 => 'Maceió',
-            'destino_uf'              => 'AL',
-            'destino_programacao_id'  => $destino->id,
+            'cliente_id'             => $cliente->id,
+            'valor_frete'            => 800,
+            'destino'                => 'Maceió',
+            'destino_uf'             => 'AL',
+            'parada_programacao_id'  => $entrega->id,
         ]);
 
         $response->assertRedirect(route('viagens.show', $viagem));
         $carga = Carga::firstOrFail();
         $this->assertSame('Maceió', $carga->destino);
-        $this->assertSame($carga->id, $destino->fresh()->carga_id);
-        $this->assertCount(0, $viagem->fresh()->destinosPendentes());
+        $this->assertSame($carga->id, $entrega->fresh()->carga_id);
+        $this->assertCount(0, $viagem->fresh()->entregasPendentes());
     }
 
-    public function test_destino_pendente_de_outra_viagem_nao_e_marcado_como_convertido(): void
+    public function test_carga_com_origem_propria_diferente_da_viagem(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create(['origem' => 'São Paulo', 'origem_uf' => 'SP']);
+        $cliente = Cliente::factory()->create();
+
+        $this->post(route('cargas.store', $viagem), [
+            'cliente_id'              => $cliente->id,
+            'origem'                  => 'Curitiba',
+            'origem_uf'               => 'PR',
+            'origem_codigo_municipio' => '4106902',
+        ]);
+
+        $carga = Carga::firstOrFail();
+        $this->assertSame('Curitiba', $carga->origem_efetiva);
+        $this->assertSame('4106902', $carga->origem_codigo_municipio_efetiva);
+    }
+
+    public function test_carga_sem_origem_propria_usa_a_origem_da_viagem(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create(['origem' => 'São Paulo', 'origem_uf' => 'SP']);
+        $carga = Carga::factory()->create(['viagem_id' => $viagem->id]);
+
+        $this->assertSame('São Paulo', $carga->origem_efetiva);
+        $this->assertSame('SP', $carga->origem_uf_efetiva);
+    }
+
+    public function test_entrega_pendente_de_outra_viagem_nao_e_marcada_como_convertida(): void
     {
         $this->actingAs(User::factory()->create());
         $viagem = Viagem::factory()->create();
         $outraViagem = Viagem::factory()->create();
         $outraProgramacao = ProgramacaoViagem::factory()->confirmada()->create(['viagem_id' => $outraViagem->id]);
-        $destinoDeOutraViagem = $outraProgramacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL']);
+        $entregaDeOutraViagem = $outraProgramacao->paradas()->create(['tipo' => 'entrega', 'cidade' => 'Maceió', 'uf' => 'AL']);
         $cliente = Cliente::factory()->create();
 
         $response = $this->post(route('cargas.store', $viagem), [
-            'cliente_id'             => $cliente->id,
-            'destino_programacao_id' => $destinoDeOutraViagem->id,
+            'cliente_id'            => $cliente->id,
+            'parada_programacao_id' => $entregaDeOutraViagem->id,
         ]);
 
         $response->assertRedirect(route('viagens.show', $viagem));
-        $this->assertNull($destinoDeOutraViagem->fresh()->carga_id);
+        $this->assertNull($entregaDeOutraViagem->fresh()->carga_id);
     }
 
     public function test_carga_herda_unidade_da_viagem_quando_nao_informada(): void
