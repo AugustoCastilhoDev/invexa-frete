@@ -398,6 +398,40 @@ class ProgramacoesViagemTest extends TestCase
         $this->assertNotNull($programacao->viagem_id);
     }
 
+    // Trava o comportamento descrito no commit 015498e ("o botão Confirmar
+    // repassa UF/código de município"): a query string já levava esses
+    // campos, mas nada garantia que a tela de nova viagem de fato os usasse
+    // pra pré-selecionar a UF/preencher o código oculto da cidade.
+    public function test_link_confirmar_pre_seleciona_uf_e_codigo_municipio_na_nova_viagem(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $programacao = ProgramacaoViagem::factory()->create([
+            'origem'                   => 'Recife',
+            'origem_uf'                => 'PE',
+            'origem_codigo_municipio'  => '2611606',
+            'destino'                  => 'Salvador',
+            'destino_uf'               => 'BA',
+            'destino_codigo_municipio' => '2927408',
+        ]);
+
+        $response = $this->get(route('viagens.create', [
+            'programacao_id'           => $programacao->id,
+            'origem'                   => $programacao->origem,
+            'origem_uf'                => $programacao->origem_uf,
+            'origem_codigo_municipio'  => $programacao->origem_codigo_municipio,
+            'destino'                  => $programacao->destino,
+            'destino_uf'               => $programacao->destino_uf,
+            'destino_codigo_municipio' => $programacao->destino_codigo_municipio,
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('<option value="PE" selected>PE</option>', false);
+        $response->assertSee('<option value="BA" selected>BA</option>', false);
+        $response->assertSee('id="origem_codigo_municipio" value="2611606"', false);
+        $response->assertSee('id="destino_codigo_municipio" value="2927408"', false);
+    }
+
     public function test_cadastra_programacao_com_carreta(): void
     {
         $this->actingAs(User::factory()->create());
