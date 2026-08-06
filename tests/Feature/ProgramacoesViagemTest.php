@@ -89,6 +89,83 @@ class ProgramacoesViagemTest extends TestCase
         $response->assertViewHas('totalVeiculosSemProgramacao', 0);
     }
 
+    public function test_index_expoe_lista_de_veiculos_sem_programacao_para_o_drill_down(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $veiculoSemProgramacao = Veiculo::factory()->create(['placa' => 'SEM1P23']);
+        $veiculoComProgramacao = Veiculo::factory()->create();
+        ProgramacaoViagem::factory()->create(['veiculo_id' => $veiculoComProgramacao->id]);
+
+        $response = $this->get(route('programacoes.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('veiculosSemProgramacao', function ($lista) use ($veiculoSemProgramacao) {
+            return $lista->count() === 1 && $lista->first()->is($veiculoSemProgramacao);
+        });
+        $response->assertSee('SEM1P23');
+    }
+
+    public function test_filtra_por_risco_de_no_show(): void
+    {
+        \Illuminate\Support\Carbon::setTestNow('2026-08-10 06:00:00');
+        $this->actingAs(User::factory()->create());
+
+        $emRisco = ProgramacaoViagem::factory()->create([
+            'data_prevista' => '2026-08-10',
+            'hora_coleta'   => '07:00',
+        ]);
+        $foraDeRisco = ProgramacaoViagem::factory()->create([
+            'data_prevista' => '2026-08-10',
+            'hora_coleta'   => '11:00',
+        ]);
+
+        $response = $this->get(route('programacoes.index', ['risco_no_show' => 1]));
+
+        $response->assertOk();
+        $response->assertViewHas('programacoes', function ($lista) use ($emRisco, $foraDeRisco) {
+            return $lista->total() === 1 && $lista->first()->is($emRisco) && ! $lista->contains($foraDeRisco);
+        });
+
+        \Illuminate\Support\Carbon::setTestNow();
+    }
+
+    public function test_filtra_por_periodo_hoje(): void
+    {
+        \Illuminate\Support\Carbon::setTestNow('2026-08-10 06:00:00');
+        $this->actingAs(User::factory()->create());
+
+        $hoje    = ProgramacaoViagem::factory()->create(['data_prevista' => '2026-08-10']);
+        $amanha  = ProgramacaoViagem::factory()->create(['data_prevista' => '2026-08-11']);
+
+        $response = $this->get(route('programacoes.index', ['status' => 'todas', 'periodo' => 'hoje']));
+
+        $response->assertOk();
+        $response->assertViewHas('programacoes', function ($lista) use ($hoje, $amanha) {
+            return $lista->total() === 1 && $lista->first()->is($hoje) && ! $lista->contains($amanha);
+        });
+
+        \Illuminate\Support\Carbon::setTestNow();
+    }
+
+    public function test_filtra_por_periodo_esta_semana(): void
+    {
+        \Illuminate\Support\Carbon::setTestNow('2026-08-10 06:00:00'); // segunda-feira
+        $this->actingAs(User::factory()->create());
+
+        $dentroDaSemana = ProgramacaoViagem::factory()->create(['data_prevista' => '2026-08-13']);
+        $foraDaSemana   = ProgramacaoViagem::factory()->create(['data_prevista' => '2026-08-20']);
+
+        $response = $this->get(route('programacoes.index', ['status' => 'todas', 'periodo' => 'semana']));
+
+        $response->assertOk();
+        $response->assertViewHas('programacoes', function ($lista) use ($dentroDaSemana, $foraDaSemana) {
+            return $lista->contains($dentroDaSemana) && ! $lista->contains($foraDaSemana);
+        });
+
+        \Illuminate\Support\Carbon::setTestNow();
+    }
+
     public function test_index_lista_apenas_pendentes_por_padrao(): void
     {
         $this->actingAs(User::factory()->create());

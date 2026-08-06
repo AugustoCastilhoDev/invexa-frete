@@ -12,9 +12,11 @@ class ProgramacoesViagemController extends Controller
 {
     public function index(Request $request)
     {
-        $status    = $request->input('status', 'pendente');
-        $motorista = $request->input('motorista_id');
-        $veiculo   = $request->input('veiculo_id');
+        $status      = $request->input('status', 'pendente');
+        $motorista   = $request->input('motorista_id');
+        $veiculo     = $request->input('veiculo_id');
+        $periodo     = $request->input('periodo');
+        $riscoNoShow = $request->boolean('risco_no_show');
 
         $query = ProgramacaoViagem::with(['motorista', 'veiculo', 'cliente'])
             ->orderBy('data_prevista');
@@ -31,8 +33,23 @@ class ProgramacoesViagemController extends Controller
             $query->where('veiculo_id', $veiculo);
         }
 
+        if ($periodo === 'hoje') {
+            $query->whereDate('data_prevista', now()->toDateString());
+        } elseif ($periodo === 'amanha') {
+            $query->whereDate('data_prevista', now()->addDay()->toDateString());
+        } elseif ($periodo === 'semana') {
+            $query->whereBetween('data_prevista', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()]);
+        }
+
+        // Reaproveita o mesmo filtro em PHP do card (ver ProgramacaoViagem::emRiscoDeNoShow) —
+        // a lista de IDs em risco entra como whereIn, mantendo paginação e demais filtros funcionando juntos.
+        if ($riscoNoShow) {
+            $query->whereIn('id', ProgramacaoViagem::emRiscoDeNoShow()->pluck('id'));
+        }
+
         $programacoes = $query->paginate(15)->withQueryString();
 
+        // Cards no topo mostram sempre o total geral, independente dos filtros da tabela.
         $veiculosComProgramacaoPendente = ProgramacaoViagem::where('status', 'pendente')->pluck('veiculo_id');
 
         $totalPendentes = ProgramacaoViagem::where('status', 'pendente')->count();
@@ -41,17 +58,20 @@ class ProgramacoesViagemController extends Controller
 
         // Carreta vinculada a um cavalo não conta separadamente: ela sempre viaja
         // junto do cavalo, então só o cavalo precisa da própria programação.
-        $totalVeiculosSemProgramacao = Veiculo::contamParaLimite()
+        $veiculosSemProgramacao = Veiculo::contamParaLimite()
             ->where('status', 'ativo')
             ->whereNotIn('id', $veiculosComProgramacaoPendente)
-            ->count();
+            ->orderBy('placa')
+            ->get();
+        $totalVeiculosSemProgramacao = $veiculosSemProgramacao->count();
 
         $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
         $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
 
         return view('programacoes.index', compact(
             'programacoes', 'motoristas', 'veiculos',
-            'totalPendentes', 'totalVeiculosSemProgramacao', 'totalRiscoNoShow'
+            'totalPendentes', 'totalVeiculosSemProgramacao', 'totalRiscoNoShow',
+            'veiculosSemProgramacao', 'periodo', 'riscoNoShow'
         ));
     }
 
