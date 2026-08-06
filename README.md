@@ -47,11 +47,22 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Rastreabilidade: cada viagem, lançamento, desconto e documento registra quem criou e quem alterou por último
 - Avanço de status direto na tela da viagem, sem precisar abrir a edição; não permite pular etapas
 - Assinatura digital do motorista (captura por canvas na tela da viagem), embutida no comprovante em PDF com data/hora
-- **Programação de Frota**: planeje o motorista/veículo/cliente da próxima viagem antes de encerrar a atual, numa tela dedicada com visão de quais veículos já têm plano definido e quais estão livres; origem/destino são selecionados por UF+cidade (IBGE), igual ao formulário de viagem, e o valor do frete é sugerido automaticamente a partir da tabela de frete do cliente quando cliente+rota baterem com uma entrada cadastrada (editável); a confirmação abre a viagem de verdade a partir dos dados programados, sem duplicar cadastro
 - **Controle de recebimento do frete**: na listagem de viagens, confirmação com um clique de que o frete foi recebido do cliente (com data), filtro por recebido/pendente e exportação em CSV — o recebimento já entra no Relatório Financeiro mesmo antes da viagem encerrar, sem contar em duplicidade quando o acerto fecha depois
+- **Carreta por viagem**: quando o veículo é um cavalo mecânico, um campo separado deixa escolher qual carreta foi usada — independente do vínculo fixo cadastrado no veículo, pra trocar pontualmente se a de sempre estiver em manutenção
+
+### 🚚 Programação de Frota
+- Tela dedicada para planejar motorista/veículo/cliente da próxima viagem antes de encerrar a atual, com visão de quais veículos já têm plano definido e quais estão livres
+- Origem/destino selecionados por UF+cidade (IBGE), igual ao formulário de viagem; valor do frete sugerido automaticamente a partir da tabela de frete do cliente quando cliente+rota baterem com uma entrada cadastrada (editável)
+- Hora de coleta e data/hora de entrega prevista (opcionais), além da data já existente
+- **Check-in de chegada**: motorista (Portal) ou operador confirmam a chegada no local de coleta informando o horário — sem trava de aprovação, já que não mexe em saldo; o horário que a pessoa informa é o que vale pro cálculo, não o momento em que o sistema recebeu o registro
+- **Risco de no-show**: alerta quando a coleta está a ≤2h e ainda não há chegada confirmada — card clicável que filtra a tabela pelo mesmo critério
+- Filtro de período (Hoje/Amanhã/Esta semana) e painel expansível listando os veículos ativos sem próxima viagem, com atalho "Programar" pra cada um
+- Ao selecionar um cavalo mecânico, o dropdown já mostra a carreta vinculada; um campo separado permite trocar por outra disponível
+- Confirmação abre a viagem de verdade a partir dos dados programados (incluindo a carreta escolhida), sem duplicar cadastro
 
 ### 👤 Motoristas
 - Cadastro completo (CPF, CNH, categoria, validade)
+- Frota própria x agregado (campo simples no cadastro)
 - Percentual de comissão padrão por motorista
 - Histórico de viagens por motorista
 - Busca por nome, CPF ou telefone
@@ -60,6 +71,8 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 
 ### 🚛 Veículos
 - Cadastro completo da frota (placa, modelo, marca, RENAVAM)
+- Taxonomia de carga pesada: Truck e Bitruck (chassi rígido), Cavalo Mecânico Simples (4x2) e Trucado (6x2/6x4), Carreta (com tipo de carroceria — Baú/Sider, Graneleiro, Caçamba, Prancha/Contêiner), Bitrem/Rodotrem, além de Van/Utilitário/Outro; só cavalo mecânico traciona carreta
+- Frota própria x agregado (campo simples no cadastro)
 - Controle de status (ativo, inativo, em manutenção)
 - Histórico de viagens por veículo
 - Busca por placa, modelo ou marca
@@ -87,9 +100,10 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Cards de resumo: viagens em aberto, viagem iniciada, aguardando acerto, encerradas no mês, frota/motoristas
 - Cards de frota/programação: veículos programados, veículos sem próxima viagem, risco de no-show (mesmos números da tela de Programação de Frota)
 - Gráfico de Viagens por Status
+- Card de **Manutenção da Frota**: veículos com manutenção em andamento e manutenção programada (próximos 30 dias)
 - Viagens em aberto
 - Top 5 motoristas do mês
-- Painel de **Pendências**: CNH de motorista vencida/vencendo, veículos em manutenção, documentos fiscais pendentes e manutenção preventiva vencendo
+- Painel de **Pendências**: CNH de motorista vencida/vencendo e documentos fiscais pendentes
 
 ### 📈 Relatórios
 - Relatório Financeiro por período com filtros avançados
