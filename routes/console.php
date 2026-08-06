@@ -26,6 +26,11 @@ Schedule::command('activitylog:clean')->monthly();
 // enfileira), pra não depender da própria fila que pode ser o problema.
 Schedule::command('sistema:verificar-saude')->hourly();
 
+// Lembrete de MDF-e autorizado cuja viagem já foi encerrada operacionalmente
+// mas o documento continua aberto na SEFAZ — roda de manhã, horário comercial,
+// pra já cair fresco na caixa de entrada de quem vai agir.
+Schedule::command('mdfe:lembrar-pendente-encerramento')->dailyAt('08:00');
+
 // Backup diário do banco de dados (+ uploads locais, se houver), com cópia
 // local e outra na R2 (fora do servidor). Roda de madrugada, horário de
 // menor uso; limpeza antes do backup, monitor depois pra alertar por e-mail
