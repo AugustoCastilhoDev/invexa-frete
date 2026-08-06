@@ -45,6 +45,88 @@ class ProgramacoesViagemTest extends TestCase
         ]);
     }
 
+    public function test_cadastra_programacao_com_destinos_adicionais(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $motorista = Motorista::factory()->create();
+        $veiculo   = Veiculo::factory()->create();
+
+        $response = $this->post(route('programacoes.store'), [
+            'motorista_id'  => $motorista->id,
+            'veiculo_id'    => $veiculo->id,
+            'origem'        => 'São Paulo',
+            'destino'       => 'Salvador',
+            'data_prevista' => now()->addDays(2)->format('Y-m-d'),
+            'destinos'      => [
+                ['cidade' => 'Maceió', 'uf' => 'AL', 'codigo_municipio' => '2704302', 'valor_frete' => 800],
+                ['cidade' => 'Recife', 'uf' => 'PE', 'codigo_municipio' => '2611606', 'valor_frete' => 600],
+            ],
+        ]);
+
+        $response->assertRedirect(route('programacoes.index'));
+        $programacao = ProgramacaoViagem::firstOrFail();
+        $this->assertCount(2, $programacao->destinos);
+        $this->assertDatabaseHas('destinos_programacao', [
+            'programacao_viagem_id' => $programacao->id,
+            'cidade'                => 'Maceió',
+            'uf'                    => 'AL',
+            'valor_frete'           => 800,
+            'ordem'                 => 0,
+        ]);
+        $this->assertDatabaseHas('destinos_programacao', [
+            'programacao_viagem_id' => $programacao->id,
+            'cidade'                => 'Recife',
+            'ordem'                 => 1,
+        ]);
+    }
+
+    public function test_destino_adicional_sem_cidade_e_ignorado(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $motorista = Motorista::factory()->create();
+        $veiculo   = Veiculo::factory()->create();
+
+        $this->post(route('programacoes.store'), [
+            'motorista_id'  => $motorista->id,
+            'veiculo_id'    => $veiculo->id,
+            'origem'        => 'São Paulo',
+            'destino'       => 'Salvador',
+            'data_prevista' => now()->addDays(2)->format('Y-m-d'),
+            'destinos'      => [
+                ['cidade' => '', 'uf' => '', 'valor_frete' => null],
+            ],
+        ]);
+
+        $programacao = ProgramacaoViagem::firstOrFail();
+        $this->assertCount(0, $programacao->destinos);
+    }
+
+    public function test_atualizar_programacao_substitui_destinos_adicionais(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $programacao = ProgramacaoViagem::factory()->create();
+        $programacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL', 'ordem' => 0]);
+
+        $response = $this->put(route('programacoes.update', $programacao), [
+            'motorista_id'  => $programacao->motorista_id,
+            'veiculo_id'    => $programacao->veiculo_id,
+            'origem'        => $programacao->origem,
+            'destino'       => $programacao->destino,
+            'data_prevista' => $programacao->data_prevista->format('Y-m-d'),
+            'destinos'      => [
+                ['cidade' => 'Recife', 'uf' => 'PE', 'valor_frete' => 500],
+            ],
+        ]);
+
+        $response->assertRedirect(route('programacoes.index'));
+        $programacao->refresh();
+        $this->assertCount(1, $programacao->destinos);
+        $this->assertSame('Recife', $programacao->destinos->first()->cidade);
+    }
+
     public function test_nao_permite_duas_programacoes_pendentes_para_o_mesmo_veiculo(): void
     {
         $this->actingAs(User::factory()->create());

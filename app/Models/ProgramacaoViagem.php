@@ -80,6 +80,14 @@ class ProgramacaoViagem extends Model
         return $this->belongsTo(Viagem::class, 'viagem_id');
     }
 
+    // Destinos além do "Destino" principal (ex.: coleta em São Paulo, entrega
+    // em Salvador e Maceió) — cada um vira sugestão de Carga ao confirmar
+    // esta programação em Viagem (ver Viagem::destinosPendentes()).
+    public function destinos()
+    {
+        return $this->hasMany(DestinoProgramacao::class, 'programacao_viagem_id')->orderBy('ordem');
+    }
+
     public function estaPendente(): bool
     {
         return $this->status === 'pendente';

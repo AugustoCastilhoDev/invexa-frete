@@ -7,6 +7,7 @@ use App\Models\Cliente;
 use App\Models\Documento;
 use App\Models\Empresa;
 use App\Models\EmissaoFiscal;
+use App\Models\ProgramacaoViagem;
 use App\Models\Unidade;
 use App\Models\User;
 use App\Models\Viagem;
@@ -123,6 +124,76 @@ class CargasTest extends TestCase
 
         $this->assertSame('Campinas', $carga->destino_efetivo);
         $this->assertSame('3509502', $carga->destino_codigo_municipio_efetivo);
+    }
+
+    public function test_viagem_mostra_destinos_pendentes_da_programacao_confirmada(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+        $programacao = ProgramacaoViagem::factory()->confirmada()->create(['viagem_id' => $viagem->id]);
+        $destino = $programacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL', 'valor_frete' => 800]);
+
+        $pendentes = $viagem->fresh()->destinosPendentes();
+
+        $this->assertCount(1, $pendentes);
+        $this->assertTrue($pendentes->first()->is($destino));
+    }
+
+    public function test_tela_da_viagem_renderiza_sugestao_de_carga_pendente(): void
+    {
+        $empresa = Empresa::findOrFail(\App\Support\TenantContext::id());
+        $empresa->update(['focus_nfe_ativo' => true, 'focus_nfe_ambiente' => 'homologacao', 'focus_nfe_token' => 'token-teste']);
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+        $programacao = ProgramacaoViagem::factory()->confirmada()->create(['viagem_id' => $viagem->id]);
+        $programacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL', 'valor_frete' => 800]);
+
+        $response = $this->get(route('viagens.show', $viagem));
+
+        $response->assertOk();
+        $response->assertSee('Maceió/AL');
+        $response->assertSee('Criar Carga');
+    }
+
+    public function test_criar_carga_a_partir_de_destino_pendente_marca_como_convertido(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+        $programacao = ProgramacaoViagem::factory()->confirmada()->create(['viagem_id' => $viagem->id]);
+        $destino = $programacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL', 'valor_frete' => 800]);
+        $cliente = Cliente::factory()->create();
+
+        $response = $this->post(route('cargas.store', $viagem), [
+            'cliente_id'              => $cliente->id,
+            'valor_frete'             => 800,
+            'destino'                 => 'Maceió',
+            'destino_uf'              => 'AL',
+            'destino_programacao_id'  => $destino->id,
+        ]);
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $carga = Carga::firstOrFail();
+        $this->assertSame('Maceió', $carga->destino);
+        $this->assertSame($carga->id, $destino->fresh()->carga_id);
+        $this->assertCount(0, $viagem->fresh()->destinosPendentes());
+    }
+
+    public function test_destino_pendente_de_outra_viagem_nao_e_marcado_como_convertido(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create();
+        $outraViagem = Viagem::factory()->create();
+        $outraProgramacao = ProgramacaoViagem::factory()->confirmada()->create(['viagem_id' => $outraViagem->id]);
+        $destinoDeOutraViagem = $outraProgramacao->destinos()->create(['cidade' => 'Maceió', 'uf' => 'AL']);
+        $cliente = Cliente::factory()->create();
+
+        $response = $this->post(route('cargas.store', $viagem), [
+            'cliente_id'             => $cliente->id,
+            'destino_programacao_id' => $destinoDeOutraViagem->id,
+        ]);
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $this->assertNull($destinoDeOutraViagem->fresh()->carga_id);
     }
 
     public function test_carga_herda_unidade_da_viagem_quando_nao_informada(): void

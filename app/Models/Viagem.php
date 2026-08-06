@@ -166,6 +166,21 @@ class Viagem extends Model
     {
         return $this->hasMany(EmissaoFiscal::class);
     }
+
+    // Programação que foi confirmada e virou esta viagem (inverso de
+    // ProgramacaoViagem::viagem()) — usado pra buscar os destinos
+    // adicionais planejados na programação e sugeri-los como Carga.
+    public function programacao()
+    {
+        return $this->hasOne(ProgramacaoViagem::class, 'viagem_id');
+    }
+
+    // Destinos planejados na Programação de origem que ainda não viraram
+    // Carga — some da lista assim que o operador confirma a sugestão.
+    public function destinosPendentes()
+    {
+        return $this->programacao?->destinos->whereNull('carga_id') ?? collect();
+    }
     // Próximo status no fluxo (aberta → em_andamento → aguardando_acerto).
     // O encerramento tem sua própria ação (rota "encerrar"), por isso não entra aqui.
     private const PROXIMO_STATUS = [

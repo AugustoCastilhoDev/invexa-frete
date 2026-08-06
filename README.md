@@ -59,6 +59,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Filtro de período (Hoje/Amanhã/Esta semana) e painel expansível listando os veículos ativos sem próxima viagem, com atalho "Programar" pra cada um
 - Ao selecionar um cavalo mecânico, o dropdown já mostra a carreta vinculada; um campo separado permite trocar por outra disponível
 - Confirmação abre a viagem de verdade a partir dos dados programados (incluindo a carreta escolhida), sem duplicar cadastro
+- **Destinos adicionais** (1 coleta, várias entregas — ex.: São Paulo → Salvador → Maceió): botão "Adicionar destino" permite planejar mais de uma cidade de entrega já na Programação, cada uma com valor de frete próprio (soma automática mostrada na tela). Ao confirmar a viagem, cada destino adicional aparece na tela da Viagem como sugestão de Carga (cidade e valor já pré-preenchidos no modal "Nova Carga") — o operador ainda escolhe o cliente e confirma antes de salvar, nada é criado sozinho
 
 ### 👤 Motoristas
 - Cadastro completo (CPF, CNH, categoria, validade)
@@ -219,7 +220,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - **Termos de Uso** e **Política de Privacidade** públicos, linkados no rodapé de todas as telas (landing, painel, portal e login)
 
 ### ✅ Qualidade
-- 597+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, resultado gerencial, portal do motorista, permissões, 2FA (incluindo obrigatoriedade para admin/super admin), notificações, isolamento multi-tenant, anonimização de dados, log de acesso, log de auditoria, emissão/encerramento/cancelamento/carta de correção de CT-e/MDF-e, diagnóstico do sistema e a API REST
+- 604+ testes automatizados (unitários e de feature) cobrindo cálculo financeiro, ciclo de vida de viagens, resultado gerencial, portal do motorista, permissões, 2FA (incluindo obrigatoriedade para admin/super admin), notificações, isolamento multi-tenant, anonimização de dados, log de acesso, log de auditoria, emissão/encerramento/cancelamento/carta de correção de CT-e/MDF-e, diagnóstico do sistema e a API REST
 - CI no GitHub Actions rodando a suíte a cada push/PR
 - **Teste de volume de dados**: importação CSV validada localmente até 20.000 linhas numa importação só (5.000 em ~17s), depois do fix que envolve o processo inteiro numa transação — evita timeout do PHP deixar dado pela metade num import grande
 - **Teste de carga e concorrência em produção**: leitura simultânea sem erro até 900 requisições na tela mais pesada do painel (Dashboard) na VPS atual (KVM 2, 2026-08-03), o dobro do teste anterior (450, KVM 1); escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados — número específico da VPS atual, ver [ROADMAP.md](ROADMAP.md) para os relatórios completos
@@ -246,7 +247,7 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 | CEP | ViaCEP API |
 | Emissão fiscal | Focus NFe API (CT-e/MDF-e) |
 | Municípios/UF | API pública do IBGE |
-| Testes | PHPUnit (597+ testes) |
+| Testes | PHPUnit (604+ testes) |
 | CI | GitHub Actions |
 
 ---

@@ -334,6 +334,33 @@
             </div>
             @endif
             @if($viagem->empresa->focus_nfe_ativo)
+            @php $destinosPendentes = $viagem->destinosPendentes(); @endphp
+            @if($destinosPendentes->isNotEmpty())
+            <div class="px-3 pt-2 pb-1 bg-info bg-opacity-10 border-bottom">
+                <small class="fw-semibold text-info-emphasis d-block mb-1">
+                    <i class="bi bi-signpost-split me-1"></i>Destinos planejados na programação — ainda sem carga
+                </small>
+                @foreach($destinosPendentes as $destinoPendente)
+                <div class="d-flex justify-content-between align-items-center small py-1">
+                    <span>
+                        <i class="bi bi-geo-alt text-muted"></i>
+                        {{ $destinoPendente->cidade }}/{{ $destinoPendente->uf }}
+                        @if($destinoPendente->valor_frete)
+                            — R$ {{ number_format($destinoPendente->valor_frete, 2, ',', '.') }}
+                        @endif
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#novaCarga"
+                            data-destino-id="{{ $destinoPendente->id }}"
+                            data-cidade="{{ $destinoPendente->cidade }}"
+                            data-uf="{{ $destinoPendente->uf }}"
+                            data-codigo="{{ $destinoPendente->codigo_municipio }}"
+                            data-valor="{{ $destinoPendente->valor_frete }}">
+                        <i class="bi bi-plus-lg me-1"></i>Criar Carga
+                    </button>
+                </div>
+                @endforeach
+            </div>
+            @endif
             <div class="card-body border-bottom py-2">
                 @forelse($viagem->cargas as $carga)
                 @php
@@ -381,6 +408,7 @@
                     <div class="modal-content">
                         <form action="{{ route('cargas.store', $viagem) }}" method="POST">
                             @csrf
+                            <input type="hidden" name="destino_programacao_id" id="carga_destino_programacao_id">
                             <div class="modal-header">
                                 <h6 class="modal-title mb-0">Nova Carga</h6>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -401,7 +429,7 @@
                                     <label class="form-label small fw-semibold">Valor do frete desta carga</label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">R$</span>
-                                        <input type="number" name="valor_frete" class="form-control form-control-sm" step="0.01" min="0">
+                                        <input type="number" name="valor_frete" id="carga_valor_frete" class="form-control form-control-sm" step="0.01" min="0">
                                     </div>
                                     <div class="form-text">Usado no CT-e deste cliente — pode ser diferente do valor de frete da viagem inteira.</div>
                                 </div>
@@ -455,26 +483,54 @@
                 const ufSelect = document.getElementById('carga_destino_uf');
                 const cidadeSelect = document.getElementById('carga_destino_cidade');
                 const codigoInput = document.getElementById('carga_destino_codigo_municipio');
-                if (!ufSelect || !cidadeSelect || !codigoInput) return;
+                const valorInput = document.getElementById('carga_valor_frete');
+                const destinoProgramacaoInput = document.getElementById('carga_destino_programacao_id');
+                const modalNovaCarga = document.getElementById('novaCarga');
+                if (!ufSelect || !cidadeSelect || !codigoInput || !modalNovaCarga) return;
 
-                ufSelect.addEventListener('change', function () {
-                    if (!this.value) {
+                function carregarCidades(ufSelecionada, selecionarCidade, codigoFallback) {
+                    if (!ufSelecionada) {
                         cidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
                         codigoInput.value = '';
                         return;
                     }
                     cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
-                    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${this.value}/municipios`)
+                    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufSelecionada}/municipios`)
                         .then(r => r.json())
                         .then(municipios => {
                             cidadeSelect.innerHTML = '<option value="">Selecione a cidade</option>' +
                                 municipios.map(m => `<option value="${m.nome}" data-codigo="${m.id}">${m.nome}</option>`).join('');
+                            if (selecionarCidade) {
+                                cidadeSelect.value = selecionarCidade;
+                                codigoInput.value = cidadeSelect.selectedOptions[0]?.dataset.codigo || codigoFallback || '';
+                            }
                         })
                         .catch(() => { cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>'; });
-                });
+                }
 
+                ufSelect.addEventListener('change', function () { carregarCidades(this.value, null); });
                 cidadeSelect.addEventListener('change', function () {
                     codigoInput.value = this.selectedOptions[0]?.dataset.codigo || '';
+                });
+
+                // Botão "Criar Carga" de uma sugestão (destino planejado na
+                // Programação) pré-preenche o modal — sem criar nada sozinho, o
+                // operador ainda escolhe o cliente e confirma/ajusta o valor.
+                modalNovaCarga.addEventListener('show.bs.modal', function (evento) {
+                    const gatilho = evento.relatedTarget;
+                    const dados = gatilho ? gatilho.dataset : {};
+
+                    destinoProgramacaoInput.value = dados.destinoId || '';
+                    valorInput.value = dados.valor || '';
+
+                    if (dados.uf) {
+                        ufSelect.value = dados.uf;
+                        carregarCidades(dados.uf, dados.cidade || null, dados.codigo || null);
+                    } else {
+                        ufSelect.value = '';
+                        cidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+                        codigoInput.value = '';
+                    }
                 });
             })();
             </script>

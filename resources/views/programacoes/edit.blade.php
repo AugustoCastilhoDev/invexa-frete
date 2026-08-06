@@ -141,6 +141,19 @@
                         @error('valor_frete')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <small class="text-muted">Opcional — preencha se já estiver negociado, ou selecione cliente + rota para receber uma sugestão automática</small>
+                    <small id="total-com-destinos" class="d-block fw-semibold text-primary mt-1 d-none"></small>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Destinos adicionais</label>
+                    <div class="text-muted small mb-2">
+                        Se essa viagem entrega em mais de uma cidade (ex.: coleta em São Paulo →
+                        Salvador → Maceió), adicione os destinos extras aqui — cada um vira
+                        sugestão de carga ao confirmar a viagem.
+                    </div>
+                    <div id="destinos-adicionais"></div>
+                    <button type="button" id="adicionar-destino" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Adicionar destino
+                    </button>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Data de Entrega Prevista</label>
@@ -183,11 +196,7 @@
 @push('scripts')
 <script>
     // ── Cidade por UF (API pública do IBGE) — mesmo padrão usado em viagens/edit
-    function ligarSelectCidade(ufId, cidadeId, codigoId, valorAntigo, codigoAntigo) {
-        const ufSelect = document.getElementById(ufId);
-        const cidadeSelect = document.getElementById(cidadeId);
-        const codigoInput = document.getElementById(codigoId);
-
+    function ligarSelectCidadePorElemento(ufSelect, cidadeSelect, codigoInput, valorAntigo, codigoAntigo) {
         function carregarCidades(ufSelecionada, selecionarCidade) {
             if (! ufSelecionada) {
                 cidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
@@ -217,8 +226,98 @@
         }
     }
 
+    function ligarSelectCidade(ufId, cidadeId, codigoId, valorAntigo, codigoAntigo) {
+        ligarSelectCidadePorElemento(
+            document.getElementById(ufId), document.getElementById(cidadeId), document.getElementById(codigoId),
+            valorAntigo, codigoAntigo
+        );
+    }
+
     ligarSelectCidade('origem_uf', 'origem_cidade', 'origem_codigo_municipio', @json(old('origem', $programacao->origem)), @json(old('origem_codigo_municipio', $programacao->origem_codigo_municipio)));
     ligarSelectCidade('destino_uf', 'destino_cidade', 'destino_codigo_municipio', @json(old('destino', $programacao->destino)), @json(old('destino_codigo_municipio', $programacao->destino_codigo_municipio)));
+
+    // ── Destinos adicionais (coleta única, várias entregas) ──
+    const ufsDisponiveis = @json($ufs);
+    let destinoIndex = 0;
+    const destinosContainer = document.getElementById('destinos-adicionais');
+
+    function criarLinhaDestino(dados = {}) {
+        const indice = destinoIndex++;
+        const div = document.createElement('div');
+        div.className = 'row g-2 align-items-start mb-2 destino-adicional-row';
+        div.innerHTML = `
+            <div class="col-md-2">
+                <select name="destinos[${indice}][uf]" class="form-select form-select-sm destino-uf">
+                    <option value="">UF</option>
+                    ${ufsDisponiveis.map(uf => `<option value="${uf}">${uf}</option>`).join('')}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select name="destinos[${indice}][cidade]" class="form-select form-select-sm destino-cidade">
+                    <option value="">Selecione a UF primeiro</option>
+                </select>
+                <input type="hidden" name="destinos[${indice}][codigo_municipio]" class="destino-codigo">
+            </div>
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">R$</span>
+                    <input type="number" name="destinos[${indice}][valor_frete]" class="form-control destino-valor"
+                           step="0.01" min="0" placeholder="Valor desta etapa">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-outline-danger w-100 remover-destino">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        destinosContainer.appendChild(div);
+
+        const ufSelect = div.querySelector('.destino-uf');
+        const cidadeSelect = div.querySelector('.destino-cidade');
+        const codigoInput = div.querySelector('.destino-codigo');
+        const valorInput = div.querySelector('.destino-valor');
+
+        if (dados.uf) ufSelect.value = dados.uf;
+        ligarSelectCidadePorElemento(ufSelect, cidadeSelect, codigoInput, dados.cidade || null, dados.codigo_municipio || null);
+        if (dados.valor_frete) valorInput.value = dados.valor_frete;
+
+        valorInput.addEventListener('input', atualizarTotalComDestinos);
+        div.querySelector('.remover-destino').addEventListener('click', function () {
+            div.remove();
+            atualizarTotalComDestinos();
+        });
+
+        atualizarTotalComDestinos();
+    }
+
+    function atualizarTotalComDestinos() {
+        const totalEl = document.getElementById('total-com-destinos');
+        const valorPrincipal = parseFloat(document.getElementById('valor_frete').value) || 0;
+        const valoresAdicionais = Array.from(document.querySelectorAll('.destino-valor'))
+            .reduce((soma, input) => soma + (parseFloat(input.value) || 0), 0);
+
+        if (valoresAdicionais > 0) {
+            const total = valorPrincipal + valoresAdicionais;
+            totalEl.textContent = 'Total da programação (todas as etapas): R$ ' +
+                total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            totalEl.classList.remove('d-none');
+        } else {
+            totalEl.classList.add('d-none');
+        }
+    }
+
+    document.getElementById('adicionar-destino').addEventListener('click', () => criarLinhaDestino());
+    document.getElementById('valor_frete').addEventListener('input', atualizarTotalComDestinos);
+
+    @foreach($programacao->destinos as $destino)
+    criarLinhaDestino({
+        uf: @json($destino->uf),
+        cidade: @json($destino->cidade),
+        codigo_municipio: @json($destino->codigo_municipio),
+        valor_frete: @json($destino->valor_frete),
+    });
+    @endforeach
 
     // ── Sugestão automática de valor_frete a partir da tabela de frete do cliente
     let valorFreteEditadoManualmente = false;

@@ -6,6 +6,7 @@ use App\Models\Cliente;
 use App\Models\Motorista;
 use App\Models\ProgramacaoViagem;
 use App\Models\Veiculo;
+use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -91,8 +92,10 @@ class ProgramacoesViagemController extends Controller
     public function store(Request $request)
     {
         $data = $this->validarDados($request);
+        $destinos = Arr::pull($data, 'destinos', []);
 
-        ProgramacaoViagem::create($data);
+        $programacao = ProgramacaoViagem::create($data);
+        $this->salvarDestinos($programacao, $destinos);
 
         return redirect()->route('programacoes.index')
             ->with('success', 'Próxima viagem programada com sucesso!');
@@ -101,6 +104,8 @@ class ProgramacoesViagemController extends Controller
     public function edit(ProgramacaoViagem $programacao)
     {
         abort_if(! $programacao->estaPendente(), 400, 'Esta programação já foi confirmada.');
+
+        $programacao->load('destinos');
 
         $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
         $veiculos = Veiculo::with('carretas')->where('status', 'ativo')->where('tipo', '!=', 'carreta')->orderBy('placa')->get();
@@ -115,8 +120,10 @@ class ProgramacoesViagemController extends Controller
         abort_if(! $programacao->estaPendente(), 400, 'Esta programação já foi confirmada.');
 
         $data = $this->validarDados($request, $programacao);
+        $destinos = Arr::pull($data, 'destinos', []);
 
         $programacao->update($data);
+        $this->salvarDestinos($programacao, $destinos);
 
         return redirect()->route('programacoes.index')
             ->with('success', 'Programação atualizada com sucesso!');
@@ -186,8 +193,35 @@ class ProgramacoesViagemController extends Controller
             'hora_entrega_prevista' => 'nullable|date_format:H:i',
             'observacoes'      => 'nullable|string',
             'viagem_origem_id' => 'nullable|exists:viagens,id',
+            'destinos'                     => 'nullable|array',
+            'destinos.*.cidade'            => 'nullable|string|max:255',
+            'destinos.*.uf'                => 'nullable|string|max:2',
+            'destinos.*.codigo_municipio'  => 'nullable|string|max:7',
+            'destinos.*.valor_frete'       => 'nullable|numeric|min:0',
         ]);
 
         return $data;
+    }
+
+    // Delete-and-recreate: seguro porque destinos só ganham carga_id depois
+    // que a programação já está confirmada — e confirmada não passa mais por
+    // aqui (update() bloqueia edição fora do status "pendente").
+    private function salvarDestinos(ProgramacaoViagem $programacao, array $destinos): void
+    {
+        $programacao->destinos()->delete();
+
+        foreach (array_values($destinos) as $indice => $destino) {
+            if (blank($destino['cidade'] ?? null)) {
+                continue;
+            }
+
+            $programacao->destinos()->create([
+                'cidade'           => $destino['cidade'],
+                'uf'               => $destino['uf'] ?? null,
+                'codigo_municipio' => $destino['codigo_municipio'] ?? null,
+                'valor_frete'      => $destino['valor_frete'] ?? null,
+                'ordem'            => $indice,
+            ]);
+        }
     }
 }
