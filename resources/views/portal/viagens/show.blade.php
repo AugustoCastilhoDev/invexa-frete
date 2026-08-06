@@ -2,6 +2,34 @@
 @section('title', 'Viagem #' . $viagem->id)
 
 @section('content')
+
+@if($viagem->podeSerIniciadaPeloMotorista())
+<div class="card mb-4 border-start border-primary border-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <div class="fw-semibold">
+                    <i class="bi bi-play-circle me-1 text-primary"></i>
+                    Viagem ainda não iniciada
+                </div>
+                <div class="text-muted small">
+                    Informe o KM do veículo ao partir — ajuda a manter o KM rodado mais preciso.
+                </div>
+            </div>
+            <form action="{{ route('portal.viagens.iniciar', $viagem) }}" method="POST"
+                  class="d-flex gap-2 align-items-center">
+                @csrf
+                <input type="number" name="km_inicial" class="form-control form-control-sm" style="width:130px"
+                       placeholder="KM inicial" min="0" value="{{ $viagem->km_inicial }}">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="bi bi-play-fill me-1"></i> Iniciar Viagem
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
         <h4 class="mb-0">Viagem #{{ $viagem->id }}

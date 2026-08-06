@@ -199,6 +199,25 @@ class Viagem extends Model
         return in_array($this->status, ['aguardando_acerto', 'encerrada'], true);
     }
 
+    // Início real da viagem, confirmado por quem está com o veículo (o
+    // motorista, via Portal — ou o operador em seu nome). Diferente do
+    // avançar-status genérico do operador (que não pergunta nada): aqui o KM
+    // é opcional mas, quando informado, substitui o valor digitado na
+    // abertura da viagem (normalmente um palpite feito no escritório) pelo
+    // real, lido no odômetro no momento da partida.
+    public function podeSerIniciadaPeloMotorista(): bool
+    {
+        return $this->status === 'aberta';
+    }
+
+    public function iniciar(?int $kmInicial): void
+    {
+        $this->update(array_filter([
+            'status'     => 'em_andamento',
+            'km_inicial' => $kmInicial,
+        ], fn ($valor) => $valor !== null));
+    }
+
     public function estaAssinada(): bool
     {
         return $this->assinatura_motorista_em !== null;

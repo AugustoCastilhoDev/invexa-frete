@@ -17,6 +17,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/', [PortalViagensController::class, 'index'])->name('viagens.index');
         Route::get('viagens/{viagem}', [PortalViagensController::class, 'show'])->name('viagens.show');
         Route::get('viagens/{viagem}/comprovante', [PortalViagensController::class, 'comprovante'])->name('viagens.comprovante');
+        Route::post('viagens/{viagem}/iniciar', [PortalViagensController::class, 'iniciar'])->name('viagens.iniciar');
 
         Route::post('viagens/{viagem}/lancamentos', [PortalLancamentosController::class, 'store'])
             ->name('lancamentos.store');
