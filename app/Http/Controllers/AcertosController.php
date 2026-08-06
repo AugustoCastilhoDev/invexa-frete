@@ -19,14 +19,17 @@ class AcertosController extends Controller
 
         $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
 
-        $viagens   = collect();
-        $totais    = [];
-        $motorista = null;
+        $viagens     = collect();
+        $totais      = [];
+        $motorista   = null;
+        $resumoGeral = null;
 
         if ($motoristaSel) {
             $motorista = Motorista::findOrFail($motoristaSel);
             $viagens   = $this->viagensDoMotorista($motoristaSel, $dataInicio, $dataFim);
             $totais    = $this->calcularTotais($viagens);
+        } else {
+            $resumoGeral = $this->resumoGeralPorMotorista($dataInicio, $dataFim);
         }
 
         return view('acertos.index', compact(
@@ -36,7 +39,8 @@ class AcertosController extends Controller
             'totais',
             'motoristaSel',
             'dataInicio',
-            'dataFim'
+            'dataFim',
+            'resumoGeral'
         ));
     }
 
@@ -96,6 +100,33 @@ class AcertosController extends Controller
 
             fclose($saida);
         }, $nomeArquivo, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    // Resumo agregado de todos os motoristas no período (sem selecionar
+    // nenhum) — inclui motorista inativo se ele tiver viagem no período,
+    // diferente do dropdown de seleção (que só lista ativo): saldo a pagar
+    // de alguém que saiu da empresa continua sendo uma obrigação real.
+    private function resumoGeralPorMotorista(string $dataInicio, string $dataFim): array
+    {
+        $viagens = Viagem::with('motorista')
+            ->whereBetween('data_saida', [$dataInicio, $dataFim])
+            ->get();
+
+        $porMotorista = $viagens->groupBy('motorista_id')->map(fn ($grupo) => [
+            'motorista'     => $grupo->first()->motorista,
+            'total_viagens' => $grupo->count(),
+            'total_frete'   => $grupo->sum('valor_frete'),
+            'saldo_pago'    => $grupo->where('status', 'encerrada')->sum('saldo_motorista'),
+            'saldo_a_pagar' => $grupo->whereNotIn('status', ['encerrada'])->sum('saldo_motorista'),
+        ])->sortByDesc('saldo_a_pagar')->values();
+
+        return [
+            'porMotorista'      => $porMotorista,
+            'total_motoristas'  => $porMotorista->count(),
+            'total_viagens'     => $viagens->count(),
+            'saldo_pago'        => $viagens->where('status', 'encerrada')->sum('saldo_motorista'),
+            'saldo_a_pagar'     => $viagens->whereNotIn('status', ['encerrada'])->sum('saldo_motorista'),
+        ];
     }
 
     private function viagensDoMotorista(int $motoristaId, string $dataInicio, string $dataFim)

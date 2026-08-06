@@ -24,6 +24,70 @@ class AcertosTest extends TestCase
         $response->assertViewHas('totais', []);
     }
 
+    public function test_index_sem_motorista_selecionado_agrega_resumo_geral(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $dataViagem = Carbon::now()->startOfMonth()->addDays(2)->format('Y-m-d');
+
+        $motoristaA = Motorista::factory()->create(['nome' => 'Motorista A']);
+        $abertaA = Viagem::factory()->create([
+            'motorista_id' => $motoristaA->id,
+            'status'       => 'aberta',
+            'data_saida'   => $dataViagem,
+        ]);
+
+        $motoristaB = Motorista::factory()->inativo()->create(['nome' => 'Motorista B']);
+        $encerradaB = Viagem::factory()->encerrada()->create([
+            'motorista_id' => $motoristaB->id,
+            'data_saida'   => $dataViagem,
+        ]);
+
+        // fora do período: não deve entrar no resumo
+        Viagem::factory()->create([
+            'data_saida' => Carbon::now()->subMonths(2)->format('Y-m-d'),
+        ]);
+
+        $response = $this->get(route('acertos.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('resumoGeral', function ($resumo) use ($abertaA, $encerradaB) {
+            return $resumo['total_motoristas'] === 2
+                && $resumo['total_viagens'] === 2
+                && (float) $resumo['saldo_a_pagar'] === (float) $abertaA->saldo_motorista
+                && (float) $resumo['saldo_pago'] === (float) $encerradaB->saldo_motorista;
+        });
+    }
+
+    public function test_resumo_geral_inclui_motorista_inativo_com_viagem_no_periodo(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $motoristaInativo = Motorista::factory()->inativo()->create();
+        Viagem::factory()->create([
+            'motorista_id' => $motoristaInativo->id,
+            'data_saida'   => Carbon::now()->format('Y-m-d'),
+        ]);
+
+        $response = $this->get(route('acertos.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('resumoGeral', fn ($resumo) => $resumo['porMotorista']->contains(
+            fn ($item) => $item['motorista']->id === $motoristaInativo->id
+        ));
+    }
+
+    public function test_resumo_geral_sem_viagens_no_periodo_fica_vazio(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->get(route('acertos.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('resumoGeral', fn ($resumo) => $resumo['total_viagens'] === 0
+            && $resumo['porMotorista']->isEmpty());
+    }
+
     public function test_index_agrega_saldo_a_pagar_e_saldo_pago_por_status(): void
     {
         $this->actingAs(User::factory()->create());

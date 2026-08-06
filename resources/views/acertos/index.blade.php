@@ -27,9 +27,9 @@
         <form method="GET" action="{{ route('acertos.index') }}">
             <div class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold small">Motorista *</label>
-                    <select name="motorista_id" class="form-select" required>
-                        <option value="">Selecione o motorista</option>
+                    <label class="form-label fw-semibold small">Motorista</label>
+                    <select name="motorista_id" class="form-select">
+                        <option value="">Todos os motoristas (resumo)</option>
                         @foreach($motoristas as $m)
                             <option value="{{ $m->id }}"
                                 {{ $motoristaSel == $m->id ? 'selected' : '' }}>
@@ -312,13 +312,104 @@
     @endif
 
 @else
-    <div class="card">
-        <div class="card-body text-center py-5 text-muted">
-            <i class="bi bi-person-check fs-1 d-block mb-3"></i>
-            <h5>Selecione um motorista para ver o histórico de acertos</h5>
-            <p class="small">Escolha o motorista e o período desejado no filtro acima.</p>
+
+    @if($resumoGeral['total_viagens'] > 0)
+
+        {{-- ── Cards Totalizadores (todos os motoristas) ── --}}
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card text-center border-start border-primary border-3">
+                    <div class="card-body py-3">
+                        <div class="text-muted small">Motoristas</div>
+                        <div class="fs-3 fw-bold text-primary">{{ $resumoGeral['total_motoristas'] }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-start border-3" style="border-color:#f97316!important">
+                    <div class="card-body py-3">
+                        <div class="text-muted small">Viagens no Período</div>
+                        <div class="fs-3 fw-bold" style="color:#f97316">{{ $resumoGeral['total_viagens'] }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-start border-warning border-3 card-saldo-pendente">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                            <i class="bi bi-clock-history text-warning" style="font-size:.8rem"></i>
+                            <span class="text-muted small">Total a Pagar</span>
+                        </div>
+                        <div class="fw-bold text-warning fs-6">
+                            R$ {{ number_format($resumoGeral['saldo_a_pagar'], 2, ',', '.') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-start border-success border-3 card-saldo-pago">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size:.8rem"></i>
+                            <span class="text-muted small">Total Pago</span>
+                        </div>
+                        <div class="fw-bold text-success fs-6">
+                            R$ {{ number_format($resumoGeral['saldo_pago'], 2, ',', '.') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+
+        {{-- ── Resumo por Motorista ── --}}
+        <div class="card">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-people me-2 text-primary"></i>Resumo por Motorista
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Motorista</th>
+                            <th class="text-end">Viagens</th>
+                            <th class="text-end">Frete</th>
+                            <th class="text-end">Pago</th>
+                            <th class="text-end">A Pagar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($resumoGeral['porMotorista'] as $item)
+                        <tr onclick="window.location='{{ route('acertos.index', ['motorista_id' => $item['motorista']->id, 'data_inicio' => $dataInicio, 'data_fim' => $dataFim]) }}'"
+                            style="cursor:pointer">
+                            <td class="ps-3">{{ $item['motorista']->nome }}</td>
+                            <td class="text-end">{{ $item['total_viagens'] }}</td>
+                            <td class="text-end">R$ {{ number_format($item['total_frete'], 2, ',', '.') }}</td>
+                            <td class="text-end text-success">R$ {{ number_format($item['saldo_pago'], 2, ',', '.') }}</td>
+                            <td class="text-end text-warning">R$ {{ number_format($item['saldo_a_pagar'], 2, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td colspan="3" class="ps-3">Totais do Período</td>
+                            <td class="text-end text-success">R$ {{ number_format($resumoGeral['saldo_pago'], 2, ',', '.') }}</td>
+                            <td class="text-end text-warning">R$ {{ number_format($resumoGeral['saldo_a_pagar'], 2, ',', '.') }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                </div>
+            </div>
+        </div>
+
+    @else
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            Nenhuma viagem encontrada no período de {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }}
+            a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}.
+        </div>
+    @endif
+
 @endif
 
 @endsection
