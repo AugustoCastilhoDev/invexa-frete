@@ -156,7 +156,7 @@ class CustoFrotaTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create());
 
-        $cavalo  = Veiculo::factory()->create(['tipo' => 'truck']);
+        $cavalo  = Veiculo::factory()->create(['tipo' => 'cavalo_simples']);
         $carreta = Veiculo::factory()->vinculadaA($cavalo)->create();
 
         $response = $this->get(route('custo-frota.index'));

@@ -13,7 +13,7 @@
         </h4>
         <small class="text-muted">
             {{ $viagem->motorista->nome }} —
-            {{ $viagem->veiculo->placa }} —
+            {{ $viagem->veiculo->placa }}{{ $viagem->carreta ? ' + ' . $viagem->carreta->placa : '' }} —
             {{ $viagem->origem }} → {{ $viagem->destino }}
         </small>
         <div class="text-muted mt-1" style="font-size:.75rem">
@@ -148,6 +148,10 @@
             <div class="card-body">
                 <div class="table-responsive">
                 <table class="table table-sm table-borderless mb-0">
+                    @if($viagem->carreta)
+                    <tr><td class="text-muted">Carreta</td>
+                        <td>{{ $viagem->carreta->placa }} — {{ $viagem->carreta->modelo }}</td></tr>
+                    @endif
                     <tr>
                         <td class="text-muted">Cliente</td>
                         <td>

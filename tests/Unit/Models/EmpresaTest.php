@@ -39,7 +39,7 @@ class EmpresaTest extends TestCase
     public function test_carreta_vinculada_a_cavalo_conta_como_1_conjunto(): void
     {
         $empresa = Empresa::factory()->create(['limite_veiculos' => 1]);
-        $cavalo  = Veiculo::factory()->create(['tipo' => 'truck', 'empresa_id' => $empresa->id]);
+        $cavalo  = Veiculo::factory()->create(['tipo' => 'cavalo_simples', 'empresa_id' => $empresa->id]);
         Veiculo::factory()->vinculadaA($cavalo)->create(['empresa_id' => $empresa->id]);
 
         // Cavalo + carreta vinculada = 1 conjunto, então o limite de 1 já está atingido
@@ -50,7 +50,7 @@ class EmpresaTest extends TestCase
     public function test_carreta_avulsa_sem_cavalo_conta_separadamente(): void
     {
         $empresa = Empresa::factory()->create(['limite_veiculos' => 2]);
-        $cavalo  = Veiculo::factory()->create(['tipo' => 'truck', 'empresa_id' => $empresa->id]);
+        $cavalo  = Veiculo::factory()->create(['tipo' => 'cavalo_simples', 'empresa_id' => $empresa->id]);
         Veiculo::factory()->carreta()->create(['empresa_id' => $empresa->id]);
 
         // Cavalo (1) + carreta avulsa sem vínculo (1) = 2, atinge o limite de 2.

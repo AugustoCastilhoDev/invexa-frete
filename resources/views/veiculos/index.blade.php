@@ -108,7 +108,7 @@
                 <tr>
                     <td class="ps-4 fw-semibold">{{ $veiculo->placa }}</td>
                     <td>{{ $veiculo->modelo }}{{ $veiculo->marca ? ' / '.$veiculo->marca : '' }}</td>
-                    <td>{{ ucfirst($veiculo->tipo) }}</td>
+                    <td>{{ $veiculo->tipo_formatado }}</td>
                     <td>{{ $veiculo->ano ?? '-' }}</td>
                     <td>{{ $veiculo->capacidade_kg ? number_format($veiculo->capacidade_kg, 0, ',', '.').' kg' : '-' }}</td>
                     <td>

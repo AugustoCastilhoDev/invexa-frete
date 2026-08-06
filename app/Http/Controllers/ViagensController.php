@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -126,7 +127,10 @@ class ViagensController extends Controller
     public function create(Request $request)
 {
     $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
-    $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
+    // Carreta não anda sozinha — não entra como opção de "Veículo" da viagem;
+    // quem usa carreta escolhe o cavalo aqui e a carreta no campo abaixo.
+    $veiculos = Veiculo::with('carretas')->where('status', 'ativo')->where('tipo', '!=', 'carreta')->orderBy('placa')->get();
+    $carretas = Veiculo::where('status', 'ativo')->where('tipo', 'carreta')->orderBy('placa')->get();
     $clientes   = Cliente::where('status', 'ativo')->orderBy('nome')->get();
     $unidades   = Unidade::where('empresa_id', auth()->user()->empresa_id)->orderBy('nome')->get();
 
@@ -140,7 +144,7 @@ class ViagensController extends Controller
         ->whereNull('encerrado_em')->with('viagem:id,veiculo_id')->get()
         ->pluck('viagem.veiculo_id')->filter()->unique();
 
-    return view('viagens.create', compact('motoristas', 'veiculos', 'clientes', 'unidades', 'programacao', 'veiculosBloqueados'));
+    return view('viagens.create', compact('motoristas', 'veiculos', 'carretas', 'clientes', 'unidades', 'programacao', 'veiculosBloqueados'));
 }
 
     public function store(Request $request)
@@ -148,6 +152,7 @@ class ViagensController extends Controller
         $request->validate([
             'motorista_id'         => 'required|exists:motoristas,id',
             'veiculo_id'           => 'required|exists:veiculos,id',
+            'carreta_id'           => ['nullable', Rule::exists('veiculos', 'id')->where('tipo', 'carreta')],
             'origem'               => 'required|string|max:255',
             'origem_uf'            => 'nullable|string|max:2',
             'origem_codigo_municipio' => 'nullable|string|max:7',
@@ -172,7 +177,7 @@ class ViagensController extends Controller
         }
 
         $data = $request->only([
-            'motorista_id', 'veiculo_id',
+            'motorista_id', 'veiculo_id', 'carreta_id',
             'origem', 'origem_uf', 'origem_codigo_municipio',
             'destino', 'destino_uf', 'destino_codigo_municipio',
             'descricao_carga', 'cliente_id', 'unidade_id',
@@ -203,7 +208,7 @@ class ViagensController extends Controller
     public function show(Viagem $viagem)
     {
         $viagem->load([
-            'motorista', 'veiculo', 'cliente', 'empresa',
+            'motorista', 'veiculo', 'carreta', 'cliente', 'empresa',
             'criadoPor', 'atualizadoPor',
             'lancamentos.criadoPor', 'descontos.criadoPor', 'documentos.criadoPor',
             'emissoesFiscais.cartasCorrecao',
@@ -225,10 +230,11 @@ class ViagensController extends Controller
     abort_unless($viagem->podeSerEditadaFinanceiramente(), 422, 'Esta viagem está encerrada ou já foi assinada pelo motorista. Reabra o acerto para editar.');
 
     $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
-    $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
+    $veiculos = Veiculo::with('carretas')->where('status', 'ativo')->where('tipo', '!=', 'carreta')->orderBy('placa')->get();
+    $carretas = Veiculo::where('status', 'ativo')->where('tipo', 'carreta')->orderBy('placa')->get();
     $clientes   = Cliente::where('status', 'ativo')->orderBy('nome')->get();
     $unidades   = Unidade::where('empresa_id', auth()->user()->empresa_id)->orderBy('nome')->get();
-    return view('viagens.edit', compact('viagem', 'motoristas', 'veiculos', 'clientes', 'unidades'));
+    return view('viagens.edit', compact('viagem', 'motoristas', 'veiculos', 'carretas', 'clientes', 'unidades'));
 }
 
     public function update(Request $request, Viagem $viagem)
@@ -238,6 +244,7 @@ class ViagensController extends Controller
         $request->validate([
             'motorista_id'         => 'required|exists:motoristas,id',
             'veiculo_id'           => 'required|exists:veiculos,id',
+            'carreta_id'           => ['nullable', Rule::exists('veiculos', 'id')->where('tipo', 'carreta')],
             'origem'               => 'required|string|max:255',
             'origem_uf'            => 'nullable|string|max:2',
             'origem_codigo_municipio' => 'nullable|string|max:7',

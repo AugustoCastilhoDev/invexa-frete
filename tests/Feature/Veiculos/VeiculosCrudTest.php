@@ -27,6 +27,52 @@ class VeiculosCrudTest extends TestCase
         $this->assertDatabaseHas('veiculos', ['placa' => 'ABC1D23']);
     }
 
+    public function test_cria_cavalo_trucado_com_tipo_da_taxonomia_nova(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'  => 'CVT1R23',
+            'modelo' => 'FH 540',
+            'tipo'   => 'cavalo_trucado',
+            'status' => 'ativo',
+        ]);
+
+        $response->assertRedirect(route('veiculos.index'));
+        $this->assertDatabaseHas('veiculos', ['placa' => 'CVT1R23', 'tipo' => 'cavalo_trucado']);
+    }
+
+    public function test_cria_carreta_com_tipo_de_carroceria(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->post(route('veiculos.store'), [
+            'placa'           => 'CAR9R23',
+            'modelo'          => 'Graneleiro',
+            'tipo'            => 'carreta',
+            'tipo_carroceria' => 'graneleiro',
+            'status'          => 'ativo',
+        ]);
+
+        $response->assertRedirect(route('veiculos.index'));
+        $this->assertDatabaseHas('veiculos', ['placa' => 'CAR9R23', 'tipo_carroceria' => 'graneleiro']);
+    }
+
+    public function test_dropdown_de_cavalo_nao_lista_truck_chassi_rigido(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Veiculo::factory()->create(['tipo' => 'truck', 'placa' => 'RIG1D23']);
+        Veiculo::factory()->cavalo()->create(['placa' => 'CVL1D23']);
+
+        $response = $this->get(route('veiculos.create'));
+
+        $response->assertOk();
+        $response->assertViewHas('cavalos', function ($cavalos) {
+            return $cavalos->count() === 1 && $cavalos->first()->placa === 'CVL1D23';
+        });
+    }
+
     public function test_cria_veiculo_sem_informar_vinculo_assume_frota_propria(): void
     {
         $this->actingAs(User::factory()->create());
@@ -102,7 +148,7 @@ class VeiculosCrudTest extends TestCase
     public function test_vincula_carreta_a_um_cavalo_ao_cadastrar(): void
     {
         $this->actingAs(User::factory()->create());
-        $cavalo = Veiculo::factory()->create(['tipo' => 'truck']);
+        $cavalo = Veiculo::factory()->create(['tipo' => 'cavalo_simples']);
 
         $response = $this->post(route('veiculos.store'), [
             'placa'     => 'CAR1R23',
@@ -119,7 +165,7 @@ class VeiculosCrudTest extends TestCase
     public function test_atualiza_vinculo_de_carreta_a_cavalo(): void
     {
         $this->actingAs(User::factory()->create());
-        $cavalo  = Veiculo::factory()->create(['tipo' => 'truck']);
+        $cavalo  = Veiculo::factory()->create(['tipo' => 'cavalo_simples']);
         $carreta = Veiculo::factory()->carreta()->create();
 
         $response = $this->put(route('veiculos.update', $carreta), [
@@ -137,7 +183,7 @@ class VeiculosCrudTest extends TestCase
     public function test_nao_permite_cavalo_id_em_veiculo_que_nao_e_carreta(): void
     {
         $this->actingAs(User::factory()->create());
-        $cavalo = Veiculo::factory()->create(['tipo' => 'truck']);
+        $cavalo = Veiculo::factory()->create(['tipo' => 'cavalo_simples']);
 
         $response = $this->post(route('veiculos.store'), [
             'placa'     => 'UTL1L23',
@@ -172,7 +218,7 @@ class VeiculosCrudTest extends TestCase
     {
         $empresa = Empresa::factory()->create(['limite_veiculos' => 1]);
         $admin   = User::factory()->admin()->create(['empresa_id' => $empresa->id]);
-        $cavalo  = Veiculo::factory()->create(['tipo' => 'truck', 'empresa_id' => $empresa->id]);
+        $cavalo  = Veiculo::factory()->create(['tipo' => 'cavalo_simples', 'empresa_id' => $empresa->id]);
         Veiculo::factory()->vinculadaA($cavalo)->create(['empresa_id' => $empresa->id]);
 
         $this->actingAs($admin);
@@ -207,7 +253,7 @@ class VeiculosCrudTest extends TestCase
     public function test_tela_de_detalhe_exibe_cavalo_vinculado_da_carreta(): void
     {
         $this->actingAs(User::factory()->create());
-        $cavalo  = Veiculo::factory()->create(['tipo' => 'truck', 'placa' => 'CAV1L23']);
+        $cavalo  = Veiculo::factory()->create(['tipo' => 'cavalo_simples', 'placa' => 'CAV1L23']);
         $carreta = Veiculo::factory()->vinculadaA($cavalo)->create();
 
         $response = $this->get(route('veiculos.show', $carreta));
@@ -219,7 +265,7 @@ class VeiculosCrudTest extends TestCase
     public function test_tela_de_detalhe_exibe_carretas_vinculadas_do_cavalo(): void
     {
         $this->actingAs(User::factory()->create());
-        $cavalo = Veiculo::factory()->create(['tipo' => 'truck']);
+        $cavalo = Veiculo::factory()->create(['tipo' => 'cavalo_simples']);
         Veiculo::factory()->vinculadaA($cavalo)->create(['placa' => 'CAR3R23']);
 
         $response = $this->get(route('veiculos.show', $cavalo));

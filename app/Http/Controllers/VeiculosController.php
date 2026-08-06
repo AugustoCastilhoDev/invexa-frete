@@ -30,7 +30,7 @@ class VeiculosController extends Controller
 
     public function create()
     {
-        $cavalos = Veiculo::where('tipo', 'truck')->orderBy('placa')->get();
+        $cavalos = Veiculo::cavalos()->orderBy('placa')->get();
 
         return view('veiculos.create', compact('cavalos'));
     }
@@ -42,11 +42,12 @@ class VeiculosController extends Controller
             'modelo'       => 'required|string|max:255',
             'marca'        => 'nullable|string|max:255',
             'ano'          => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
-            'tipo'         => 'required|in:truck,carreta,van,utilitario,outro',
+            'tipo'         => 'required|in:' . implode(',', array_keys(Veiculo::TIPOS)),
+            'tipo_carroceria' => 'nullable|in:' . implode(',', array_keys(Veiculo::TIPOS_CARROCERIA)),
             'renavam'      => 'nullable|string|max:20',
             'chassi'       => 'nullable|string|max:30',
             'validade_documento' => 'nullable|date',
-            'cavalo_id'    => ['nullable', 'prohibited_unless:tipo,carreta', Rule::exists('veiculos', 'id')->where('tipo', 'truck')],
+            'cavalo_id'    => ['nullable', 'prohibited_unless:tipo,carreta', Rule::exists('veiculos', 'id')->whereIn('tipo', Veiculo::TIPOS_CAVALO)],
             'capacidade_kg'=> 'nullable|numeric|min:0',
             'tara_kg'      => 'nullable|integer|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
@@ -76,7 +77,7 @@ class VeiculosController extends Controller
 
     public function edit(Veiculo $veiculo)
     {
-        $cavalos = Veiculo::where('tipo', 'truck')->orderBy('placa')->get();
+        $cavalos = Veiculo::cavalos()->orderBy('placa')->get();
 
         return view('veiculos.edit', compact('veiculo', 'cavalos'));
     }
@@ -88,11 +89,12 @@ class VeiculosController extends Controller
             'modelo'       => 'required|string|max:255',
             'marca'        => 'nullable|string|max:255',
             'ano'          => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
-            'tipo'         => 'required|in:truck,carreta,van,utilitario,outro',
+            'tipo'         => 'required|in:' . implode(',', array_keys(Veiculo::TIPOS)),
+            'tipo_carroceria' => 'nullable|in:' . implode(',', array_keys(Veiculo::TIPOS_CARROCERIA)),
             'renavam'      => 'nullable|string|max:20',
             'chassi'       => 'nullable|string|max:30',
             'validade_documento' => 'nullable|date',
-            'cavalo_id'    => ['nullable', 'prohibited_unless:tipo,carreta', Rule::exists('veiculos', 'id')->where('tipo', 'truck')],
+            'cavalo_id'    => ['nullable', 'prohibited_unless:tipo,carreta', Rule::exists('veiculos', 'id')->whereIn('tipo', Veiculo::TIPOS_CAVALO)],
             'capacidade_kg'=> 'nullable|numeric|min:0',
             'tara_kg'      => 'nullable|integer|min:0',
             'status'       => 'required|in:ativo,inativo,manutencao',
@@ -120,7 +122,7 @@ class VeiculosController extends Controller
     public function importarTemplate()
     {
         $csv = "placa;modelo;marca;ano;tipo;renavam;chassi;validade_documento;capacidade_kg;status;vinculo\n"
-            . "ABC1D23;FH 540;Volvo;2020;truck;12345678901;9BWZZZ377VT004251;31/03/2027;15000;ativo;propria\n";
+            . "ABC1D23;FH 540;Volvo;2020;cavalo_simples;12345678901;9BWZZZ377VT004251;31/03/2027;15000;ativo;propria\n";
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -154,7 +156,7 @@ class VeiculosController extends Controller
                 'modelo' => 'required|string|max:255',
                 'marca' => 'nullable|string|max:255',
                 'ano' => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
-                'tipo' => 'required|in:truck,carreta,van,utilitario,outro',
+                'tipo' => 'required|in:' . implode(',', array_keys(Veiculo::TIPOS)),
                 'renavam' => 'nullable|string|max:20',
                 'chassi' => 'nullable|string|max:30',
                 'validade_documento' => 'nullable|date',

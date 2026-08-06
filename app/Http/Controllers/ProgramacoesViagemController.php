@@ -7,6 +7,7 @@ use App\Models\Motorista;
 use App\Models\ProgramacaoViagem;
 use App\Models\Veiculo;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProgramacoesViagemController extends Controller
 {
@@ -18,7 +19,7 @@ class ProgramacoesViagemController extends Controller
         $periodo     = $request->input('periodo');
         $riscoNoShow = $request->boolean('risco_no_show');
 
-        $query = ProgramacaoViagem::with(['motorista', 'veiculo', 'cliente'])
+        $query = ProgramacaoViagem::with(['motorista', 'veiculo', 'carreta', 'cliente'])
             ->orderBy('data_prevista');
 
         if ($status !== 'todas') {
@@ -78,10 +79,13 @@ class ProgramacoesViagemController extends Controller
     public function create(Request $request)
     {
         $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
-        $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
-        $clientes   = Cliente::where('status', 'ativo')->orderBy('nome')->get();
+        // Carreta não anda sozinha — não entra como opção de "Veículo" da viagem;
+        // quem usa carreta escolhe o cavalo aqui e a carreta no campo abaixo.
+        $veiculos = Veiculo::with('carretas')->where('status', 'ativo')->where('tipo', '!=', 'carreta')->orderBy('placa')->get();
+        $carretas = Veiculo::where('status', 'ativo')->where('tipo', 'carreta')->orderBy('placa')->get();
+        $clientes = Cliente::where('status', 'ativo')->orderBy('nome')->get();
 
-        return view('programacoes.create', compact('motoristas', 'veiculos', 'clientes'));
+        return view('programacoes.create', compact('motoristas', 'veiculos', 'carretas', 'clientes'));
     }
 
     public function store(Request $request)
@@ -99,10 +103,11 @@ class ProgramacoesViagemController extends Controller
         abort_if(! $programacao->estaPendente(), 400, 'Esta programação já foi confirmada.');
 
         $motoristas = Motorista::where('status', 'ativo')->orderBy('nome')->get();
-        $veiculos   = Veiculo::where('status', 'ativo')->orderBy('placa')->get();
-        $clientes   = Cliente::where('status', 'ativo')->orderBy('nome')->get();
+        $veiculos = Veiculo::with('carretas')->where('status', 'ativo')->where('tipo', '!=', 'carreta')->orderBy('placa')->get();
+        $carretas = Veiculo::where('status', 'ativo')->where('tipo', 'carreta')->orderBy('placa')->get();
+        $clientes = Cliente::where('status', 'ativo')->orderBy('nome')->get();
 
-        return view('programacoes.edit', compact('programacao', 'motoristas', 'veiculos', 'clientes'));
+        return view('programacoes.edit', compact('programacao', 'motoristas', 'veiculos', 'carretas', 'clientes'));
     }
 
     public function update(Request $request, ProgramacaoViagem $programacao)
@@ -166,6 +171,7 @@ class ProgramacoesViagemController extends Controller
                     }
                 },
             ],
+            'carreta_id' => ['nullable', Rule::exists('veiculos', 'id')->where('tipo', 'carreta')],
             'cliente_id'       => 'nullable|exists:clientes,id',
             'origem'           => 'required|string|max:255',
             'origem_uf'        => 'nullable|string|max:2',

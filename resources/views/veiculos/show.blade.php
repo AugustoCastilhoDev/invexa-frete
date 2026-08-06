@@ -30,7 +30,10 @@
                     <tr><td class="text-muted">Modelo</td><td>{{ $veiculo->modelo }}</td></tr>
                     <tr><td class="text-muted">Marca</td><td>{{ $veiculo->marca ?? '-' }}</td></tr>
                     <tr><td class="text-muted">Ano</td><td>{{ $veiculo->ano ?? '-' }}</td></tr>
-                    <tr><td class="text-muted">Tipo</td><td>{{ ucfirst($veiculo->tipo) }}</td></tr>
+                    <tr><td class="text-muted">Tipo</td><td>{{ $veiculo->tipo_formatado }}</td></tr>
+                    @if($veiculo->tipo_carroceria)
+                        <tr><td class="text-muted">Carroceria</td><td>{{ $veiculo->tipo_carroceria_formatado }}</td></tr>
+                    @endif
                     <tr><td class="text-muted">RENAVAM</td><td>{{ $veiculo->renavam ?? '-' }}</td></tr>
                     <tr><td class="text-muted">Chassi</td><td>{{ $veiculo->chassi ?? '-' }}</td></tr>
                     <tr><td class="text-muted">Validade do Documento</td>
@@ -38,7 +41,7 @@
                     @if($veiculo->tipo === 'carreta')
                     <tr><td class="text-muted">Cavalo Vinculado</td>
                         <td>{{ $veiculo->cavalo ? $veiculo->cavalo->placa . ' — ' . $veiculo->cavalo->modelo : '-' }}</td></tr>
-                    @elseif($veiculo->tipo === 'truck')
+                    @elseif(in_array($veiculo->tipo, \App\Models\Veiculo::TIPOS_CAVALO))
                     <tr><td class="text-muted">Carreta(s) Vinculada(s)</td>
                         <td>{{ $veiculo->carretas->isNotEmpty() ? $veiculo->carretas->pluck('placa')->join(', ') : '-' }}</td></tr>
                     @endif

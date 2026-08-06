@@ -193,7 +193,12 @@
                 <tr>
                     <td class="ps-4 text-muted">#{{ $programacao->id }}</td>
                     <td class="fw-semibold">{{ $programacao->motorista->nome }}</td>
-                    <td>{{ $programacao->veiculo->placa }}</td>
+                    <td>
+                        {{ $programacao->veiculo->placa }}
+                        @if($programacao->carreta)
+                            <div class="text-muted" style="font-size:.75rem">+ {{ $programacao->carreta->placa }}</div>
+                        @endif
+                    </td>
                     <td>{{ $programacao->cliente->nome ?? '-' }}</td>
                     <td>{{ $programacao->origem }} → {{ $programacao->destino }}</td>
                     <td>{{ $programacao->data_prevista->format('d/m/Y') }}</td>
@@ -239,6 +244,7 @@
                                     'programacao_id' => $programacao->id,
                                     'motorista_id'   => $programacao->motorista_id,
                                     'veiculo_id'     => $programacao->veiculo_id,
+                                    'carreta_id'     => $programacao->carreta_id,
                                     'cliente_id'     => $programacao->cliente_id,
                                     'origem'         => $programacao->origem,
                                     'origem_uf'      => $programacao->origem_uf,

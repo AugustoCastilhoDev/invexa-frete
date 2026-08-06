@@ -20,6 +20,7 @@ class Veiculo extends Model
         'marca',
         'ano',
         'tipo',
+        'tipo_carroceria',
         'renavam',
         'chassi',
         'validade_documento',
@@ -32,6 +33,27 @@ class Veiculo extends Model
 
     protected $casts = [
         'validade_documento' => 'date',
+    ];
+
+    public const TIPOS_CAVALO = ['cavalo_simples', 'cavalo_trucado'];
+
+    public const TIPOS = [
+        'truck'           => 'Truck (Chassi Rígido)',
+        'bitruck'         => 'Bitruck (Chassi Rígido)',
+        'cavalo_simples'  => 'Cavalo Mecânico Simples (4x2)',
+        'cavalo_trucado'  => 'Cavalo Mecânico Trucado (6x2/6x4)',
+        'carreta'         => 'Carreta (Semirreboque)',
+        'bitrem_rodotrem' => 'Bitrem/Rodotrem (Combinação)',
+        'van'             => 'Van',
+        'utilitario'      => 'Utilitário',
+        'outro'           => 'Outro',
+    ];
+
+    public const TIPOS_CARROCERIA = [
+        'bau_sider'         => 'Baú/Sider',
+        'graneleiro'        => 'Graneleiro/Grade Baixa',
+        'cacamba'           => 'Caçamba',
+        'prancha_container' => 'Prancha/Porta-Contêiner',
     ];
 
     // Um veículo tem muitas viagens
@@ -58,9 +80,24 @@ class Veiculo extends Model
         return $this->hasMany(Veiculo::class, 'cavalo_id');
     }
 
+    // Carreta vinculada que está disponível pra uso agora (não em manutenção/inativa)
+    // — usada como sugestão de padrão nos formulários de Programação/Viagem, sem
+    // travar a escolha de uma diferente se essa estiver indisponível.
+    public function carretaVinculadaDisponivel(): ?self
+    {
+        return $this->carretas()->where('status', 'ativo')->first();
+    }
+
     public function scopeEmManutencao($query)
     {
         return $query->where('status', 'manutencao');
+    }
+
+    // Só os tipos que tracionam (podem puxar uma carreta) — truck/bitruck são
+    // chassi rígido, não entram aqui.
+    public function scopeCavalos($query)
+    {
+        return $query->whereIn('tipo', self::TIPOS_CAVALO);
     }
 
     // Conjunto (cavalo + carreta) conta como 1 veículo no limite do plano:
@@ -75,5 +112,15 @@ class Veiculo extends Model
     public function getVinculoFormatadoAttribute(): string
     {
         return $this->vinculo === 'agregado' ? 'Agregado' : 'Frota Própria';
+    }
+
+    public function getTipoFormatadoAttribute(): string
+    {
+        return self::TIPOS[$this->tipo] ?? ucfirst($this->tipo);
+    }
+
+    public function getTipoCarroceriaFormatadoAttribute(): ?string
+    {
+        return $this->tipo_carroceria ? (self::TIPOS_CARROCERIA[$this->tipo_carroceria] ?? $this->tipo_carroceria) : null;
     }
 }

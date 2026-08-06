@@ -51,6 +51,7 @@ class Viagem extends Model
     protected $fillable = [
         'motorista_id',
         'veiculo_id',
+        'carreta_id',
         'origem',
         'origem_uf',
         'origem_codigo_municipio',
@@ -114,6 +115,13 @@ class Viagem extends Model
     public function veiculo()
     {
         return $this->belongsTo(Veiculo::class);
+    }
+
+    // Carreta usada nesta viagem específica — pode divergir da carreta vinculada
+    // ao cavalo no cadastro, se essa estava indisponível na hora
+    public function carreta()
+    {
+        return $this->belongsTo(Veiculo::class, 'carreta_id');
     }
 
     // Viagem pertence a um cliente

@@ -43,8 +43,9 @@
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Tipo *</label>
                     <select name="tipo" id="tipo-veiculo" class="form-select" required
-                            onchange="document.getElementById('wrapper-cavalo-vinculado').classList.toggle('d-none', this.value !== 'carreta')">
-                        @foreach(['truck'=>'Truck','carreta'=>'Carreta','van'=>'Van','utilitario'=>'Utilitário','outro'=>'Outro'] as $val => $label)
+                            onchange="document.getElementById('wrapper-cavalo-vinculado').classList.toggle('d-none', this.value !== 'carreta');
+                                      document.getElementById('wrapper-tipo-carroceria').classList.toggle('d-none', this.value !== 'carreta')">
+                        @foreach(\App\Models\Veiculo::TIPOS as $val => $label)
                             <option value="{{ $val }}"
                                 {{ old('tipo', $veiculo->tipo) == $val ? 'selected' : '' }}>
                                 {{ $label }}
@@ -60,6 +61,18 @@
                             <option value="{{ $cavalo->id }}"
                                 {{ (string) old('cavalo_id', $veiculo->cavalo_id) === (string) $cavalo->id ? 'selected' : '' }}>
                                 {{ $cavalo->placa }} — {{ $cavalo->modelo }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4 {{ old('tipo', $veiculo->tipo) !== 'carreta' ? 'd-none' : '' }}" id="wrapper-tipo-carroceria">
+                    <label class="form-label fw-semibold">Tipo de Carroceria / Implemento</label>
+                    <select name="tipo_carroceria" class="form-select">
+                        <option value="">— Não informado —</option>
+                        @foreach(\App\Models\Veiculo::TIPOS_CARROCERIA as $val => $label)
+                            <option value="{{ $val }}"
+                                {{ old('tipo_carroceria', $veiculo->tipo_carroceria) == $val ? 'selected' : '' }}>
+                                {{ $label }}
                             </option>
                         @endforeach
                     </select>

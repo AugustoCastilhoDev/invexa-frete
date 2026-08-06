@@ -13,7 +13,7 @@ class VeiculoFactory extends Factory
             'modelo'        => $this->faker->randomElement(['FH 540', 'Actros', 'Constellation', 'Delivery']),
             'marca'         => $this->faker->randomElement(['Volvo', 'Mercedes-Benz', 'Volkswagen', 'Scania']),
             'ano'           => $this->faker->numberBetween(2010, 2025),
-            'tipo'          => $this->faker->randomElement(['truck', 'carreta', 'van', 'utilitario', 'outro']),
+            'tipo'          => $this->faker->randomElement(array_keys(\App\Models\Veiculo::TIPOS)),
             'renavam'       => $this->faker->numerify('###########'),
             'capacidade_kg' => $this->faker->randomFloat(2, 1000, 30000),
             'status'        => 'ativo',
@@ -39,6 +39,11 @@ class VeiculoFactory extends Factory
     public function carreta(): static
     {
         return $this->state(fn () => ['tipo' => 'carreta']);
+    }
+
+    public function cavalo(): static
+    {
+        return $this->state(fn () => ['tipo' => 'cavalo_simples']);
     }
 
     public function vinculadaA(\App\Models\Veiculo $cavalo): static

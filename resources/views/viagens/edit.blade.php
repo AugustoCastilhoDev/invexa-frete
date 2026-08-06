@@ -36,12 +36,29 @@
                     <label class="form-label fw-semibold">Veículo *</label>
                     <select name="veiculo_id" class="form-select" required>
                         @foreach($veiculos as $veiculo)
+                            @php $carretaLigada = $veiculo->carretas->firstWhere('status', 'ativo'); @endphp
                             <option value="{{ $veiculo->id }}"
                                 {{ old('veiculo_id', $viagem->veiculo_id) == $veiculo->id ? 'selected' : '' }}>
                                 {{ $veiculo->placa }} — {{ $veiculo->modelo }}
+                                @if($carretaLigada)
+                                    (+ Carreta {{ $carretaLigada->placa }})
+                                @endif
                             </option>
                         @endforeach
                     </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Carreta</label>
+                    <select name="carreta_id" class="form-select">
+                        <option value="">— Nenhuma / não se aplica —</option>
+                        @foreach($carretas as $carreta)
+                            <option value="{{ $carreta->id }}"
+                                {{ old('carreta_id', $viagem->carreta_id) == $carreta->id ? 'selected' : '' }}>
+                                {{ $carreta->placa }} — {{ $carreta->modelo }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="text-muted">Só faz sentido se o veículo escolhido for um cavalo mecânico</small>
                 </div>
             </div>
 

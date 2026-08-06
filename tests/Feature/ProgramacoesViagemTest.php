@@ -397,4 +397,54 @@ class ProgramacoesViagemTest extends TestCase
         $this->assertEquals('confirmada', $programacao->status);
         $this->assertNotNull($programacao->viagem_id);
     }
+
+    public function test_cadastra_programacao_com_carreta(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $cavalo  = Veiculo::factory()->cavalo()->create();
+        $carreta = Veiculo::factory()->carreta()->create();
+
+        $response = $this->post(route('programacoes.store'), [
+            'motorista_id'  => Motorista::factory()->create()->id,
+            'veiculo_id'    => $cavalo->id,
+            'carreta_id'    => $carreta->id,
+            'origem'        => 'São Paulo',
+            'destino'       => 'Curitiba',
+            'data_prevista' => now()->addDays(2)->format('Y-m-d'),
+        ]);
+
+        $response->assertRedirect(route('programacoes.index'));
+        $this->assertDatabaseHas('programacoes_viagem', ['veiculo_id' => $cavalo->id, 'carreta_id' => $carreta->id]);
+    }
+
+    // O link "Confirmar" (ver programacoes/index.blade.php) repassa carreta_id
+    // via query string pro formulário de nova viagem — sem isso a escolha da
+    // carreta feita na programação se perderia ao virar viagem de verdade.
+    public function test_confirmar_programacao_com_carreta_leva_a_escolha_para_a_viagem(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $cavalo  = Veiculo::factory()->cavalo()->create();
+        $carreta = Veiculo::factory()->carreta()->create();
+        $programacao = ProgramacaoViagem::factory()->create([
+            'veiculo_id' => $cavalo->id,
+            'carreta_id' => $carreta->id,
+        ]);
+
+        $response = $this->post(route('viagens.store'), [
+            'programacao_id'       => $programacao->id,
+            'motorista_id'         => $programacao->motorista_id,
+            'veiculo_id'           => $programacao->veiculo_id,
+            'carreta_id'           => $programacao->carreta_id,
+            'origem'               => $programacao->origem,
+            'destino'              => $programacao->destino,
+            'data_saida'           => now()->format('Y-m-d'),
+            'valor_frete'          => 5000,
+            'percentual_motorista' => 10,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('viagens', ['veiculo_id' => $cavalo->id, 'carreta_id' => $carreta->id]);
+    }
 }

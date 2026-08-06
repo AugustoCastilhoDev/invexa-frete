@@ -102,11 +102,11 @@ class PocDemoSeeder extends Seeder
 
         $cavalo = Veiculo::create([
             'placa' => 'POC1A11', 'modelo' => 'FH 540', 'marca' => 'Volvo', 'ano' => 2022,
-            'tipo' => 'truck', 'renavam' => '10000000001', 'capacidade_kg' => 15000, 'status' => 'ativo',
+            'tipo' => 'cavalo_trucado', 'renavam' => '10000000001', 'capacidade_kg' => 15000, 'status' => 'ativo',
         ]);
         Veiculo::create([
             'placa' => 'POC1B22', 'modelo' => 'Graneleiro', 'marca' => 'Randon', 'ano' => 2021,
-            'tipo' => 'carreta', 'cavalo_id' => $cavalo->id, 'renavam' => '10000000002',
+            'tipo' => 'carreta', 'tipo_carroceria' => 'graneleiro', 'cavalo_id' => $cavalo->id, 'renavam' => '10000000002',
             'capacidade_kg' => 30000, 'status' => 'ativo',
         ]);
         $veiculosDados = [

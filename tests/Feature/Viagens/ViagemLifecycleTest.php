@@ -51,6 +51,74 @@ class ViagemLifecycleTest extends TestCase
         $this->assertEquals(1800, $viagem->lucro_transportadora);
     }
 
+    public function test_abre_viagem_com_carreta_vinculada(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $cavalo  = Veiculo::factory()->cavalo()->create();
+        $carreta = Veiculo::factory()->vinculadaA($cavalo)->create();
+
+        $response = $this->post(route('viagens.store'), [
+            'motorista_id'         => Motorista::factory()->create()->id,
+            'veiculo_id'           => $cavalo->id,
+            'carreta_id'           => $carreta->id,
+            'origem'               => 'Curitiba',
+            'destino'              => 'São Paulo',
+            'data_saida'           => now()->format('Y-m-d'),
+            'valor_frete'          => 2000,
+            'percentual_motorista' => 10,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('viagens', ['veiculo_id' => $cavalo->id, 'carreta_id' => $carreta->id]);
+    }
+
+    // Se a carreta de sempre estiver em manutenção, o operador troca no
+    // formulário — o sistema não pode rejeitar uma carreta ativa qualquer.
+    public function test_permite_usar_carreta_diferente_da_vinculada_ao_cavalo(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $cavalo         = Veiculo::factory()->cavalo()->create();
+        $carretaDeSempre = Veiculo::factory()->vinculadaA($cavalo)->create(['status' => 'manutencao']);
+        $outraCarreta   = Veiculo::factory()->carreta()->create();
+
+        $response = $this->post(route('viagens.store'), [
+            'motorista_id'         => Motorista::factory()->create()->id,
+            'veiculo_id'           => $cavalo->id,
+            'carreta_id'           => $outraCarreta->id,
+            'origem'               => 'Curitiba',
+            'destino'              => 'São Paulo',
+            'data_saida'           => now()->format('Y-m-d'),
+            'valor_frete'          => 2000,
+            'percentual_motorista' => 10,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('viagens', ['veiculo_id' => $cavalo->id, 'carreta_id' => $outraCarreta->id]);
+    }
+
+    public function test_nao_permite_carreta_id_que_nao_seja_do_tipo_carreta(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $cavalo    = Veiculo::factory()->cavalo()->create();
+        $outroCavalo = Veiculo::factory()->cavalo()->create();
+
+        $response = $this->post(route('viagens.store'), [
+            'motorista_id'         => Motorista::factory()->create()->id,
+            'veiculo_id'           => $cavalo->id,
+            'carreta_id'           => $outroCavalo->id,
+            'origem'               => 'Curitiba',
+            'destino'              => 'São Paulo',
+            'data_saida'           => now()->format('Y-m-d'),
+            'valor_frete'          => 2000,
+            'percentual_motorista' => 10,
+        ]);
+
+        $response->assertSessionHasErrors('carreta_id');
+    }
+
     public function test_bloqueia_nova_viagem_quando_veiculo_tem_mdfe_nao_encerrado(): void
     {
         $this->actingAs(User::factory()->create());

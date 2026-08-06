@@ -105,7 +105,7 @@ class DashboardTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        $cavalo = Veiculo::factory()->create(['tipo' => 'truck']);
+        $cavalo = Veiculo::factory()->create(['tipo' => 'cavalo_simples']);
         Veiculo::factory()->vinculadaA($cavalo)->create();
         Veiculo::factory()->create(); // veículo avulso, conta normalmente
 

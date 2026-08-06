@@ -26,6 +26,27 @@ Documento vivo com o que já está pronto e o que está planejado. Atualize conf
 - Listagem destaca em vermelho, com ícone de atenção, veículos com validade do documento vencendo em até 30 dias (ou já vencida)
 - **Importação em massa via CSV**: mesmo mecanismo dos motoristas; respeita o limite de veículos do plano linha a linha (se estourar no meio do arquivo, as linhas restantes ficam marcadas como erro em vez de criar acima do contratado). O vínculo cavalo/carreta não é importado — fica para ajuste manual depois
 - **Frota própria x agregado (2026-08-05)**: mesmo campo `vinculo` dos motoristas, mesmo tratamento (cadastro/edição/listagem/detalhe/CSV)
+- **Taxonomia de carga pesada (2026-08-05)**: `tipo` expandido de `truck`/`carreta`/`van`/`utilitario`/`outro`
+  para incluir **Truck (Chassi Rígido)**, **Bitruck (Chassi Rígido)**, **Cavalo Mecânico Simples (4x2)**,
+  **Cavalo Mecânico Trucado (6x2/6x4)** e **Bitrem/Rodotrem (Combinação)** — só os dois tipos de cavalo
+  mecânico tracionam carreta (`Veiculo::TIPOS_CAVALO`, `scopeCavalos`), diferente do antigo `truck` único
+  que misturava chassi rígido com unidade tratora. Migração de dado automática: todo veículo já cadastrado
+  como `truck` virou `cavalo_simples` (preserva a capacidade de puxar carreta que já tinha; `truck` passa a
+  significar só chassi rígido de verdade a partir de agora). Os 4 pontos do sistema que decidiam "isso é
+  cavalo?" checando `tipo === 'truck'` (dropdown de cavalo vinculado nos formulários de veículo + a tela de
+  detalhe do veículo, que tinha o mesmo hardcode) foram trocados pra checar os dois tipos de cavalo.
+  Campo novo `tipo_carroceria` (Baú/Sider, Graneleiro/Grade Baixa, Caçamba, Prancha/Porta-Contêiner),
+  condicional a `tipo = carreta`, mesmo padrão de UX do campo "Cavalo Vinculado". 4 testes novos
+- **Carreta por viagem/programação (2026-08-05)**: até aqui só existia vínculo cavalo↔carreta *fixo*,
+  decidido uma vez no cadastro do veículo — sem jeito de usar uma carreta diferente pontualmente se a de
+  sempre estivesse em manutenção. `carreta_id` novo em `Viagem` e `ProgramacaoViagem` (independente do
+  `Veiculo::cavalo_id` estático) resolve isso: o dropdown de "Veículo" nos formulários de Programação e
+  Viagem já não lista carreta solta como opção (carreta não anda sozinha — decisão junto com a taxonomia
+  acima) e mostra a carreta vinculada no rótulo do cavalo (`ABC1234 — FH 540 (+ Carreta XYZ5678)`); um
+  segundo campo "Carreta" deixa escolher outra se a de sempre estiver indisponível. O link "Confirmar" (que
+  transforma a Programação em Viagem) repassa `carreta_id` junto via query string, mesmo padrão já usado
+  pra motorista/veículo/cliente/valor_frete — sem isso a escolha feita na Programação se perderia ao virar
+  viagem de verdade. 6 testes novos
 
 ### Manutenção de veículos
 - Registro de manutenção preventiva/corretiva, independente de viagem
@@ -270,7 +291,7 @@ financeiro.
 - **Alternância entre login de Operador/Admin e Portal do Motorista (2026-07-18)**: abas no topo das duas telas de login (`/login` e portal), levando de uma para a outra sem precisar saber a URL de cor
 
 ### Infraestrutura de qualidade
-- 567 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA (incluindo obrigatoriedade pra admin/super admin), notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista, a tela de diagnóstico do sistema e a API REST (autenticação por token e isolamento multi-tenant)
+- 575 testes automatizados (unitários + feature) cobrindo cálculo financeiro, ciclo de vida de viagens, CRUD de todos os módulos, permissões, 2FA (incluindo obrigatoriedade pra admin/super admin), notificações, anonimização, log de acesso, upload/armazenamento de arquivos, isolamento multi-tenant, programação de frota, controle de recebimento do frete, emissão/encerramento de CT-e/MDF-e (com cargas por cliente e unidades matriz/filial), o portal do motorista, a tela de diagnóstico do sistema e a API REST (autenticação por token e isolamento multi-tenant)
 - CI no GitHub Actions rodando a suíte a cada push/PR para `main`
 - **Varredura de saúde do código (2026-07-16)**: removidos 9 arquivos do scaffold original do Laravel Breeze nunca usados (`welcome.blade.php`, `layouts/navigation.blade.php` e os componentes exclusivos dela — a navegação real é `layouts/app.blade.php`, escrita do zero); adicionadas ao `.env.example` as 4 chaves de `config/lgpd.php` que não estavam documentadas (tinham default seguro no código, mas não apareciam pra quem fosse configurar um deploy novo). Nenhum bug funcional encontrado — suíte completa, `route:list` e uma checagem estática de toda chamada `route('...')` contra as rotas registradas confirmaram consistência
 - **Teste de carga e concorrência em produção (2026-07-18, VPS KVM 1)**: leitura simultânea estável até ~450 requisições sem erro na tela mais pesada do painel (Dashboard), primeiros sinais de fila só perto de 600, sem nenhum erro; escrita simultânea (lançamentos na mesma viagem, importações CSV na mesma empresa) sem perda de dado nos cenários testados. [Relatório completo](https://claude.ai/code/artifact/ae23fae1-d5b5-43f6-a8a4-e6ad9fe81ad2) (privado — liberar visualização caso a caso)
@@ -320,39 +341,6 @@ Veículos, Programação de Frota, Dashboard → Página Inicial):
 - ✅ **Risco de no-show — implementado 2026-08-05**: check-in manual, sem trava de aprovação, no Portal
   do Motorista e também disponível pro operador em `/programacoes`. Detalhe completo na seção
   "Programação de Frota" acima
-
-### Taxonomia de veículos de carga pesada (ideia registrada, 2026-08-05)
-Hoje `tipo` em [Veiculo](app/Models/Veiculo.php) é `truck`/`carreta`/`van`/`utilitario`/`outro` — cobre
-bem carga leve, mas é raso demais pra carga pesada profissional. Lista proposta, substituindo e
-expandindo as opções atuais:
-- **Truck (Chassi Rígido)** — caminhão pesado fixo, 3 eixos
-- **Bitruck (Chassi Rígido)** — caminhão pesado fixo, 4 eixos
-- **Cavalo Mecânico Simples (4x2)** — unidade tratora, 2 eixos
-- **Cavalo Mecânico Trucado (6x2 / 6x4)** — unidade tratora, 3 eixos
-- **Carreta (Semirreboque)** — o implemento de carga isolado (já existe)
-- **Bitrem / Rodotrem (Combinação)** — pro caso de agregado que cadastra o conjunto rodoviário completo
-  numa única placa
-
-Separar o cavalo mecânico em Simples x Trucado importa de verdade, não é só rótulo mais bonito: muda
-capacidade de tração (trucado puxa Bitrem/Rodotrem, simples não), pedágio e consumo de pneu (o número de
-eixos do cavalo altera os dois direto) e facilita o controle de estoque de peça/pneu preventivo em
-`/manutencoes` mais pra frente.
-
-**Risco real de implementação, não só cosmético**: hoje o vínculo cavalo↔carreta é decidido checando
-literalmente `tipo === 'truck'`, em 4 pontos de
-[VeiculosController.php](app/Http/Controllers/VeiculosController.php#L33) (dropdown de cavalos nos dois
-formulários + validação de `cavalo_id` nos dois). Na taxonomia nova, quem puxa carreta são os **Cavalo
-Mecânico** (Simples/Trucado) — Truck e Bitruck são chassi rígido, não tracionam semirreboque. Ou seja,
-não é só trocar o rótulo de `truck`: os 4 pontos precisam passar a checar "é algum tipo de cavalo
-mecânico" em vez de um valor único, senão um Truck (chassi rígido) continua aparecendo errado como opção
-de cavalo pra vincular carreta. Também precisa de decisão sobre o que fazer com veículo já cadastrado
-como `truck` hoje (migração de dado pra qual valor novo?) antes de trocar o enum — não decidido ainda,
-fica pra quando entrar na fila de implementação.
-
-**Próximo passo sugerido, também só registrado por ora**: quando `tipo = carreta` for selecionado, abrir
-um campo condicional novo — "Tipo de Carroceria / Implemento" — com Baú/Sider, Graneleiro/Grade Baixa,
-Caçamba, Prancha/Porta-Contêiner. Mesmo padrão de UX já usado pro campo condicional de "Cavalo
-Vinculado" que só aparece quando `tipo = carreta` ([veiculos/create.blade.php:46-56](resources/views/veiculos/create.blade.php#L46-L56)).
 
 ### Curto prazo
 - **WhatsApp**: arquitetura de notificação já pronta para receber um novo canal; falta só a conta em um provedor (Twilio, Z-API, Meta Cloud API) para integrar de verdade

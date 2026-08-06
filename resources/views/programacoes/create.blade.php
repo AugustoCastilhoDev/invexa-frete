@@ -37,13 +37,33 @@
                     <select name="veiculo_id" class="form-select @error('veiculo_id') is-invalid @enderror" required>
                         <option value="">Selecione o veículo</option>
                         @foreach($veiculos as $veiculo)
+                            @php $carretaLigada = $veiculo->carretas->firstWhere('status', 'ativo'); @endphp
                             <option value="{{ $veiculo->id }}"
                                 {{ old('veiculo_id', request('veiculo_id')) == $veiculo->id ? 'selected' : '' }}>
                                 {{ $veiculo->placa }} — {{ $veiculo->modelo }}
+                                @if($carretaLigada)
+                                    (+ Carreta {{ $carretaLigada->placa }})
+                                @elseif($veiculo->carretas->isNotEmpty())
+                                    (carreta vinculada indisponível)
+                                @endif
                             </option>
                         @endforeach
                     </select>
                     @error('veiculo_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Carreta</label>
+                    <select name="carreta_id" class="form-select @error('carreta_id') is-invalid @enderror">
+                        <option value="">— Nenhuma / não se aplica —</option>
+                        @foreach($carretas as $carreta)
+                            <option value="{{ $carreta->id }}"
+                                {{ old('carreta_id', request('carreta_id')) == $carreta->id ? 'selected' : '' }}>
+                                {{ $carreta->placa }} — {{ $carreta->modelo }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('carreta_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <small class="text-muted">Só faz sentido se o veículo escolhido for um cavalo mecânico — o rótulo dele já mostra a carreta de sempre; troque aqui se ela estiver indisponível</small>
                 </div>
             </div>
 
