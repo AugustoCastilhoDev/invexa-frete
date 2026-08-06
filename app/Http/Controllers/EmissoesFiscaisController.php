@@ -21,6 +21,18 @@ class EmissoesFiscaisController extends Controller
 
         abort_unless($empresa->focus_nfe_ativo, 403, 'Emissão fiscal não está habilitada para esta empresa.');
 
+        // O CT-e precisa referenciar a chave de acesso de cada NF-e transportada
+        // (campo "nfes" da Focus) — sem isso a SEFAZ não consegue cruzar o CT-e
+        // com as notas. Bloqueia aqui em vez de emitir um CT-e "incompleto" em
+        // silêncio.
+        $notaSemChave = $carga->documentos()
+            ->where('tipo', 'nfe')
+            ->where('status', '!=', 'cancelado')
+            ->get()
+            ->contains(fn ($documento) => blank($documento->chave_acesso));
+
+        abort_if($notaSemChave, 422, 'Existe nota fiscal desta carga sem chave de acesso preenchida — preencha antes de emitir o CT-e.');
+
         $emissao = EmissaoFiscal::create([
             'viagem_id'  => $viagem->id,
             'carga_id'   => $carga->id,
@@ -278,12 +290,14 @@ class EmissoesFiscaisController extends Controller
     /**
      * Payload plano do CT-e (uma chave por campo, com sufixo _emitente/
      * _remetente/_destinatario), conforme doc.focusnfe.com.br/reference/emitir_cte
-     * — a Focus NÃO usa objetos aninhados aqui. Remetente = o mesmo emitente
-     * (simplificação: hoje não há conceito de "quem despachou a carga"
-     * separado de Empresa/Cliente no sistema). Destinatário e valores vêm da
-     * Carga (um CT-e por carga/cliente), não mais da viagem inteira. Emitente
-     * vem da Unidade (matriz/filial) escolhida na carga quando houver, com
-     * fallback pros dados fiscais da Empresa — cobre empresas sem filial.
+     * — a Focus NÃO usa objetos aninhados aqui, exceto "nfes" (lista de
+     * {chave_nfe}), que é como a Focus vincula as NF-e's transportadas ao
+     * CT-e. Remetente = o mesmo emitente (simplificação: hoje não há conceito
+     * de "quem despachou a carga" separado de Empresa/Cliente no sistema).
+     * Destinatário e valores vêm da Carga (um CT-e por carga/cliente), não
+     * mais da viagem inteira. Emitente vem da Unidade (matriz/filial)
+     * escolhida na carga quando houver, com fallback pros dados fiscais da
+     * Empresa — cobre empresas sem filial.
      */
     private function montarPayloadCte(Carga $carga): array
     {
@@ -291,6 +305,11 @@ class EmissoesFiscaisController extends Controller
         $empresa = $viagem->empresa;
         $emitente = $carga->unidade ?? $empresa;
         $cliente = $carga->cliente;
+
+        $notasFiscais = $carga->documentos()
+            ->where('tipo', 'nfe')
+            ->where('status', '!=', 'cancelado')
+            ->get();
 
         return [
             'cfop' => $emitente->cfop_padrao,
@@ -336,7 +355,7 @@ class EmissoesFiscaisController extends Controller
             'municipio_destinatario' => $cliente?->cidade,
             'cep_destinatario' => $cliente?->cep,
             'uf_destinatario' => $cliente?->estado,
-            'valor_total_carga' => (float) $carga->documentos()->where('tipo', 'nfe')->sum('valor'),
+            'valor_total_carga' => (float) $notasFiscais->sum('valor'),
             'produto_predominante' => $viagem->descricao_carga,
             'valor_total' => (float) $carga->valor_frete,
             'valor_receber' => (float) $carga->valor_frete,
@@ -344,6 +363,12 @@ class EmissoesFiscaisController extends Controller
             'icms_aliquota' => $emitente->icms_aliquota,
             'modal' => '01',
             'modal_rodoviario' => ['rntrc' => $emitente->rntrc],
+            'nfes' => $notasFiscais
+                ->pluck('chave_acesso')
+                ->filter()
+                ->map(fn ($chave) => ['chave_nfe' => $chave])
+                ->values()
+                ->all(),
         ];
     }
 

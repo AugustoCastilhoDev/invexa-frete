@@ -368,6 +368,62 @@ class EmissoesFiscaisTest extends TestCase
         });
     }
 
+    public function test_payload_do_cte_vincula_a_chave_de_todas_as_notas_fiscais_da_carga(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $carga = Carga::factory()->create();
+
+        $notas = Documento::factory()->count(5)->create([
+            'viagem_id' => $carga->viagem_id,
+            'carga_id'  => $carga->id,
+            'tipo'      => 'nfe',
+        ]);
+        // Nota cancelada e documento de outro tipo não devem entrar no vínculo.
+        Documento::factory()->create([
+            'viagem_id' => $carga->viagem_id,
+            'carga_id'  => $carga->id,
+            'tipo'      => 'nfe',
+            'status'    => 'cancelado',
+        ]);
+        Documento::factory()->create([
+            'viagem_id' => $carga->viagem_id,
+            'carga_id'  => $carga->id,
+            'tipo'      => 'outros',
+        ]);
+
+        Http::fake(['*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('cargas.emitir-cte', $carga));
+
+        Http::assertSent(function ($request) use ($notas) {
+            $chaves = array_column($request['nfes'], 'chave_nfe');
+
+            return str_contains($request->url(), '/v2/cte')
+                && count($chaves) === 5
+                && $notas->pluck('chave_acesso')->diff($chaves)->isEmpty();
+        });
+    }
+
+    public function test_emitir_cte_bloqueia_quando_nota_fiscal_esta_sem_chave_de_acesso(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $carga = Carga::factory()->create();
+
+        Documento::factory()->create([
+            'viagem_id'    => $carga->viagem_id,
+            'carga_id'     => $carga->id,
+            'tipo'         => 'nfe',
+            'chave_acesso' => null,
+        ]);
+
+        $response = $this->post(route('cargas.emitir-cte', $carga));
+
+        $response->assertStatus(422);
+        $this->assertSame(0, EmissaoFiscal::count());
+    }
+
     public function test_payload_do_cte_usa_cnpj_da_unidade_quando_a_carga_tem_uma(): void
     {
         $empresa = $this->ativarFocusNfeNaEmpresaDeTeste();
