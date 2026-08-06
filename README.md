@@ -114,7 +114,8 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Média de combustível (km/L) do período, a partir do total de KM rodado e litros abastecidos
 - Separação de saldo a pagar vs total já pago
 - **DRE simplificado** por período (Receita → Custos Diretos → Resultado Bruto → Despesas Operacionais → Resultado Líquido), considerando apenas viagens encerradas, com exportação em PDF
-- **Despesas Gerais**: cadastro de custos administrativos (aluguel, salários, contas, seguro etc.) que alimentam o DRE
+- **Despesas Gerais**: cadastro de custos administrativos (aluguel, salários, contas, seguro etc.) que alimentam o DRE; despesa pode ser vinculada a um veículo específico (seguro, IPVA, financiamento) para virar custo direto dele em vez de rateio
+- **Custo da Frota** (`/custo-frota`): custo operacional por km, veículo a veículo, comparado com a receita de frete — cruza combustível/manutenção de viagem, manutenção avulsa e despesas gerais (diretas + rateadas pelos dias em que cada veículo esteve ativo no período, não por km, para não penalizar o veículo mais produtivo). KPIs de custo médio da frota, % de custo fixo, veículo mais caro/mais eficiente, ranking por R$/km e gráfico de tendência custo x receita dos últimos 6 meses, com exportação CSV
 
 ### 🏢 Multi-tenant (Empresas)
 - Cada empresa cliente (transportadora) tem seus dados totalmente isolados dos de outra: motoristas, veículos, clientes, viagens, financeiro — tudo escopado automaticamente por empresa
