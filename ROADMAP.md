@@ -359,6 +359,7 @@ Veículos, Programação de Frota, Dashboard → Página Inicial):
 - **Upgrade/downgrade de plano self-service**: hoje trocar de plano depois de criada a empresa é manual (ajustar `limite_veiculos` e a assinatura no Asaas direto); um fluxo pela própria tela do admin é um passo natural depois que houver clientes reais pedindo isso
 - **Integração com rastreamento veicular (GPS)** para KM automático em vez de digitação manual
 - **Lembrete automático de MDF-e pendente de encerramento**: hoje só aparece quando alguém visita a viagem ou a tela `/emissoes-fiscais`; um lembrete proativo (e-mail/notificação) é natural depois que houver uso real
+- **Emissão de NF-e (ideia registrada, 2026-08-06)**: hoje o Invexa só referencia a NF-e (upload manual + vínculo da chave ao CT-e, ver seção "Emissão de CT-e/MDF-e"), nunca a emite — quem emite é o remetente da carga, normalmente não a transportadora. Faria sentido para o caso de uma transportadora que também vende/transporta produto próprio (remetente e transportadora são a mesma empresa). Diferente de CT-e/MDF-e, que reaproveitou dado que Viagem/Carga já tinha, NF-e exige modelar catálogo de produtos (NCM, CFOP, CST, alíquotas de ICMS/IPI/PIS/COFINS por item) — entra em domínio de ERP fiscal, não de TMS. Não priorizado até aparecer um cliente real desse perfil
 
 ---
 
