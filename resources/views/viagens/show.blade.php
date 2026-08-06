@@ -349,6 +349,11 @@
                         @if($carga->valor_frete)
                             — R$ {{ number_format($carga->valor_frete, 2, ',', '.') }}
                         @endif
+                        @if($carga->destino)
+                            <span class="badge bg-info bg-opacity-10 text-info ms-1">
+                                <i class="bi bi-geo-alt"></i> {{ $carga->destino }}/{{ $carga->destino_uf }}
+                            </span>
+                        @endif
                         @if($cteDaCarga)
                             <span class="badge bg-success ms-1">CT-e nº {{ $cteDaCarga->numero }}</span>
                         @endif
@@ -400,6 +405,26 @@
                                     </div>
                                     <div class="form-text">Usado no CT-e deste cliente — pode ser diferente do valor de frete da viagem inteira.</div>
                                 </div>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">Destino desta carga (opcional)</label>
+                                    <div class="row g-1">
+                                        <div class="col-4">
+                                            <select name="destino_uf" id="carga_destino_uf" class="form-select form-select-sm">
+                                                <option value="">UF</option>
+                                                @foreach(['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] as $uf)
+                                                <option value="{{ $uf }}">{{ $uf }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-8">
+                                            <select name="destino" id="carga_destino_cidade" class="form-select form-select-sm">
+                                                <option value="">Selecione a UF primeiro</option>
+                                            </select>
+                                            <input type="hidden" name="destino_codigo_municipio" id="carga_destino_codigo_municipio">
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Só preencha se esta carga entrega numa cidade diferente do destino da viagem ({{ $viagem->destino }}/{{ $viagem->destino_uf }}).</div>
+                                </div>
                                 @if($unidades->isNotEmpty())
                                 <div class="mb-2">
                                     <label class="form-label small fw-semibold">Unidade (Matriz/Filial)</label>
@@ -423,6 +448,37 @@
                     </div>
                 </div>
             </div>
+
+            @push('scripts')
+            <script>
+            (function () {
+                const ufSelect = document.getElementById('carga_destino_uf');
+                const cidadeSelect = document.getElementById('carga_destino_cidade');
+                const codigoInput = document.getElementById('carga_destino_codigo_municipio');
+                if (!ufSelect || !cidadeSelect || !codigoInput) return;
+
+                ufSelect.addEventListener('change', function () {
+                    if (!this.value) {
+                        cidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+                        codigoInput.value = '';
+                        return;
+                    }
+                    cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+                    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${this.value}/municipios`)
+                        .then(r => r.json())
+                        .then(municipios => {
+                            cidadeSelect.innerHTML = '<option value="">Selecione a cidade</option>' +
+                                municipios.map(m => `<option value="${m.nome}" data-codigo="${m.id}">${m.nome}</option>`).join('');
+                        })
+                        .catch(() => { cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>'; });
+                });
+
+                cidadeSelect.addEventListener('change', function () {
+                    codigoInput.value = this.selectedOptions[0]?.dataset.codigo || '';
+                });
+            })();
+            </script>
+            @endpush
 
             <div class="modal fade" id="modalEmitirMdfe" tabindex="-1">
                 <div class="modal-dialog">

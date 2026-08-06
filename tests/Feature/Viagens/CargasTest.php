@@ -73,6 +73,58 @@ class CargasTest extends TestCase
         ]);
     }
 
+    public function test_cria_carga_com_destino_proprio(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create(['destino' => 'São Paulo', 'destino_uf' => 'SP']);
+        $cliente = Cliente::factory()->create();
+
+        $response = $this->post(route('cargas.store', $viagem), [
+            'cliente_id'               => $cliente->id,
+            'destino'                  => 'Campinas',
+            'destino_uf'               => 'SP',
+            'destino_codigo_municipio' => '3509502',
+        ]);
+
+        $response->assertRedirect(route('viagens.show', $viagem));
+        $this->assertDatabaseHas('cargas', [
+            'viagem_id'                => $viagem->id,
+            'destino'                  => 'Campinas',
+            'destino_uf'               => 'SP',
+            'destino_codigo_municipio' => '3509502',
+        ]);
+    }
+
+    public function test_carga_sem_destino_proprio_usa_o_destino_da_viagem(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create([
+            'destino'                  => 'São Paulo',
+            'destino_uf'               => 'SP',
+            'destino_codigo_municipio' => '3550308',
+        ]);
+        $carga = Carga::factory()->create(['viagem_id' => $viagem->id]);
+
+        $this->assertSame('São Paulo', $carga->destino_efetivo);
+        $this->assertSame('SP', $carga->destino_uf_efetivo);
+        $this->assertSame('3550308', $carga->destino_codigo_municipio_efetivo);
+    }
+
+    public function test_carga_com_destino_proprio_nao_usa_o_da_viagem(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create(['destino' => 'São Paulo', 'destino_uf' => 'SP']);
+        $carga = Carga::factory()->create([
+            'viagem_id'                => $viagem->id,
+            'destino'                  => 'Campinas',
+            'destino_uf'               => 'SP',
+            'destino_codigo_municipio' => '3509502',
+        ]);
+
+        $this->assertSame('Campinas', $carga->destino_efetivo);
+        $this->assertSame('3509502', $carga->destino_codigo_municipio_efetivo);
+    }
+
     public function test_carga_herda_unidade_da_viagem_quando_nao_informada(): void
     {
         $this->actingAs(User::factory()->create());

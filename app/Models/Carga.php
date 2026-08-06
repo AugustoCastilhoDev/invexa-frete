@@ -17,6 +17,9 @@ class Carga extends Model
         'cliente_id',
         'unidade_id',
         'valor_frete',
+        'destino',
+        'destino_uf',
+        'destino_codigo_municipio',
     ];
 
     protected $casts = [
@@ -55,5 +58,23 @@ class Carga extends Model
     public function getNumeroFormatadoAttribute(): string
     {
         return '#' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
+    }
+
+    // Fracionado com destinos diferentes: quando a carga não tem cidade
+    // própria (caso comum, uma entrega só na viagem), usa o destino da
+    // Viagem — mesmo padrão de fallback já usado em unidade() pro CT-e.
+    public function getDestinoEfetivoAttribute(): ?string
+    {
+        return $this->destino ?? $this->viagem?->destino;
+    }
+
+    public function getDestinoUfEfetivoAttribute(): ?string
+    {
+        return $this->destino_uf ?? $this->viagem?->destino_uf;
+    }
+
+    public function getDestinoCodigoMunicipioEfetivoAttribute(): ?string
+    {
+        return $this->destino_codigo_municipio ?? $this->viagem?->destino_codigo_municipio;
     }
 }

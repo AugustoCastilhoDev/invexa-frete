@@ -11,9 +11,12 @@ class CargasController extends Controller
     public function store(Request $request, Viagem $viagem)
     {
         $dados = $request->validate([
-            'cliente_id'  => 'required|exists:clientes,id',
-            'unidade_id'  => 'nullable|exists:unidades,id',
-            'valor_frete' => 'nullable|numeric|min:0',
+            'cliente_id'                => 'required|exists:clientes,id',
+            'unidade_id'                => 'nullable|exists:unidades,id',
+            'valor_frete'               => 'nullable|numeric|min:0',
+            'destino'                   => 'nullable|string|max:255',
+            'destino_uf'                => 'nullable|string|max:2',
+            'destino_codigo_municipio'  => 'nullable|string|max:7',
         ]);
 
         $dados['viagem_id'] = $viagem->id;

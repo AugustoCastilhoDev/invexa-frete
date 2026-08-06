@@ -424,6 +424,56 @@ class EmissoesFiscaisTest extends TestCase
         $this->assertSame(0, EmissaoFiscal::count());
     }
 
+    public function test_payload_do_cte_usa_destino_proprio_da_carga_quando_diferente_do_da_viagem(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create([
+            'destino'                  => 'São Paulo',
+            'destino_uf'               => 'SP',
+            'destino_codigo_municipio' => '3550308',
+        ]);
+        $carga = Carga::factory()->create([
+            'viagem_id'                => $viagem->id,
+            'destino'                  => 'Campinas',
+            'destino_uf'               => 'SP',
+            'destino_codigo_municipio' => '3509502',
+        ]);
+
+        Http::fake(['*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('cargas.emitir-cte', $carga));
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/v2/cte')
+                && $request['municipio_fim'] === 'Campinas'
+                && $request['codigo_municipio_fim'] === '3509502'
+                && $request['uf_fim'] === 'SP';
+        });
+    }
+
+    public function test_payload_do_cte_usa_destino_da_viagem_quando_a_carga_nao_tem_destino_proprio(): void
+    {
+        $this->ativarFocusNfeNaEmpresaDeTeste();
+        $this->actingAs(User::factory()->create());
+        $viagem = Viagem::factory()->create([
+            'destino'                  => 'São Paulo',
+            'destino_uf'               => 'SP',
+            'destino_codigo_municipio' => '3550308',
+        ]);
+        $carga = Carga::factory()->create(['viagem_id' => $viagem->id]);
+
+        Http::fake(['*/v2/cte*' => Http::response(['status' => 'processando_autorizacao'], 202)]);
+
+        $this->post(route('cargas.emitir-cte', $carga));
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/v2/cte')
+                && $request['municipio_fim'] === 'São Paulo'
+                && $request['codigo_municipio_fim'] === '3550308';
+        });
+    }
+
     public function test_payload_do_cte_usa_cnpj_da_unidade_quando_a_carga_tem_uma(): void
     {
         $empresa = $this->ativarFocusNfeNaEmpresaDeTeste();
