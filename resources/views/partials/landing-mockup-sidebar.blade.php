@@ -22,6 +22,7 @@
         'Administração' => [
             ['icon' => 'bi-bar-chart-line', 'label' => 'Financeiro', 'key' => 'financeiro'],
             ['icon' => 'bi-clipboard-data', 'label' => 'Resultado Gerencial', 'key' => 'dre'],
+            ['icon' => 'bi-speedometer2', 'label' => 'Custo da Frota', 'key' => 'custo-frota'],
         ],
     ];
 @endphp

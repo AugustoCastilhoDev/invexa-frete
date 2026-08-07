@@ -206,27 +206,6 @@
         </div>
     </section>
 
-    {{-- ── Vídeo de demonstração ── --}}
-    <section style="padding:0 24px 80px">
-        <div class="mx-auto" style="max-width:820px">
-            <div class="text-center" style="max-width:620px; margin:0 auto 28px">
-                <h2 class="font-extrabold" style="font-size:1.6rem; color:#16213e">Veja o sistema em ação</h2>
-                <p class="text-muted" style="margin-top:8px">
-                    Um passeio rápido pelas principais telas do Invexa Frete.
-                </p>
-            </div>
-
-            <div class="invexa-mockup-frame rounded-4 bg-white" style="padding:10px">
-                <div class="ratio ratio-16x9 rounded-3 overflow-hidden">
-                    <iframe src="https://www.youtube-nocookie.com/embed/hcDeWR4BTeM"
-                            title="Demonstração do Invexa Frete"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowfullscreen style="border:0"></iframe>
-                </div>
-            </div>
-        </div>
-    </section>
-
     {{-- ── Demonstração (mockups ilustrativos do painel) ── --}}
     <section style="padding:0 24px 80px">
         <div class="mx-auto" style="max-width:980px">
@@ -249,6 +228,9 @@
                 </button>
                 <button type="button" class="invexa-mockup-tab" data-target="mockup-fiscal">
                     <i class="bi bi-file-earmark-check me-1"></i>CT-e/MDF-e
+                </button>
+                <button type="button" class="invexa-mockup-tab" data-target="mockup-custo-frota">
+                    <i class="bi bi-graph-up-arrow me-1"></i>Custo da Frota
                 </button>
                 <button type="button" class="invexa-mockup-tab" data-target="mockup-portal">
                     <i class="bi bi-phone me-1"></i>Portal do Motorista
@@ -595,6 +577,95 @@
                 </div>
             </div>
 
+            {{-- Painel: Custo da Frota --}}
+            <div id="mockup-custo-frota" class="invexa-mockup-panel">
+                <div class="invexa-mockup-frame rounded-4 bg-white overflow-hidden">
+                    <div class="d-flex align-items-center" style="gap:8px; padding:10px 16px; background:#eef0f3; border-bottom:1px solid #e2e5e9">
+                        <span style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+                        <span style="width:10px;height:10px;border-radius:50%;background:#febc2e;display:inline-block"></span>
+                        <span style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block"></span>
+                        <span class="mx-auto d-none d-sm-inline-block text-muted" style="font-size:.72rem; background:#fff; border:1px solid #e2e5e9; border-radius:6px; padding:3px 14px">
+                            <i class="bi bi-lock-fill me-1" style="font-size:.65rem"></i>app.invexafrete.com.br/custo-frota
+                        </span>
+                    </div>
+
+                    <div class="d-flex" style="min-height:420px">
+                        @include('partials.landing-mockup-sidebar', ['active' => 'custo-frota'])
+
+                        <div style="flex:1; padding:22px 24px; background:#fbfbfc; min-width:0">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap:8px; margin-bottom:16px">
+                                <span class="fw-bold" style="font-size:1.05rem; color:#16213e">Custo da Frota</span>
+                                <span class="text-muted" style="font-size:.75rem">Julho de 2026</span>
+                            </div>
+
+                            <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:20px">
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Custo médio da frota</div>
+                                    <div class="fw-bold" style="font-size:1.15rem; color:#3b82f6">R$ 3,42/km</div>
+                                </div>
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Custo fixo (direto+rateado)</div>
+                                    <div class="fw-bold" style="font-size:1.15rem; color:#f59e0b">27,4%</div>
+                                </div>
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Veículo mais caro</div>
+                                    <div class="fw-bold" style="font-size:1.15rem; color:#dc2626">R$ 4,18/km</div>
+                                </div>
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Veículo mais eficiente</div>
+                                    <div class="fw-bold" style="font-size:1.15rem; color:#10b981">R$ 2,71/km</div>
+                                </div>
+                            </div>
+
+                            <div class="text-muted fw-semibold" style="font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; margin-bottom:8px">Ranking por veículo — mais caro → mais barato</div>
+                            <div class="rounded-3" style="border:1px solid #eef0f3; overflow-x:auto">
+                                <table class="invexa-mockup-table" style="width:100%; border-collapse:collapse">
+                                    <thead>
+                                        <tr>
+                                            <th style="padding:8px 12px; text-align:left">Veículo</th>
+                                            <th style="padding:8px 12px; text-align:left">KM no período</th>
+                                            <th style="padding:8px 12px; text-align:left">R$/km</th>
+                                            <th style="padding:8px 12px; text-align:left">Receita/km</th>
+                                            <th style="padding:8px 12px; text-align:left">Margem/km</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            $custoFrotaLinhas = [
+                                                ['veiculo' => 'QWE-7788', 'km' => '4.120', 'custoKm' => '4,18', 'receitaKm' => '5,60', 'margemKm' => '+1,42', 'barra' => 100],
+                                                ['veiculo' => 'ABC-1234', 'km' => '5.860', 'custoKm' => '3,52', 'receitaKm' => '4,95', 'margemKm' => '+1,43', 'barra' => 84],
+                                                ['veiculo' => 'JKL-4521', 'km' => '3.340', 'custoKm' => '3,29', 'receitaKm' => '4,40', 'margemKm' => '+1,11', 'barra' => 79],
+                                                ['veiculo' => 'RTY-3345', 'km' => '6.010', 'custoKm' => '2,71', 'receitaKm' => '4,15', 'margemKm' => '+1,44', 'barra' => 65],
+                                            ];
+                                        @endphp
+                                        @foreach($custoFrotaLinhas as $i => $l)
+                                        <tr style="{{ $i > 0 ? 'border-top:1px solid #f1f3f5' : '' }}">
+                                            <td style="padding:9px 12px; font-weight:600; color:#16213e">{{ $l['veiculo'] }}</td>
+                                            <td style="padding:9px 12px">{{ $l['km'] }} km</td>
+                                            <td style="padding:9px 12px">
+                                                <div class="d-flex align-items-center" style="gap:8px">
+                                                    <div style="width:50px;height:6px;border-radius:3px;background:#eef0f3;overflow:hidden">
+                                                        <div style="height:100%;border-radius:3px;background:#2563eb;width:{{ $l['barra'] }}%"></div>
+                                                    </div>
+                                                    <span style="font-weight:600">{{ $l['custoKm'] }}</span>
+                                                </div>
+                                            </td>
+                                            <td style="padding:9px 12px">{{ $l['receitaKm'] }}</td>
+                                            <td style="padding:9px 12px; font-weight:600; color:#10b981">{{ $l['margemKm'] }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <p class="text-muted" style="font-size:.7rem; margin-top:12px">
+                                <i class="bi bi-graph-up me-1"></i>Gráfico de tendência custo x receita por km dos últimos 6 meses e exportação em CSV disponíveis na tela real.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Painel: Portal do Motorista --}}
             <div id="mockup-portal" class="invexa-mockup-panel">
                 <div class="invexa-phone-frame">
@@ -673,12 +744,14 @@
                     $recursos = [
                         ['icon' => 'bi-truck', 'titulo' => 'Gestão de Viagens', 'texto' => 'Do status Aberta até Encerrada, com lançamentos, descontos, adiantamento e assinatura digital do motorista no comprovante.'],
                         ['icon' => 'bi-bar-chart-line', 'titulo' => 'Financeiro & Resultado Gerencial', 'texto' => 'Relatórios por período, acertos por motorista, despesas gerais e resultado gerencial da operação — receita, custos e resultado líquido.'],
-                        ['icon' => 'bi-building-lock', 'titulo' => 'Multiempresa & Segurança', 'texto' => 'Cada transportadora com os dados totalmente isolados e criptografados, autenticação em dois fatores e mascaramento de CPF/CNH.'],
-                        ['icon' => 'bi-phone', 'titulo' => 'Portal do Motorista', 'texto' => 'O motorista acompanha as próprias viagens e lança combustível/manutenção com foto, direto do celular, sem instalar app.'],
-                        ['icon' => 'bi-file-earmark-check', 'titulo' => 'Documentos Fiscais', 'texto' => 'CT-e, MDF-e e NF-e com verificação de autenticidade direto no portal oficial da SEFAZ pela chave de acesso.'],
+                        ['icon' => 'bi-speedometer2', 'titulo' => 'Custo da Frota', 'texto' => 'Custo operacional por km, veículo a veículo, comparado com a receita de frete: ranking de R$/km, veículo mais caro/mais eficiente e tendência dos últimos 6 meses.'],
+                        ['icon' => 'bi-signpost-2', 'titulo' => 'Programação de Frota', 'texto' => 'Planeje motorista, veículo e cliente da próxima viagem antes de encerrar a atual, com paradas múltiplas — várias coletas e/ou entregas em cidades diferentes na mesma viagem.'],
+                        ['icon' => 'bi-file-earmark-check', 'titulo' => 'Documentos Fiscais', 'texto' => 'CT-e, MDF-e (com CIOT) e NF-e com verificação de autenticidade direto no portal oficial da SEFAZ pela chave de acesso.'],
                         ['icon' => 'bi-car-front', 'titulo' => 'Frota Completa', 'texto' => 'Veículos, manutenção preventiva/corretiva e conjunto cavalo + carreta contando como uma única unidade no plano.'],
-                        ['icon' => 'bi-signpost-2', 'titulo' => 'Programação de Frota', 'texto' => 'Planeje o motorista, veículo e cliente da próxima viagem antes de encerrar a atual — sem deixar veículo parado entre um frete e outro.'],
+                        ['icon' => 'bi-phone', 'titulo' => 'Portal do Motorista', 'texto' => 'O motorista acompanha as próprias viagens, inicia a viagem com o KM real do odômetro e lança combustível/manutenção com foto, direto do celular, sem instalar app.'],
                         ['icon' => 'bi-cash-coin', 'titulo' => 'Controle de Recebimento', 'texto' => 'Confirme o recebimento do frete do cliente com um clique, acompanhe pendências e exporte o relatório de contas a receber.'],
+                        ['icon' => 'bi-building-lock', 'titulo' => 'Multiempresa & Isolamento', 'texto' => 'Cada transportadora com os dados totalmente isolados, autenticação em dois fatores obrigatória para administradores e mascaramento de CPF/CNH.'],
+                        ['icon' => 'bi-shield-lock', 'titulo' => 'Segurança & LGPD', 'texto' => 'Dados sensíveis criptografados em repouso, backup diário automático fora do servidor, log de auditoria de tudo que muda e exportação completa dos seus dados a qualquer momento.'],
                     ];
                 @endphp
 

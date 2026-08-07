@@ -192,11 +192,11 @@ Desenvolvido em **Laravel 13 + PHP 8.3**, permite controlar todo o ciclo de uma 
 - Isolamento total: um motorista não acessa dados de outro, nem o painel administrativo
 
 ### 🌐 Landing Page
-- Página institucional pública na raiz (`/`) — hero, recursos, planos e preços, contato — visitante não autenticado vê a landing; quem já está logado (painel ou portal) é redirecionado direto para sua tela
-- Demonstração interativa em abas (Dashboard, Viagens, Acerto, Portal do Motorista): mockups ilustrativos em HTML/CSS com os dados e cores reais do sistema, sem depender de screenshots ou de dados de clientes
+- Página institucional pública na raiz (`/`) — hero, recursos, demonstração, planos e contato — visitante não autenticado vê a landing; quem já está logado (painel ou portal) é redirecionado direto para sua tela
+- Demonstração interativa em abas (Dashboard, Viagens, Acerto, CT-e/MDF-e, Custo da Frota, Portal do Motorista): mockups ilustrativos em HTML/CSS com os dados e cores reais do sistema, sem depender de vídeo, screenshots ou de dados de clientes
 - Acesso direto ao Portal do Motorista e ao login do painel no cabeçalho, ao lado do CTA "Falar com Vendas"
-- Tabela de planos com valores reais (mensal e anual) e CTA "Falar com Vendas" via WhatsApp, já com o nome do plano preenchido na mensagem
-- Grade de recursos com 8 cards, incluindo Programação de Frota e Controle de Recebimento; selo de confiança "Backup diário automático" ao lado de teste grátis, isolamento por empresa e conformidade com a LGPD
+- Sem tabela de preços pública — card único "Está interessado?" com CTA "Falar com Vendas" via WhatsApp, já com o nome do produto preenchido na mensagem (venda por contato manual, plano ajustado ao porte da frota)
+- Grade de recursos com 10 cards, incluindo Custo da Frota, Programação de Frota (paradas múltiplas), Controle de Recebimento e Segurança & LGPD; selo de confiança "Backup diário automático" ao lado de teste grátis, isolamento por empresa e conformidade com a LGPD
 
 ### 🌓 Painel responsivo e personalizável
 - Modo claro/escuro (alternância pelo card de usuário no sidebar), preferência salva no navegador

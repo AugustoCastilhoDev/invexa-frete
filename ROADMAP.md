@@ -275,13 +275,14 @@ financeiro.
 
 ### Landing Page
 - Página institucional pública na raiz (`/`), servida a visitantes; usuário/motorista autenticado que acessa `/` é redirecionado direto para o dashboard/portal, sem ver a landing
-- Seções: hero com CTA, recursos do sistema, demonstração interativa, planos e preços (Starter/Pro/Business/Enterprise, com destaque no plano mais escolhido), e contato
-- **Demonstração interativa** ("Veja como é por dentro"): abas clicáveis (Dashboard, Viagens, Acerto, Portal do Motorista) com mockups em HTML/CSS puro — sidebar, KPIs, tabelas e o mockup do Portal em formato de celular —, reaproveitando as cores/badges reais do sistema; usada no lugar de screenshots porque ainda não há dados reais de cliente suficientes para uma demo autêntica
+- Seções: hero com CTA, demonstração interativa, recursos do sistema, planos e contato
+- **Demonstração interativa** ("Veja como é por dentro"): abas clicáveis com mockups em HTML/CSS puro — sidebar, KPIs, tabelas e o mockup do Portal em formato de celular —, reaproveitando as cores/badges reais do sistema; usada no lugar de screenshots porque ainda não há dados reais de cliente suficientes para uma demo autêntica
 - Acesso direto ao Portal do Motorista no cabeçalho, ao lado de "Entrar" e "Falar com Vendas" (rótulo curto "Portal" no mobile, pra não espremer o botão de CTA)
-- Tabela de planos exibida com valores reais (mensal e anual), teto de veículos por plano e taxa de implantação — CTA "Falar com Vendas" leva ao WhatsApp com a mensagem já preenchida com o nome do plano
+- ~~Tabela de planos exibida com valores reais~~ — substituída por um card único "Está interessado?" com CTA "Falar com Vendas" (commit `db297f8`): valores mudam com frequência demais pra manter uma tabela pública sincronizada, e toda venda já passa por contato manual mesmo
 - Grade de recursos atualizada de 6 para 8 cards com a Programação de Frota e o Controle de Recebimento (as duas únicas novidades do dia com apelo comercial direto — 2FA, páginas legais e backup entraram como reforço de confiança, não como cards de recurso)
 - Selo "Backup diário automático" adicionado à linha de confiança do hero, ao lado de teste grátis, isolamento por empresa e LGPD
 - Sem cadastro self-service ainda: toda venda passa por contato manual (WhatsApp/e-mail); a empresa continua sendo criada pelo super admin na tela `/empresas` depois do primeiro contato
+- **Atualização 2026-08-07** — o sistema cresceu bastante desde a última revisão da LP (Custo da Frota, paradas múltiplas na Programação, CIOT, log de auditoria/exportação de dados/backup) e o vídeo de demonstração ficava incompleto perto disso: vídeo removido; nova aba "Custo da Frota" no mockup interativo (ranking de veículos por R$/km, mesmo dado que motivou a feature — feedback de um colega sobre falta de visibilidade de custo operacional); grade de recursos foi de 8 para 10 cards — Custo da Frota e Segurança & LGPD entraram como cards novos, Programação de Frota e Documentos Fiscais ganharam menção a paradas múltiplas/CIOT no texto
 
 ### Responsividade mobile do painel
 - Sidebar em off-canvas abaixo de 992px: escondida por padrão, abre com o botão de menu no topbar, fecha pelo X dentro dela ou tocando fora (overlay escurecido) — antes disso a sidebar de 250px fixos ocupava boa parte da tela em qualquer celular, deixando o conteúdo espremido e quebrado
