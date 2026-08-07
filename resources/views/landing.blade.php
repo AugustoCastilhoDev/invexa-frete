@@ -206,8 +206,10 @@
         </div>
     </section>
 
+    <div aria-hidden="true" style="height:64px; background:linear-gradient(180deg, #1a1a2e 0%, #f8f9fa 100%)"></div>
+
     {{-- ── Demonstração (mockups ilustrativos do painel) ── --}}
-    <section style="padding:0 24px 80px">
+    <section style="padding:48px 24px 80px">
         <div class="mx-auto" style="max-width:980px">
             <div class="text-center" style="max-width:620px; margin:0 auto 28px">
                 <h2 class="font-extrabold" style="font-size:1.6rem; color:#16213e">Veja como é por dentro</h2>
@@ -218,7 +220,7 @@
 
             <div class="invexa-mockup-tabs">
                 <button type="button" class="invexa-mockup-tab is-active" data-target="mockup-dashboard">
-                    <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                    <i class="bi bi-house-door me-1"></i>Página Inicial
                 </button>
                 <button type="button" class="invexa-mockup-tab" data-target="mockup-viagens">
                     <i class="bi bi-truck me-1"></i>Viagens
@@ -237,7 +239,7 @@
                 </button>
             </div>
 
-            {{-- Painel: Dashboard --}}
+            {{-- Painel: Página Inicial --}}
             <div id="mockup-dashboard" class="invexa-mockup-panel is-active">
                 <div class="invexa-mockup-frame rounded-4 bg-white overflow-hidden">
                     <div class="d-flex align-items-center" style="gap:8px; padding:10px 16px; background:#eef0f3; border-bottom:1px solid #e2e5e9">
@@ -254,50 +256,67 @@
 
                         <div style="flex:1; padding:22px 24px; background:#fbfbfc; min-width:0">
                             <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap:8px; margin-bottom:16px">
-                                <span class="fw-bold" style="font-size:1.05rem; color:#16213e">Dashboard</span>
+                                <span class="fw-bold" style="font-size:1.05rem; color:#16213e">Página Inicial</span>
                                 <span class="text-muted" style="font-size:.75rem">Julho de 2026</span>
                             </div>
 
-                            <div class="rounded-3" style="border:1px solid #fecaca; background:#fff; margin-bottom:18px">
+                            <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:10px">
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Em Aberto</div>
+                                    <div class="fw-bold" style="font-size:1.3rem; color:#3b82f6">8</div>
+                                </div>
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Viagem Iniciada</div>
+                                    <div class="fw-bold" style="font-size:1.3rem; color:#f59e0b">14</div>
+                                </div>
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Aguard. Acerto</div>
+                                    <div class="fw-bold" style="font-size:1.3rem; color:#8b5cf6">5</div>
+                                </div>
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Encerradas no Mês</div>
+                                    <div class="fw-bold" style="font-size:1.3rem; color:#10b981">42</div>
+                                </div>
+                            </div>
+
+                            <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:18px">
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Frota / Motoristas</div>
+                                    <div class="fw-bold" style="font-size:1.1rem; color:#495057">18<span class="text-muted" style="font-size:.75rem">/24</span></div>
+                                </div>
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem">Veículos Programados</div>
+                                    <div class="fw-bold" style="font-size:1.3rem; color:#3b82f6">11</div>
+                                </div>
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem"><i class="bi bi-exclamation-triangle" style="font-size:.65rem"></i> Sem Próxima Viagem</div>
+                                    <div class="fw-bold" style="font-size:1.3rem; color:#f59e0b">3</div>
+                                </div>
+                                <div class="invexa-mockup-kpi">
+                                    <div class="text-muted" style="font-size:.7rem"><i class="bi bi-clock-history" style="font-size:.65rem"></i> Risco de No-Show</div>
+                                    <div class="fw-bold" style="font-size:1.3rem; color:#dc2626">1</div>
+                                </div>
+                            </div>
+
+                            <div class="rounded-3" style="border:1px solid #fecaca; background:#fff; margin-bottom:20px">
                                 <div class="d-flex align-items-center justify-content-between" style="padding:10px 14px; border-bottom:1px solid #fef2f2">
                                     <span class="fw-semibold" style="font-size:.78rem; color:#16213e"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Pendências</span>
-                                    <span class="badge rounded-pill text-white" style="background:#dc2626; font-size:.65rem">4</span>
+                                    <span class="badge rounded-pill text-white" style="background:#dc2626; font-size:.65rem">3</span>
                                 </div>
                                 <div class="d-flex flex-wrap" style="gap:0">
                                     @php
                                         $pendenciasDemo = [
-                                            ['icon' => 'bi-person-badge', 'label' => 'CNH vencendo', 'valor' => '1'],
-                                            ['icon' => 'bi-car-front', 'label' => 'Em manutenção', 'valor' => '1'],
-                                            ['icon' => 'bi-file-earmark-text', 'label' => 'Docs. fiscais pendentes', 'valor' => '2'],
-                                            ['icon' => 'bi-tools', 'label' => 'Manut. preventiva vencendo', 'valor' => '0'],
+                                            ['icon' => 'bi-person-badge', 'label' => 'CNH a vencer', 'valor' => '1'],
+                                            ['icon' => 'bi-file-earmark-text', 'label' => 'Documentos fiscais pendentes', 'valor' => '2'],
                                         ];
                                     @endphp
                                     @foreach($pendenciasDemo as $i => $p)
-                                    <div style="flex:1 1 130px; padding:10px 14px; {{ $i > 0 ? 'border-left:1px solid #f1f3f5' : '' }}">
+                                    <div style="flex:1 1 160px; padding:10px 14px; {{ $i > 0 ? 'border-left:1px solid #f1f3f5' : '' }}">
                                         <i class="bi {{ $p['icon'] }} text-muted" style="font-size:.85rem"></i>
                                         <div class="fw-bold" style="font-size:1rem; color:#16213e">{{ $p['valor'] }}</div>
                                         <div class="text-muted" style="font-size:.66rem">{{ $p['label'] }}</div>
                                     </div>
                                     @endforeach
-                                </div>
-                            </div>
-
-                            <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:20px">
-                                <div class="invexa-mockup-kpi">
-                                    <div class="text-muted" style="font-size:.7rem">Abertas</div>
-                                    <div class="fw-bold" style="font-size:1.3rem; color:#3b82f6">8</div>
-                                </div>
-                                <div class="invexa-mockup-kpi">
-                                    <div class="text-muted" style="font-size:.7rem">Em andamento</div>
-                                    <div class="fw-bold" style="font-size:1.3rem; color:#f59e0b">14</div>
-                                </div>
-                                <div class="invexa-mockup-kpi">
-                                    <div class="text-muted" style="font-size:.7rem">Aguard. acerto</div>
-                                    <div class="fw-bold" style="font-size:1.3rem; color:#8b5cf6">5</div>
-                                </div>
-                                <div class="invexa-mockup-kpi">
-                                    <div class="text-muted" style="font-size:.7rem">Encerradas no mês</div>
-                                    <div class="fw-bold" style="font-size:1.3rem; color:#10b981">42</div>
                                 </div>
                             </div>
 

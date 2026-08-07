@@ -4,7 +4,7 @@
 @php
     $mockupSecoes = [
         'Principal' => [
-            ['icon' => 'bi-speedometer2', 'label' => 'Dashboard', 'key' => 'dashboard'],
+            ['icon' => 'bi-house-door', 'label' => 'Página Inicial', 'key' => 'dashboard'],
             ['icon' => 'bi-truck', 'label' => 'Viagens', 'key' => 'viagens'],
             ['icon' => 'bi-signpost-2', 'label' => 'Programação de Frota', 'key' => 'programacao'],
             ['icon' => 'bi-person-check', 'label' => 'Acertos', 'key' => 'acertos'],
